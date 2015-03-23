@@ -1,25 +1,25 @@
 #include "stm32f10x.h"
 #define SPI1_CS_High GPIO_SetBits(GPIOA, GPIO_Pin_3)
-#define SPI1_CS_Low GPIO_ResetBits(GPIOA, GPIO_Pin_3) 
-/*ÅäÖÃSPI1ÎªË«ÏòÈ«Ë«¹¤£¬Ö÷»úÄ£Ê½£¬8bit£¬Ê±ÖÓ4·ÖÆµ*/
+#define SPI1_CS_Low GPIO_ResetBits(GPIOA, GPIO_Pin_3)
+/*é…ç½®SPI1ä¸ºåŒå‘å…¨åŒå·¥ï¼Œä¸»æœºæ¨¡å¼ï¼Œ8bitï¼Œæ—¶é’Ÿ4åˆ†é¢‘*/
 void SPI1_init(void)
 {
 	SPI_InitTypeDef SPI1_conf;
 	GPIO_InitTypeDef GPIO_conf;
 
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1|RCC_APB2Periph_GPIOA|RCC_APB2Periph_AFIO,ENABLE);  // GPIOA,SPI1,IO¸´ÓÃÊ±ÖÓ´ò¿ª 
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1|RCC_APB2Periph_GPIOA|RCC_APB2Periph_AFIO,ENABLE);  // GPIOA,SPI1,IOå¤ç”¨æ—¶é’Ÿæ‰“å¼€
 
-	GPIO_conf.GPIO_Pin=GPIO_Pin_5|GPIO_Pin_6|GPIO_Pin_7; //MISO,MOSI,SCKÎª¸´ÓÃÍÆÍìÊä³ö
-	GPIO_conf.GPIO_Speed=GPIO_Speed_50MHz; 
+	GPIO_conf.GPIO_Pin=GPIO_Pin_5|GPIO_Pin_6|GPIO_Pin_7; //MISO,MOSI,SCKä¸ºå¤ç”¨æ¨æŒ½è¾“å‡º
+	GPIO_conf.GPIO_Speed=GPIO_Speed_50MHz;
 	GPIO_conf.GPIO_Mode=GPIO_Mode_AF_PP;
 	GPIO_Init(GPIOA, &GPIO_conf);
 
-	GPIO_conf.GPIO_Pin=GPIO_Pin_3; //NSSÎªIOÍÆÍìÊä³ö
+	GPIO_conf.GPIO_Pin=GPIO_Pin_3; //NSSä¸ºIOæ¨æŒ½è¾“å‡º
 	GPIO_conf.GPIO_Mode=GPIO_Mode_Out_PP;
 	GPIO_Init(GPIOA, &GPIO_conf);
 
-	
-	///////////////////////ÉèÖÃ///////////////////////////////////
+
+	///////////////////////è®¾ç½®///////////////////////////////////
 	SPI1_conf.SPI_Direction=SPI_Direction_2Lines_FullDuplex;
 	SPI1_conf.SPI_Mode=SPI_Mode_Master;
 	SPI1_conf.SPI_DataSize=SPI_DataSize_8b;
@@ -29,18 +29,18 @@ void SPI1_init(void)
 	SPI1_conf.SPI_BaudRatePrescaler=SPI_BaudRatePrescaler_4;
 	SPI1_conf.SPI_FirstBit=SPI_FirstBit_MSB;
 	SPI1_conf.SPI_CRCPolynomial=7;
-	SPI_Init(SPI1,&SPI1_conf); 
-	
+	SPI_Init(SPI1,&SPI1_conf);
+
 	SPI_Cmd(SPI1, ENABLE);
 
-	SPI1_CS_High;   //Æ¬Ñ¡ÖÃ¸ß
-	printf("SPI³õÊ¼»¯\t\tÍê³É\r\n");
+	SPI1_CS_High;   //ç‰‡é€‰ç½®é«˜
+	printf("SPIåˆå§‹åŒ–\t\tå®Œæˆ\r\n");
 	////////////////////////////////////////////////////////////////
 }
 /*
-Í¨¹ıSPI·¢ËÍ£¬²¢ÇÒ½ÓÊÜµ½Ò»¸ö×Ö½ÚµÄÊı¾İ
-data£º·¢ËÍÊı¾İµÄ´æ·ÅÖ¸Õë
-·µ»ØÖµ£º¶ÁÈ¡µÄÊı¾İ
+é€šè¿‡SPIå‘é€ï¼Œå¹¶ä¸”æ¥å—åˆ°ä¸€ä¸ªå­—èŠ‚çš„æ•°æ®
+dataï¼šå‘é€æ•°æ®çš„å­˜æ”¾æŒ‡é’ˆ
+è¿”å›å€¼ï¼šè¯»å–çš„æ•°æ®
 */
 u8 SPI_send_and_receive_byte(u8 *data)
 {
@@ -50,85 +50,85 @@ u8 SPI_send_and_receive_byte(u8 *data)
 	return SPI_I2S_ReceiveData(SPI1);
 }
 /*
-¶ÔDW1000Ğ¾Æ¬Ğ´ÈëÊı¾İ
-addr:¼Ä´æÆ÷µØÖ·
-offset_index:Æ«ÒÆÁ¿
-data:ÒªĞ´ÈëÊı¾İµÄÊ×µØÖ·
-length£ºĞ´ÈëÊı¾İµÄ³¤¶È
+å¯¹DW1000èŠ¯ç‰‡å†™å…¥æ•°æ®
+addr:å¯„å­˜å™¨åœ°å€
+offset_index:åç§»é‡
+data:è¦å†™å…¥æ•°æ®çš„é¦–åœ°å€
+lengthï¼šå†™å…¥æ•°æ®çš„é•¿åº¦
 */
 void Write_DW1000(u8 addr,u16 offset_index,u8 *data,u16 length)
 {
 	u8 SPI_send_and_receive_byte(u8 *data) ;
 	u16 i;
 	u8 tmp;
-   	SPI1_CS_Low;
+	SPI1_CS_Low;
 	if(offset_index==0x00)
 	{
 		tmp=addr|0x80;
-		SPI_send_and_receive_byte(&tmp);		
+		SPI_send_and_receive_byte(&tmp);
 	}
 	else if(offset_index<=0x007f)
 	{
 		tmp=addr|0xC0;
 		SPI_send_and_receive_byte(&tmp);
-		tmp=offset_index;	
-		SPI_send_and_receive_byte(&tmp);	
+		tmp=offset_index;
+		SPI_send_and_receive_byte(&tmp);
 	}
-	else 
+	else
 	{
 		tmp=addr|0xC0;
 		SPI_send_and_receive_byte(&tmp);
 		tmp=offset_index;
 		tmp|=0x80;
 		SPI_send_and_receive_byte(&tmp);
-		tmp=offset_index>>7;	
-		SPI_send_and_receive_byte(&tmp);		
+		tmp=offset_index>>7;
+		SPI_send_and_receive_byte(&tmp);
 	}
 	for(i=0;i<length;i++)
 	{
-		SPI_send_and_receive_byte(data++);	
+		SPI_send_and_receive_byte(data++);
 	}
 	SPI1_CS_High;
 }
 /*
-´ÓDW1000Ğ¾Æ¬¶Á³öÊı¾İ
-addr:¼Ä´æÆ÷µØÖ·
-offset_index:Æ«ÒÆÁ¿
-data:´æ·Å¶Á³öÊı¾İµÄÊ×µØÖ·
-length£º¶Á³öÊı¾İµÄ³¤¶È
+ä»DW1000èŠ¯ç‰‡è¯»å‡ºæ•°æ®
+addr:å¯„å­˜å™¨åœ°å€
+offset_index:åç§»é‡
+data:å­˜æ”¾è¯»å‡ºæ•°æ®çš„é¦–åœ°å€
+lengthï¼šè¯»å‡ºæ•°æ®çš„é•¿åº¦
 */
 void Read_DW1000(u8 addr,u16 offset_index,u8 *data,u16 length)
 {
 u8 SPI_send_and_receive_byte(u8 *data) ;
 	u16 i;
 	u8 tmp;
-   	SPI1_CS_Low;
+	SPI1_CS_Low;
 	if(offset_index==0x00)
 	{
-		SPI_send_and_receive_byte(&addr);		
+		SPI_send_and_receive_byte(&addr);
 	}
 	else if(offset_index<=0x007f)
 	{
 		tmp=addr|0x40;
 		SPI_send_and_receive_byte(&tmp);
-		tmp=offset_index;	
-		SPI_send_and_receive_byte(&tmp);	
+		tmp=offset_index;
+		SPI_send_and_receive_byte(&tmp);
 	}
-	else 
+	else
 	{
 		tmp=addr|0x40;
 		SPI_send_and_receive_byte(&tmp);
 		tmp=offset_index;
 		tmp|=0x80;
 		SPI_send_and_receive_byte(&tmp);
-		tmp=offset_index>>7;	
-		SPI_send_and_receive_byte(&tmp);		
+		tmp=offset_index>>7;
+		SPI_send_and_receive_byte(&tmp);
 	}
 	tmp=0xff;
 	for(i=0;i<length;i++)
 	{
 		*data=SPI_send_and_receive_byte(&tmp);
-		data++;	
+		data++;
 	}
 	SPI1_CS_High;
 }

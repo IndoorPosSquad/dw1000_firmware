@@ -14,8 +14,8 @@ float distance1;
 
 u8 Sequence_Number=0x00;
 extern u8 distance_flag;
-u32 time_offset=0; //µç´Å²¨´«²¥Ê±¼äµ÷Õû
-u8 speed_offset=0; //µç´Å²¨´«²¥ËÙ¶Èµ÷Õû
+u32 time_offset=0; //ç”µç£æ³¢ä¼ æ’­æ—¶é—´è°ƒæ•´
+u8 speed_offset=0; //ç”µç£æ³¢ä¼ æ’­é€Ÿåº¦è°ƒæ•´
 u32 Tx_stp_L;
 u8 Tx_stp_H;
 u32 Rx_stp_L;
@@ -38,187 +38,188 @@ u16 rxpacc;
 double fppl;
 double rxl;
 /*
-DW1000³õÊ¼»¯
+DW1000åˆå§‹åŒ–
 */
 
 
 float sgn(float x) { return x >= 0 ? 1.0 : -1.0; }
 
-void solve_2d(float reciever[2][2], float pseudolites[2][2], float pranges1, float pranges2) {
-volatile float origin[2];
-volatile float len;
-volatile float tan_theta;
-volatile float sin_theta;
-volatile float cos_theta;
-volatile float d1;
-volatile float h1;
-volatile float invrotation[2][2];
-volatile float pranges[2];
+void solve_2d(float reciever[2][2], float pseudolites[2][2], float pranges1, float pranges2)
+{
+	volatile float origin[2];
+	volatile float len;
+	volatile float tan_theta;
+	volatile float sin_theta;
+	volatile float cos_theta;
+	volatile float d1;
+	volatile float h1;
+	volatile float invrotation[2][2];
+	volatile float pranges[2];
 
-  printf("\nPseudolites\n%f %f %f %f\n", pseudolites[0][0], pseudolites[0][1], pseudolites[1][0], pseudolites[1][1]);
-  printf("\npr1 %f pr2 %f\n", pranges1, pranges2);
+	printf("\nPseudolites\n%f %f %f %f\n", pseudolites[0][0], pseudolites[0][1], pseudolites[1][0], pseudolites[1][1]);
+	printf("\npr1 %f pr2 %f\n", pranges1, pranges2);
 
-  pranges[0] = pranges1;
-  pranges[1] = pranges2;
+	pranges[0] = pranges1;
+	pranges[1] = pranges2;
 
-  origin[0] = pseudolites[0][0];
-  origin[1] = pseudolites[0][1];
+	origin[0] = pseudolites[0][0];
+	origin[1] = pseudolites[0][1];
 
-  pseudolites[0][0] = 0;
-  pseudolites[0][1] = 0;
-  pseudolites[1][0] = pseudolites[1][0] - origin[0];
-  pseudolites[1][1] = pseudolites[1][1] - origin[1];
+	pseudolites[0][0] = 0;
+	pseudolites[0][1] = 0;
+	pseudolites[1][0] = pseudolites[1][0] - origin[0];
+	pseudolites[1][1] = pseudolites[1][1] - origin[1];
 
-  len = sqrt(pow(pseudolites[1][0], 2) + pow(pseudolites[1][1], 2));
+	len = sqrt(pow(pseudolites[1][0], 2) + pow(pseudolites[1][1], 2));
 
-  tan_theta = pseudolites[1][1] / pseudolites[1][0];
-  cos_theta = sgn(pseudolites[1][0]) / sqrt(pow(tan_theta, 2) + 1);
-  sin_theta = sgn(pseudolites[1][1]) * fabs(tan_theta) / sqrt(pow(tan_theta, 2) + 1);
+	tan_theta = pseudolites[1][1] / pseudolites[1][0];
+	cos_theta = sgn(pseudolites[1][0]) / sqrt(pow(tan_theta, 2) + 1);
+	sin_theta = sgn(pseudolites[1][1]) * fabs(tan_theta) / sqrt(pow(tan_theta, 2) + 1);
 
-  invrotation[0][0] = cos_theta;
-  invrotation[0][1] = -sin_theta;
-  invrotation[1][0] = sin_theta;
-  invrotation[1][1] = cos_theta;
+	invrotation[0][0] = cos_theta;
+	invrotation[0][1] = -sin_theta;
+	invrotation[1][0] = sin_theta;
+	invrotation[1][1] = cos_theta;
 
-  d1 = ((pow(pranges[0], 2) - pow(pranges[1], 2)) / len + len) / 2;
+	d1 = ((pow(pranges[0], 2) - pow(pranges[1], 2)) / len + len) / 2;
 
-  h1 = sqrt(pow(pranges[0], 2) - pow(d1, 2));
+	h1 = sqrt(pow(pranges[0], 2) - pow(d1, 2));
 
-  reciever[0][0] = d1;
-  reciever[0][1] = h1;
-  reciever[1][0] = d1;
-  reciever[1][1] = -h1;
- 
-  reciever[0][0] = invrotation[0][0] * d1 + invrotation[0][1] * h1;
-  reciever[0][1] = invrotation[1][0] * d1 + invrotation[1][1] * h1;
-  reciever[0][0] += origin[0];
-  reciever[0][1] += origin[1];
+	reciever[0][0] = d1;
+	reciever[0][1] = h1;
+	reciever[1][0] = d1;
+	reciever[1][1] = -h1;
 
-  reciever[1][0] = invrotation[0][0] * d1 + invrotation[0][1] * -h1;
-  reciever[1][1] = invrotation[1][0] * d1 + invrotation[1][1] * -h1;
-  reciever[1][0] += origin[0];
-  reciever[1][1] += origin[1];
+	reciever[0][0] = invrotation[0][0] * d1 + invrotation[0][1] * h1;
+	reciever[0][1] = invrotation[1][0] * d1 + invrotation[1][1] * h1;
+	reciever[0][0] += origin[0];
+	reciever[0][1] += origin[1];
+
+	reciever[1][0] = invrotation[0][0] * d1 + invrotation[0][1] * -h1;
+	reciever[1][1] = invrotation[1][0] * d1 + invrotation[1][1] * -h1;
+	reciever[1][0] += origin[0];
+	reciever[1][1] += origin[1];
 }
 
 void DW1000_init(void)
 {
 	u32 tmp;
-	////////////////////¹¤×÷Ä£Ê½ÅäÖÃ////////////////////////
-	//AGC_TUNE1	£ºÉèÖÃÎª16 MHz PRF
+	////////////////////å·¥ä½œæ¨¡å¼é…ç½®////////////////////////
+	//AGC_TUNE1 ï¼šè®¾ç½®ä¸º16 MHz PRF
 	tmp=0x00008870;
 	Write_DW1000(0x23,0x04,(u8 *)(&tmp),2);
-	//AGC_TUNE2	 £º²»ÖªµÀ¸ÉÉ¶ÓÃ£¬¼¼ÊõÊÖ²áÃ÷È·¹æ¶¨ÒªĞ´0x2502A907
+	//AGC_TUNE2 ï¼šä¸çŸ¥é“å¹²å•¥ç”¨ï¼ŒæŠ€æœ¯æ‰‹å†Œæ˜ç¡®è§„å®šè¦å†™0x2502A907
 	tmp=0x2502A907;
-	Write_DW1000(0x23,0x0C,(u8 *)(&tmp),4);	
-	//DRX_TUNE2£ºÅäÖÃÎªPAC size 8£¬16 MHz PRF
+	Write_DW1000(0x23,0x0C,(u8 *)(&tmp),4);
+	//DRX_TUNE2ï¼šé…ç½®ä¸ºPAC size 8ï¼Œ16 MHz PRF
 	tmp=0x311A002D;
 	Write_DW1000(0x27,0x08,(u8 *)(&tmp),4);
-	//NSTDEV  £ºLDE¶à¾¶¸ÉÈÅÏû³ıËã·¨µÄÏà¹ØÅäÖÃ
+	//NSTDEV ï¼šLDEå¤šå¾„å¹²æ‰°æ¶ˆé™¤ç®—æ³•çš„ç›¸å…³é…ç½®
 	tmp=0x0000006D;
 	Write_DW1000(0x2E,0x0806,(u8 *)(&tmp),1);
-	//LDE_CFG2	£º½«LDEËã·¨ÅäÖÃÎªÊÊÓ¦16MHz PRF»·¾³
+	//LDE_CFG2 ï¼šå°†LDEç®—æ³•é…ç½®ä¸ºé€‚åº”16MHz PRFç¯å¢ƒ
 	tmp=0x00001607;
 	Write_DW1000(0x2E,0x1806,(u8 *)(&tmp),2);
-	//TX_POWER	 £º½«·¢ËÍ¹¦ÂÊÅäÖÃÎª16 MHz,ÖÇÄÜ¹¦ÂÊµ÷ÕûÄ£Ê½ 
+	//TX_POWER ï¼šå°†å‘é€åŠŸç‡é…ç½®ä¸º16 MHz,æ™ºèƒ½åŠŸç‡è°ƒæ•´æ¨¡å¼
 	tmp=0x0E082848;
 	Write_DW1000(0x1E,0x00,(u8 *)(&tmp),4);
-	//RF_TXCTRL	 £ºÑ¡Ôñ·¢ËÍÍ¨µÀ5
+	//RF_TXCTRL ï¼šé€‰æ‹©å‘é€é€šé“5
 	tmp=0x001E3FE0;
 	Write_DW1000(0x28,0x0C,(u8 *)(&tmp),4);
-	//TC_PGDELAY£ºÂö³å²úÉúÑÓÊ±ÉèÖÃÎªÊÊÓ¦ÆµµÀ5
+	//TC_PGDELAY ï¼šè„‰å†²äº§ç”Ÿå»¶æ—¶è®¾ç½®ä¸ºé€‚åº”é¢‘é“5
 	tmp=0x000000C0;
 	Write_DW1000(0x2A,0x0B,(u8 *)(&tmp),1);
-	//FS_PLLTUNE   £ºPPLÉèÖÃÎªÊÊÓ¦ÆµµÀ5
+	//FS_PLLTUNE ï¼šPPLè®¾ç½®ä¸ºé€‚åº”é¢‘é“5
 	tmp=0x000000A6;
 	Write_DW1000(0x2B,0x0B,(u8 *)(&tmp),1);
-	/////////////////////Ê¹ÓÃ¹¦ÄÜÅäÖÃ/////////////////////////
-	//local address	£ºĞ´Èë±¾»úµØÖ·£¨PAN_ID ºÍ±¾»ú¶ÌµØÖ·£©
+	/////////////////////ä½¿ç”¨åŠŸèƒ½é…ç½®/////////////////////////
+	//local address ï¼šå†™å…¥æœ¬æœºåœ°å€ï¼ˆPAN_ID å’Œæœ¬æœºçŸ­åœ°å€ï¼‰
 	tmp=PANIDS[toggle];
-	tmp=(tmp<<16)+_TX_sADDR; 	
-	Write_DW1000(0x03,0x00,(u8 *)(&tmp),4);  	  
-	//re-enable	  auto ack	 Frame Filter £º¿ªÆô½ÓÊÕ×Ô¶¯ÖØÆô¹¦ÄÜ¡¢×Ô¶¯Ó¦´ğ¹¦ÄÜ¡¢Ö¡¹ıÂË¹¦ÄÜ
+	tmp=(tmp<<16)+_TX_sADDR;
+	Write_DW1000(0x03,0x00,(u8 *)(&tmp),4);
+	//re-enable auto ack Frame Filter ï¼šå¼€å¯æ¥æ”¶è‡ªåŠ¨é‡å¯åŠŸèƒ½ã€è‡ªåŠ¨åº”ç­”åŠŸèƒ½ã€å¸§è¿‡æ»¤åŠŸèƒ½
 	tmp=0x200011FD;
 	Write_DW1000(0x04,0x00,(u8 *)(&tmp),4);
-	//  test pin SYNC£ºÓÃÓÚ²âÊÔµÄLEDµÆÒı½Å³õÊ¼»¯£¬SYNCÒı½Å½ûÓÃ	
+	// test pin SYNCï¼šç”¨äºæµ‹è¯•çš„LEDç¯å¼•è„šåˆå§‹åŒ–ï¼ŒSYNCå¼•è„šç¦ç”¨
 	tmp=0x00101540;
 	Write_DW1000(0x26,0x00,(u8 *)(&tmp),2);
 	tmp=0x01;
 	Write_DW1000(0x36,0x28,(u8 *)(&tmp),1);
-	// interrupt   £ºÖĞ¶Ï¹¦ÄÜÑ¡Ôñ£¨Ö»¿ªÆôÊÕ·¢³É¹¦ÖĞ¶Ï£©
+	// interrupt   ï¼šä¸­æ–­åŠŸèƒ½é€‰æ‹©ï¼ˆåªå¼€å¯æ”¶å‘æˆåŠŸä¸­æ–­ï¼‰
 	tmp=0x00006080;
 	Write_DW1000(0x0E,0x00,(u8 *)(&tmp),2);
-	// ackµÈ´ı
+	// ackç­‰å¾…
 	tmp=3;
 	Write_DW1000(0x1A,0x03,(u8 *)(&tmp),1);
 
-	printf("¶¨Î»Ğ¾Æ¬ÅäÖÃ\t\tÍê³É\r\n");	
+	printf("å®šä½èŠ¯ç‰‡é…ç½®\t\tå®Œæˆ\r\n");
 }
 /*
-ÉêÇë¶¨Î»
+ç”³è¯·å®šä½
 */
-void Location_polling(void)	 //·¢ËÍ¶¨Î»Ö¡
+void Location_polling(void)	 //å‘é€å®šä½å¸§
 {
 	u8 tmp;
-									
+
 	distance_flag=0;
-	//µØÖ·£º·´Õı£¡£¡ £¨µÍ×Ö½ÚÔÚÇ° µ¥×Ö½ÚÕı³£Ğ´Èë£©
+	//åœ°å€ï¼šåæ­£ï¼ï¼ ï¼ˆä½å­—èŠ‚åœ¨å‰ å•å­—èŠ‚æ­£å¸¸å†™å…¥ï¼‰
 	Tx_Buff[0]=0x41;
 	Tx_Buff[1]=0x88;
-	Tx_Buff[2]=Sequence_Number++;	                //¼ÆÊıµÚ¼¸¸öĞòÁĞ
+	Tx_Buff[2]=Sequence_Number++; //è®¡æ•°ç¬¬å‡ ä¸ªåºåˆ—
 	Tx_Buff[4]=PANIDS[toggle]>>8;
-   	Tx_Buff[3]=(0x74);//MAC_maker((u8)_PAN_ID);
+	Tx_Buff[3]=(0x74);//MAC_maker((u8)_PAN_ID);
 	Tx_Buff[6]=(0x20);//MAC_maker((u8)(_RX_sADDR>>8));
 	Tx_Buff[5]=(0x15);//MAC_maker((u8)_RX_sADDR);
 	Tx_Buff[8]=0x20;//MAC_maker((u8)(_TX_sADDR>>8));
 	Tx_Buff[7]=0x14;//MAC_maker((u8)_TX_sADDR);
-   	Tx_Buff[9]=_POLLING_FLAG;
+	Tx_Buff[9]=_POLLING_FLAG;
 	Tx_Buff[10]=0x12;
 	Tx_Buff[11]=0x34;
-	
+
 	to_IDLE();
 	Write_DW1000(0x09,0x00,Tx_Buff,12);
 	tmp=14;
-	Write_DW1000(0x08,0x00,&tmp,1);		//ÉèÖÃ³¤¶È
+	Write_DW1000(0x08,0x00,&tmp,1);		//è®¾ç½®é•¿åº¦
 	//Read_DW1000(0x08,0x00,&tmp,1);
 	//printf("%2x\r\n",tmp);
-	tmp=0x82;						//·¢ËÍÍê³ÉºóÁ¢¼´×ª±äÎª½ÓÊÕ×´Ì¬
+	tmp=0x82;						//å‘é€å®Œæˆåç«‹å³è½¬å˜ä¸ºæ¥æ”¶çŠ¶æ€
 	Write_DW1000(0x0D,0x00,&tmp,1);
 
-	//¿ªÆô¼ÆÊıÆ÷TIM3
-	TIM_ClearFlag(TIM3, TIM_FLAG_Update);					    		
-    TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE);
+	//å¼€å¯è®¡æ•°å™¨TIM3
+	TIM_ClearFlag(TIM3, TIM_FLAG_Update);
+	TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE);
 	TIM_Cmd(TIM3, ENABLE);
-	
+
 }
 /*
-´ò¿ª½ÓÊÕÄ£Ê½
+æ‰“å¼€æ¥æ”¶æ¨¡å¼
 */
 void RX_mode_enable(void)
 {
 	u16 tmp;
 	tmp=0x00;
-	Write_DW1000(0x36,0x06,(u8 *)(&tmp),1);	
+	Write_DW1000(0x36,0x06,(u8 *)(&tmp),1);
 	//ROM TO RAM
-	 //LDE LOAD=1
+	//LDE LOAD=1
 	tmp=0x8000;
-	Write_DW1000(0x2D,0x06,(u8 *)(&tmp),2);	  
+	Write_DW1000(0x2D,0x06,(u8 *)(&tmp),2);
 	Delay(20);
 	tmp=0x0002;
 	Write_DW1000(0x36,0x06,(u8 *)(&tmp),1);
 	tmp=0x0001;
-	Write_DW1000(0x0D,0x01,(u8 *)(&tmp),1);	
+	Write_DW1000(0x0D,0x01,(u8 *)(&tmp),1);
 }
 /*
-·µ»ØIDLE×´Ì¬
+è¿”å›IDLEçŠ¶æ€
 */
 void to_IDLE(void)
 {
 	u8 tmp;
 	tmp=0x40;
-	Write_DW1000(0x0D,0x00,&tmp,1);	
+	Write_DW1000(0x0D,0x00,&tmp,1);
 }
 /*
-¼ÆËã¾àÀëĞÅÏ¢(µ¥Î»£ºcm)²¢´®¿ÚÊä³ö
+è®¡ç®—è·ç¦»ä¿¡æ¯(å•ä½ï¼šcm)å¹¶ä¸²å£è¾“å‡º
 */
 void distance_measurement(void)
 {
@@ -226,12 +227,12 @@ void distance_measurement(void)
 	toggle = !toggle;
 	//printf("Toggled\n");
 	tmp=PANIDS[toggle];
-	tmp=(tmp<<16)+_TX_sADDR; 	
-	Write_DW1000(0x03,0x00,(u8 *)(&tmp),4); 
-	
+	tmp=(tmp<<16)+_TX_sADDR;
+	Write_DW1000(0x03,0x00,(u8 *)(&tmp),4);
+
 	if(distance_flag!=3)
 	{
-		printf("²â¶¨¾àÀë\t\tÔİÎŞÊı¾İ\r\n");		
+		printf("æµ‹å®šè·ç¦»\t\tæš‚æ— æ•°æ®\r\n");
 	}
 	else
 	{
@@ -254,13 +255,13 @@ void distance_measurement(void)
 		diff=diff-1.0*data ;
 		//diff-=((double)time_offset);
 		distance=15.65*diff/1000000000000/2*_WAVE_SPEED*(1.0-0.01*speed_offset);
-		printf("²â¶¨¾àÀë\t\t%.2lfÃ×\r\n\n\n",distance-(toggle?148.63:150.13));
+		printf("æµ‹å®šè·ç¦»\t\t%.2lfç±³\r\n\n\n",distance-(toggle?148.63:150.13));
 
 		if (distance > 148.93 && distance < 200.0){
 			if (toggle == 0) {
 				mesurement_done[0] = 1;
 				distance1 = distance - 150.13;
-				
+
 			} else if (toggle == 1 && mesurement_done[0] == 1) {
 				mesurement_done[0] = 0;
 				printf("\nd1-------------- %f\n", distance1 - 148.63);
@@ -268,47 +269,47 @@ void distance_measurement(void)
 				printf("Position: %f %f", reciever_position[0][0], reciever_position[0][1]);
 			}
 		}
-			
+
 		printf("\r\n=====================================\r\n");
-			
+
 	}
 }
 
 /*
-ÎŞÏßÖÊÁ¿Êı¾İ
+æ— çº¿è´¨é‡æ•°æ®
 */
 void quality_measurement(void)
 {
-	
-		
+
+
 
 	rxpacc>>=4;
 
-	//¿¹ÔëÉùÆ·ÖÊÅĞ¶¨
+	//æŠ—å™ªå£°å“è´¨åˆ¤å®š
 	if((fp_ampl2/std_noise)>=2)
 	{
-		//printf("¿¹ÔëÉùÆ·ÖÊ\t\tÁ¼ºÃ\r\n");
+		//printf("æŠ—å™ªå£°å“è´¨\t\tè‰¯å¥½\r\n");
 	}
 	else
 	{
-		//printf("¿¹ÔëÉùÆ·ÖÊ\t\tÒì³£\r\n");
+		//printf("æŠ—å™ªå£°å“è´¨\t\tå¼‚å¸¸\r\n");
 	}
-	//LOSÅĞ¶¨
+	//LOSåˆ¤å®š
 	fppl=10.0*log((fp_ampl1^2+fp_ampl2^2+fp_ampl3^2)/(rxpacc^2))-115.72;
 	rxl=10.0*log(cir_mxg*(2^17)/(rxpacc^2))-115.72;
 	if((fppl-rxl)>=10.0*log(0.25))
 	{
-		//printf("LOSÅĞ¶¨\t\t\tLOS\r\n");
+		//printf("LOSåˆ¤å®š\t\t\tLOS\r\n");
 	}
 	else
 	{
-		//printf("LOSÅĞ¶¨\t\t\tNLOS\r\n");
+		//printf("LOSåˆ¤å®š\t\t\tNLOS\r\n");
 	}
 }
 void ACK_send(void)
 {
 	u8 tmp;
-	
+
 
 	Tx_Buff[0]=0x44;
 	Tx_Buff[1]=0x00;
@@ -320,6 +321,6 @@ void ACK_send(void)
 	Write_DW1000(0x09,0x00,Tx_Buff,3);
 	tmp=0x82;
 	Write_DW1000(0x0D,0x00,&tmp,1);
-	
+
 
 }

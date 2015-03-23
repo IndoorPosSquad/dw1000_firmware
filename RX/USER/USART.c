@@ -8,36 +8,36 @@ u8 usart_index;
 u8 usart_status;
 extern u8 ars_max;
 extern u8 time_offset;
-extern u8 speed_offset; 
+extern u8 speed_offset;
 /*
- USART1³õÊ¼»¯,²¨ÌØÂÊ115200£¬µ¥´Î8±ÈÌØ£¬ÎŞÆæÅ¼Ğ£Ñé£¬1Í£Ö¹Î»
+ USART1åˆå§‹åŒ–,æ³¢ç‰¹ç‡115200ï¼Œå•æ¬¡8æ¯”ç‰¹ï¼Œæ— å¥‡å¶æ ¡éªŒï¼Œ1åœæ­¢ä½
  */
 void USART1_init(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 	USART_InitTypeDef USART_InitStructure;
-	NVIC_InitTypeDef NVIC_InitStructure; 
+	NVIC_InitTypeDef NVIC_InitStructure;
 
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
-	
-	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;	 
+
+	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
-	
-	
+
+
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1 | RCC_APB2Periph_GPIOA| RCC_APB2Periph_AFIO, ENABLE);
-	
+
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(GPIOA, &GPIO_InitStructure);    
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
 
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
-	  
+
 	USART_InitStructure.USART_BaudRate = 115200;
 	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
 	USART_InitStructure.USART_StopBits = USART_StopBits_1;
@@ -47,30 +47,30 @@ void USART1_init(void)
 	USART_Init(USART1, &USART_InitStructure);
 
 	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
-	
-	USART_ClearFlag(USART1,USART_FLAG_TC); 
-	
+
+	USART_ClearFlag(USART1,USART_FLAG_TC);
+
 	USART_Cmd(USART1, ENABLE);
-	printf("*************ÏµÍ³ÅäÖÃ*************\r\n");
-	printf("USART³õÊ¼»¯\t\tÍê³É\r\n");
+	printf("*************ç³»ç»Ÿé…ç½®*************\r\n");
+	printf("USARTåˆå§‹åŒ–\t\tå®Œæˆ\r\n");
 }
 /*
-fputcÖØ¶¨Ïò
+fputcé‡å®šå‘
 */
 int fputc(int ch, FILE *f)
 {
 
 	USART_SendData(USART1, (unsigned char) ch);
-	while( USART_GetFlagStatus(USART1,USART_FLAG_TC)!= SET);	
+	while( USART_GetFlagStatus(USART1,USART_FLAG_TC)!= SET);
 	return (ch);
 }
 /*
-	ÃüÁî		ÃüÁî×Ö			²ÎÊı1															²ÎÊı2
-ÉèÖÃ¶¨Î»ÖÜÆÚ	0x01		¶¨Î»ÖÜÆÚ£¨µ¥Î»ms£»Á½×Ö½Ú£¬µÍÎ»ÔÚÇ°£¬Ä¬ÈÏ3000ms£©
-ÉèÖÃ×Ô¶¯ÖØ·¢  	0x02	×Ô¶¯ÖØ·¢µÈ´ıÊ±¼ä£¨µ¥Î»us£»Á½×Ö½Ú£¬µÍÎ»ÔÚÇ°£»Ä¬ÈÏ1000us)		   		ÖØ·¢´ÎÊı£¨Ä¬ÈÏ3£©
-ÉèÖÃÊ±¼äÆ«ÒÆ    0x03    Ê±¼ä²îµÄÆ«ÒÆ£¨´ÓÓ²¼ş»ñµÃÊı¾İÖĞ¼õÈ¥£»4×Ö½Ú£¬µÍÎ»ÔÚÇ°£»Ä¬ÈÏ0£©
-ÉèÖÃ¹âËÙÆ«ÒÆ    0x04    ¹âËÙµÄ°Ù·Ö±ÈÆ«ÒÆ£¨µ¥Î»£º1%£»´ÓÕæ¿Õ¹âËÙÖĞÒÔ°Ù·Ö±ÈĞÎÊ½¼õÈ¥£»Ä¬ÈÏ0£©
-¶ÁÈ¡DW1000¼Ä´æÆ÷ 0x05     µØÖ·£¨Ò»×Ö½Ú£© Æ«ÒÆµØÖ·£¨Á½×Ö½Ú£¬µÍÎ»ÔÚÇ°£© ¶ÁÈ¡×Ö½Ú³¤¶È£¨Á½×Ö½Ú£¬µÍÎ»ÔÚÇ°,×î¶à128£©
+	å‘½ä»¤		å‘½ä»¤å­—			å‚æ•°1															å‚æ•°2
+è®¾ç½®å®šä½å‘¨æœŸ	0x01		å®šä½å‘¨æœŸï¼ˆå•ä½msï¼›ä¸¤å­—èŠ‚ï¼Œä½ä½åœ¨å‰ï¼Œé»˜è®¤3000msï¼‰
+è®¾ç½®è‡ªåŠ¨é‡å‘  	0x02	è‡ªåŠ¨é‡å‘ç­‰å¾…æ—¶é—´ï¼ˆå•ä½usï¼›ä¸¤å­—èŠ‚ï¼Œä½ä½åœ¨å‰ï¼›é»˜è®¤1000us)		   		é‡å‘æ¬¡æ•°ï¼ˆé»˜è®¤3ï¼‰
+è®¾ç½®æ—¶é—´åç§»    0x03    æ—¶é—´å·®çš„åç§»ï¼ˆä»ç¡¬ä»¶è·å¾—æ•°æ®ä¸­å‡å»ï¼›4å­—èŠ‚ï¼Œä½ä½åœ¨å‰ï¼›é»˜è®¤0ï¼‰
+è®¾ç½®å…‰é€Ÿåç§»    0x04    å…‰é€Ÿçš„ç™¾åˆ†æ¯”åç§»ï¼ˆå•ä½ï¼š1%ï¼›ä»çœŸç©ºå…‰é€Ÿä¸­ä»¥ç™¾åˆ†æ¯”å½¢å¼å‡å»ï¼›é»˜è®¤0ï¼‰
+è¯»å–DW1000å¯„å­˜å™¨ 0x05     åœ°å€ï¼ˆä¸€å­—èŠ‚ï¼‰ åç§»åœ°å€ï¼ˆä¸¤å­—èŠ‚ï¼Œä½ä½åœ¨å‰ï¼‰ è¯»å–å­—èŠ‚é•¿åº¦ï¼ˆä¸¤å­—èŠ‚ï¼Œä½ä½åœ¨å‰,æœ€å¤š128ï¼‰
 */
 void usart_handle(void)
 {
@@ -84,7 +84,7 @@ void usart_handle(void)
 		{
 			tmp=(usart_buffer[4]+(usart_buffer[5]<<8));
 			Read_DW1000(usart_buffer[1],(usart_buffer[2]+(usart_buffer[3]<<8)),tmpp,tmp);
-			printf("*·ÃÎÊµØÖ· 0x%02x:0x%02x ·ÃÎÊ³¤¶È %d *\r\n[·µ»ØÊı¾İ 0x",usart_buffer[1],(usart_buffer[2]+(usart_buffer[3]<<8)),tmp);
+			printf("*è®¿é—®åœ°å€ 0x%02x:0x%02x è®¿é—®é•¿åº¦ %d *\r\n[è¿”å›æ•°æ® 0x",usart_buffer[1],(usart_buffer[2]+(usart_buffer[3]<<8)),tmp);
 			for(i=0;i<tmp;i++)
 			{
 				printf("%02x",*(tmpp+tmp-i-1));
@@ -93,15 +93,13 @@ void usart_handle(void)
 		}
 		else
 		{
-			printf("\r\n*ÊäÈë´íÎó*\r\n");
+			printf("\r\n*è¾“å…¥é”™è¯¯*\r\n");
 			//RX_mode_enable();
 		}
-		
+
 		usart_status=0;
 		usart_index=0;
 
 	}
-	
+
 }
-
-

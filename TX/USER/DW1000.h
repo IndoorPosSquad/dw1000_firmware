@@ -4,7 +4,6 @@
 #define _POLLING_FLAG 0x38  //定位申请认证字节
 #define _WAVE_SPEED 299792458 //电磁波传播速度
 
-
 void DW1000_init(void);
 void Location_polling(void);
 void RX_mode_enable(void);

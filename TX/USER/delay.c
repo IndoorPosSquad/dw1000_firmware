@@ -1,60 +1,60 @@
 //#include <stm32f10x_lib.h>
 #include "stm32f10x.h"
 #include "delay.h"
-//////////////////////////////////////////////////////////////////////////////////	 
-//Ê¹ÓÃSysTickµÄÆÕÍ¨¼ÆÊıÄ£Ê½¶ÔÑÓ³Ù½øĞĞ¹ÜÀí
-//°üÀ¨delay_us,delay_ms
+//////////////////////////////////////////////////////////////////////////////////
+//ä½¿ç”¨SysTickçš„æ™®é€šè®¡æ•°æ¨¡å¼å¯¹å»¶è¿Ÿè¿›è¡Œç®¡ç†
+//åŒ…æ‹¬delay_us,delay_ms
 //********************************************************************************
-//V1.2ĞŞ¸ÄËµÃ÷
-//ĞŞÕıÁËÖĞ¶ÏÖĞµ÷ÓÃ³öÏÖËÀÑ­»·µÄ´íÎó
-//·ÀÖ¹ÑÓÊ±²»×¼È·,²ÉÓÃdo while½á¹¹!
-//////////////////////////////////////////////////////////////////////////////////	 
-static u8  fac_us=0;//usÑÓÊ±±¶³ËÊı
-static u16 fac_ms=0;//msÑÓÊ±±¶³ËÊı
-//³õÊ¼»¯ÑÓ³Ùº¯Êı
-//SYSTICKµÄÊ±ÖÓ¹Ì¶¨ÎªHCLKÊ±ÖÓµÄ1/8
-//SYSCLK:ÏµÍ³Ê±ÖÓ
+//V1.2ä¿®æ”¹è¯´æ˜
+//ä¿®æ­£äº†ä¸­æ–­ä¸­è°ƒç”¨å‡ºç°æ­»å¾ªç¯çš„é”™è¯¯
+//é˜²æ­¢å»¶æ—¶ä¸å‡†ç¡®,é‡‡ç”¨do whileç»“æ„!
+//////////////////////////////////////////////////////////////////////////////////
+static u8  fac_us=0;//uså»¶æ—¶å€ä¹˜æ•°
+static u16 fac_ms=0;//mså»¶æ—¶å€ä¹˜æ•°
+//åˆå§‹åŒ–å»¶è¿Ÿå‡½æ•°
+//SYSTICKçš„æ—¶é’Ÿå›ºå®šä¸ºHCLKæ—¶é’Ÿçš„1/8
+//SYSCLK:ç³»ç»Ÿæ—¶é’Ÿ
 void delay_init(u8 SYSCLK)
 {
-	SysTick->CTRL&=0xfffffffb;//bit2Çå¿Õ,Ñ¡ÔñÍâ²¿Ê±ÖÓ  HCLK/8
-	fac_us=SYSCLK/8;		    
+	SysTick->CTRL&=0xfffffffb;//bit2æ¸…ç©º,é€‰æ‹©å¤–éƒ¨æ—¶é’Ÿ  HCLK/8
+	fac_us=SYSCLK/8;
 	fac_ms=(u16)fac_us*1000;
-}								    
-//ÑÓÊ±nms
-//×¢ÒânmsµÄ·¶Î§
-//SysTick->LOADÎª24Î»¼Ä´æÆ÷,ËùÒÔ,×î´óÑÓÊ±Îª:
+}
+//å»¶æ—¶nms
+//æ³¨æ„nmsçš„èŒƒå›´
+//SysTick->LOADä¸º24ä½å¯„å­˜å™¨,æ‰€ä»¥,æœ€å¤§å»¶æ—¶ä¸º:
 //nms<=0xffffff*8*1000/SYSCLK
-//SYSCLKµ¥Î»ÎªHz,nmsµ¥Î»Îªms
-//¶Ô72MÌõ¼şÏÂ,nms<=1864 
+//SYSCLKå•ä½ä¸ºHz,nmså•ä½ä¸ºms
+//å¯¹72Mæ¡ä»¶ä¸‹,nms<=1864
 void delay_ms(u16 nms)
-{	 		  	  
-	u32 temp;		   
-	SysTick->LOAD=(u32)nms*fac_ms;//Ê±¼ä¼ÓÔØ(SysTick->LOADÎª24bit)
-	SysTick->VAL =0x00;           //Çå¿Õ¼ÆÊıÆ÷
-	SysTick->CTRL=0x01 ;          //¿ªÊ¼µ¹Êı  
+{
+	u32 temp;
+	SysTick->LOAD=(u32)nms*fac_ms;//æ—¶é—´åŠ è½½(SysTick->LOADä¸º24bit)
+	SysTick->VAL =0x00;           //æ¸…ç©ºè®¡æ•°å™¨
+	SysTick->CTRL=0x01 ;          //å¼€å§‹å€’æ•°
 	do
 	{
 		temp=SysTick->CTRL;
 	}
-	while(temp&0x01&&!(temp&(1<<16)));//µÈ´ıÊ±¼äµ½´ï   
-	SysTick->CTRL=0x00;       //¹Ø±Õ¼ÆÊıÆ÷
-	SysTick->VAL =0X00;       //Çå¿Õ¼ÆÊıÆ÷	  	    
-}   
-//ÑÓÊ±nus
-//nusÎªÒªÑÓÊ±µÄusÊı.		    								   
+	while(temp&0x01&&!(temp&(1<<16)));//ç­‰å¾…æ—¶é—´åˆ°è¾¾
+	SysTick->CTRL=0x00;       //å…³é—­è®¡æ•°å™¨
+	SysTick->VAL =0X00;       //æ¸…ç©ºè®¡æ•°å™¨
+}
+//å»¶æ—¶nus
+//nusä¸ºè¦å»¶æ—¶çš„usæ•°.
 void delay_us(u32 nus)
-{		
-	u32 temp;	    	 
-	SysTick->LOAD=nus*fac_us; //Ê±¼ä¼ÓÔØ	  		 
-	SysTick->VAL=0x00;        //Çå¿Õ¼ÆÊıÆ÷
-	SysTick->CTRL=0x01 ;      //¿ªÊ¼µ¹Êı 	 
+{
+	u32 temp;
+	SysTick->LOAD=nus*fac_us; //æ—¶é—´åŠ è½½
+	SysTick->VAL=0x00;        //æ¸…ç©ºè®¡æ•°å™¨
+	SysTick->CTRL=0x01 ;      //å¼€å§‹å€’æ•°
 	do
 	{
 		temp=SysTick->CTRL;
 	}
-	while(temp&0x01&&!(temp&(1<<16)));//µÈ´ıÊ±¼äµ½´ï   
-	SysTick->CTRL=0x00;       //¹Ø±Õ¼ÆÊıÆ÷
-	SysTick->VAL =0X00;       //Çå¿Õ¼ÆÊıÆ÷	 
+	while(temp&0x01&&!(temp&(1<<16)));//ç­‰å¾…æ—¶é—´åˆ°è¾¾
+	SysTick->CTRL=0x00;       //å…³é—­è®¡æ•°å™¨
+	SysTick->VAL =0X00;       //æ¸…ç©ºè®¡æ•°å™¨
 }
 
 void Delay(unsigned int i)

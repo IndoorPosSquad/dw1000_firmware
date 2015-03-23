@@ -1,11 +1,11 @@
 /**
   ******************************************************************************
-  * @file    Project/STM32F10x_StdPeriph_Template/stm32f10x_it.c 
+  * @file    Project/STM32F10x_StdPeriph_Template/stm32f10x_it.c
   * @author  MCD Application Team
   * @version V3.5.0
   * @date    08-April-2011
   * @brief   Main Interrupt Service Routines.
-  *          This file provides template for all exceptions handler and 
+  *          This file provides template for all exceptions handler and
   *          peripherals interrupt service routine.
   ******************************************************************************
   * @attention
@@ -164,34 +164,34 @@ void SysTick_Handler(void)
 
 /**
   * @}
-  */ 
+  */
   void TIM4_IRQHandler(void)
 {
-	if ( TIM_GetITStatus(TIM4 , TIM_IT_Update) != RESET ) 
-	{	
+	if ( TIM_GetITStatus(TIM4 , TIM_IT_Update) != RESET )
+	{
 		TIM_ClearITPendingBit(TIM4 , TIM_FLAG_Update);
 		usart_status=2;
-		//¼ÆÊıÆ÷TIM4ÇåÁã,Í£Ö¹¹¤×÷
+		//è®¡æ•°å™¨TIM4æ¸…é›¶,åœæ­¢å·¥ä½œ
 		TIM_ITConfig(TIM4,TIM_IT_Update,DISABLE);
 		TIM_SetCounter(TIM4,0x0000);
 		TIM_Cmd(TIM4, DISABLE);
 
 		usart_handle();
-		  		
-	}		 
+
+	}
 }
  void EXTI1_IRQHandler(void)
 {
 	u32 status;
 	u8 tmp;
-	//u8 i;		
+	//u8 i;
 	EXTI_ClearITPendingBit(EXTI_Line1);
 	while(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1)==0)
 {
 	Read_DW1000(0x0F,0x00,(u8 *)(&status),4);
 	/*if((status&0x00046080)==0x00000000)
 	{
-		
+
 		to_IDLE();
 		RX_mode_enable();
 	} */
@@ -224,9 +224,9 @@ void SysTick_Handler(void)
 			Write_DW1000(0x0F,0x00,&tmp,1);
 			if(status_flag==1)
 			{
-				//¼ÆÊıÆ÷TIM3ÇåÁã
-				status_flag=2;	//¶¨Î»Ó¦´ğ·¢ËÍ³É¹¦
-				printf("¶¨Î»Ó¦´ğ\t\t·¢ËÍ³É¹¦\r\n");
+				//è®¡æ•°å™¨TIM3æ¸…é›¶
+				status_flag=2;	//å®šä½åº”ç­”å‘é€æˆåŠŸ
+				printf("å®šä½åº”ç­”\t\tå‘é€æˆåŠŸ\r\n");
 				TIM_ITConfig(TIM3,TIM_IT_Update,DISABLE);
 				TIM_SetCounter(TIM3,0x0000);
 				TIM_ClearFlag(TIM3, TIM_FLAG_Update);
@@ -234,99 +234,93 @@ void SysTick_Handler(void)
 				data_response();
 			}
 			else if(status_flag==2)
-			{ 
-				printf("¶¨Î»Êı¾İ%d\t\t·¢ËÍ³É¹¦\r\n",ars_counter+1);
-				status_flag=3;	 //¶¨Î»Êı¾İ·¢ËÍ³É¹¦
-				//¼ÆÊıÆ÷TIM3ÇåÁã
+			{
+				printf("å®šä½æ•°æ®%d\t\tå‘é€æˆåŠŸ\r\n",ars_counter+1);
+				status_flag=3;	 //å®šä½æ•°æ®å‘é€æˆåŠŸ
+				//è®¡æ•°å™¨TIM3æ¸…é›¶
 				TIM_ITConfig(TIM3,TIM_IT_Update,DISABLE);
 				TIM_SetCounter(TIM3,0x0000);
 				TIM_ClearFlag(TIM3, TIM_FLAG_Update);
-				TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE); 
+				TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE);
 			}
 		}
-		
-		Read_DW1000(0x0F,0x00,(u8 *)(&status),4);			  
+
+		Read_DW1000(0x0F,0x00,(u8 *)(&status),4);
 		if((status&0x00004000)==0x00004000)
 		{
 			//printf("sth done:0x%8x\r\n",status);
 			//Read_DW1000(0x10,0x00,&tmp,1);
 			//printf("0x%02x\r\n",tmp);
 			tmp=0x60;
-			Write_DW1000(0x0F,0x01,&tmp,1);	
+			Write_DW1000(0x0F,0x01,&tmp,1);
 			//printf("%8x\r\n",status) ;
 			//to_IDLE();
 			//RX_mode_enable();
+
 			Read_DW1000(0x11,0x00,Receive_buffer,14);
 
 			//Read_DW1000(0x0f,0x03,&tmp,1);
 			//tmp=((tmp&0x40)==0x00);
 			//Write_DW1000(0x0D,0x03,&tmp,1);
-
 			/*for(i=0;i<14;i++)
 			{
-				
 				printf("%02x",Receive_buffer[i]);
 			}
-			printf("\r\n")  ;  	 */ 
-			
-			if(((Receive_buffer[0]&0x07)==0x04)&&(status_flag==3)) //Èç¹ûÊÇACK
+			printf("\r\n")  ;  	 */
+
+			if(((Receive_buffer[0]&0x07)==0x04)&&(status_flag==3)) //å¦‚æœæ˜¯ACK
 			{
 				if(Receive_buffer[2]==Sequence_Number)
 				{
-					//¼ÆÊıÆ÷TIM3ÇåÁã,Í£Ö¹¹¤×÷
+					//è®¡æ•°å™¨TIM3æ¸…é›¶,åœæ­¢å·¥ä½œ
 					TIM_ITConfig(TIM3,TIM_IT_Update,DISABLE);
 					TIM_SetCounter(TIM3,0x0000);
 					TIM_Cmd(TIM3, DISABLE);
 					TIM_ClearFlag(TIM3, TIM_FLAG_Update);
 					TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE);
-					status_flag=0; //¶Ô¶ËÒÑ½ÓÊÕ
+					status_flag=0; //å¯¹ç«¯å·²æ¥æ”¶
 					ars_counter=0;
-					printf("¶¨Î»Êı¾İ\t\t¶Ô¶ËÒÑ½ÓÊÕ\r\n");
+					printf("å®šä½æ•°æ®\t\tå¯¹ç«¯å·²æ¥æ”¶\r\n");
 					printf("==================================\r\n");
 					to_IDLE();
 					RX_mode_enable();
 				}
 			}
-			else if(((Receive_buffer[0]&0x07)==0x01)&&(status_flag==0)&&(Receive_buffer[9]==0x38))//ÉêÇëÊı¾İ
+			else if(((Receive_buffer[0]&0x07)==0x01)&&(status_flag==0)&&(Receive_buffer[9]==0x38))//ç”³è¯·æ•°æ®
 			{
-				
-				
+
 				ACK_send();
 
-				//¿ªÆô¼ÆÊıÆ÷TIM3
+				//å¼€å¯è®¡æ•°å™¨TIM3
 				Sequence_Number=Receive_buffer[2];
-				status_flag=1;//ÊÕµ½¶¨Î»ÉêÇë
-				printf("\r\n===========ÊÕµ½¶¨Î»ÉêÇë===========\r\n");
-				
-				
+				status_flag=1;//æ”¶åˆ°å®šä½ç”³è¯·
+				printf("\r\n===========æ”¶åˆ°å®šä½ç”³è¯·===========\r\n");
+
 			}
 			else
 			{
 				to_IDLE();
 				tmp=0x01;
-				Write_DW1000(0x0D,0x01,&tmp,1);	
+				Write_DW1000(0x0D,0x01,&tmp,1);
 			}
-		
 		}
-		 
-		
 		//Read_DW1000(0x0F,0x00,(u8 *)(&status),2);
-		
+
 }
 }
-//status_flag=0;¶Ô¶ËÒÑ½ÓÊÕ
-//status_flag=1;ÊÕµ½¶¨Î»ÉêÇë
-//status_flag=2;¶¨Î»Ó¦´ğ·¢ËÍ³É¹¦
-//status_flag=3;¶¨Î»Êı¾İ·¢ËÍ³É¹¦
+//status_flag=0;å¯¹ç«¯å·²æ¥æ”¶
+//status_flag=1;æ”¶åˆ°å®šä½ç”³è¯·
+//status_flag=2;å®šä½åº”ç­”å‘é€æˆåŠŸ
+//status_flag=3;å®šä½æ•°æ®å‘é€æˆåŠŸ
 void TIM3_IRQHandler(void)
 {
-	if ( TIM_GetITStatus(TIM3 , TIM_IT_Update) != RESET ) 
-	{	
+	if ( TIM_GetITStatus(TIM3 , TIM_IT_Update) != RESET )
+	{
 		TIM_ClearITPendingBit(TIM3,TIM_FLAG_Update);
-		if(status_flag==1) 
+		if(status_flag==1)
 		{
-			printf("¶¨Î»Ó¦´ğ\t\t·¢ËÍ³¬Ê±\r\n");
-			//¼ÆÊıÆ÷TIM3ÇåÁã,Í£Ö¹¹¤×÷
+			printf("å®šä½åº”ç­”\t\tå‘é€è¶…æ—¶\r\n");
+			//è®¡æ•°å™¨TIM3æ¸…é›¶,åœæ­¢å·¥ä½œ
 			TIM_ITConfig(TIM3,TIM_IT_Update,DISABLE);
 			TIM_SetCounter(TIM3,0x0000);
 			TIM_Cmd(TIM3, DISABLE);
@@ -336,7 +330,7 @@ void TIM3_IRQHandler(void)
 			to_IDLE();
 			RX_mode_enable();
 		}
-		else if(status_flag==2)  
+		else if(status_flag==2)
 		{
 			//to_IDLE();
 			//RX_mode_enable();
@@ -347,18 +341,18 @@ void TIM3_IRQHandler(void)
 			TIM_ClearFlag(TIM3, TIM_FLAG_Update);
 			TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE);
 
-			printf("¶¨Î»Êı¾İ%d\t\t·¢ËÍ³¬Ê±\r\n",ars_counter+1);
+			printf("å®šä½æ•°æ®%d\t\tå‘é€è¶…æ—¶\r\n",ars_counter+1);
 			status_flag=0;
 			ars_counter=0;
-			printf("==================================\r\n");	
-					
-		} 
-		else if(status_flag==3) 
+			printf("==================================\r\n");
+
+		}
+		else if(status_flag==3)
 		{
 			//to_IDLE();
 			//RX_mode_enable();
-			printf("¶¨Î»Êı¾İ%d\t\t¶Ô¶ËÎ´½ÓÊÕ\r\n",ars_counter+1);	
-			ars_counter++;	
+			printf("å®šä½æ•°æ®%d\t\tå¯¹ç«¯æœªæ¥æ”¶\r\n",ars_counter+1);
+			ars_counter++;
 			if(ars_counter<3)
 			{
 				data_response()	;
@@ -376,25 +370,22 @@ void TIM3_IRQHandler(void)
 				//RX_mode_enable();
 				Sequence_Number++;
 				ars_counter=0;
-				printf("==================================\r\n");	
-			}	
+				printf("==================================\r\n");
+			}
 		}
-  	
-
-		
-	}		 
+	}
 }
 void USART1_IRQHandler(void)
 {
 	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
-	{ 
-		if(usart_status==0)	
+	{
+		if(usart_status==0)
 		{
 			usart_status=1;
 
-			//¿ªÆô¼ÆÊıÆ÷TIM4
-			TIM_ClearFlag(TIM4, TIM_FLAG_Update);					    		
-    		TIM_ITConfig(TIM4,TIM_IT_Update,ENABLE);
+			//å¼€å¯è®¡æ•°å™¨TIM4
+			TIM_ClearFlag(TIM4, TIM_FLAG_Update);
+			TIM_ITConfig(TIM4,TIM_IT_Update,ENABLE);
 			TIM_Cmd(TIM4, ENABLE);
 
 			usart_buffer[usart_index++]=USART1->DR;
@@ -402,10 +393,10 @@ void USART1_IRQHandler(void)
 			{
 				usart_index=0;
 			}
-	    }
+		}
 		else if(usart_status==1)
 		{
-			//¼ÆÊıÆ÷TIM4ÇåÁã,
+			//è®¡æ•°å™¨TIM4æ¸…é›¶,
 			TIM_ITConfig(TIM4,TIM_IT_Update,DISABLE);
 			TIM_SetCounter(TIM4,0x0000);
 			TIM_ClearFlag(TIM4, TIM_FLAG_Update);
@@ -416,10 +407,8 @@ void USART1_IRQHandler(void)
 			{
 				usart_index=0;
 			}
-		}			
-	} 
-	 
-} 
-
+		}
+	}
+}
 
 /******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/

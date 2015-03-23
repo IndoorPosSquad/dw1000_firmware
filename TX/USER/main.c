@@ -1,165 +1,162 @@
 /******************** (C) COPYRIGHT 2012 WildFire Team **************************
- * ÎÄ¼şÃû  £ºmain.c
- * ÃèÊö    £ºLEDÁ÷Ë®µÆ£¬ÆµÂÊ¿Éµ÷¡­¡­         
- * ÊµÑéÆ½Ì¨£ºÒ°»ğSTM32¿ª·¢°å
- * ¿â°æ±¾  £ºST3.5.0
+ * æ–‡ä»¶å  ï¼šmain.c
+ * æè¿°    ï¼šLEDæµæ°´ç¯ï¼Œé¢‘ç‡å¯è°ƒâ€¦â€¦
+ * å®éªŒå¹³å°ï¼šé‡ç«STM32å¼€å‘æ¿
+ * åº“ç‰ˆæœ¬  ï¼šST3.5.0
  *
- * ×÷Õß    £ºwildfire team 
- * ÂÛÌ³    £ºhttp://www.amobbs.com/forum-1008-1.html
- * ÌÔ±¦    £ºhttp://firestm32.taobao.com
+ * ä½œè€…    ï¼šwildfire team
+ * è®ºå›    ï¼šhttp://www.amobbs.com/forum-1008-1.html
+ * æ·˜å®    ï¼šhttp://firestm32.taobao.com
 **********************************************************************************/
 #include "stm32f10x.h"
 #include "SPI.h"
 #include "USART.h"
 #include "DW1000.h"
 /*
-TIM2Ê±ÖÓ³õÊ¼»¯:3sÒç³ö£¨¶¨Î»ÖÜÆÚ£©
+TIM2æ—¶é’Ÿåˆå§‹åŒ–:3sæº¢å‡ºï¼ˆå®šä½å‘¨æœŸï¼‰
 */
 void TIM2_init(void)
 {
 	NVIC_InitTypeDef NVIC_InitStructure;
-    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+	TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
 
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);  													
-    NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn;	  
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;	
-    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Init(&NVIC_InitStructure);
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+	NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
 
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2 , ENABLE);
-    
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2 , ENABLE);
+
 	TIM_DeInit(TIM2);
 
-    TIM_TimeBaseStructure.TIM_Period=2*3000;		 							
-    TIM_TimeBaseStructure.TIM_Prescaler= 36000;				   
-    TIM_TimeBaseStructure.TIM_ClockDivision=TIM_CKD_DIV1; 	
-    TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up; 
-    TIM_TimeBaseInit(TIM2, &TIM_TimeBaseStructure);
+	TIM_TimeBaseStructure.TIM_Period=2*3000;
+	TIM_TimeBaseStructure.TIM_Prescaler= 36000;
+	TIM_TimeBaseStructure.TIM_ClockDivision=TIM_CKD_DIV1;
+	TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up;
+	TIM_TimeBaseInit(TIM2, &TIM_TimeBaseStructure);
 
-    TIM_ClearFlag(TIM2, TIM_FLAG_Update);							    		
-    TIM_ITConfig(TIM2,TIM_IT_Update,ENABLE);
-    TIM_Cmd(TIM2, ENABLE);
-	
-	printf("¶¨Î»ÖÜÆÚÅäÖÃ\t\tÍê³É\r\n");
-																
+	TIM_ClearFlag(TIM2, TIM_FLAG_Update);
+	TIM_ITConfig(TIM2,TIM_IT_Update,ENABLE);
+	TIM_Cmd(TIM2, ENABLE);
+
+	printf("å®šä½å‘¨æœŸé…ç½®\t\tå®Œæˆ\r\n");
+
 }
 /*
-TIM3Ê±ÖÓ³õÊ¼»¯:50msÒç³ö£¨×Ô¶¯ÖØ·¢³¬Ê±¼ÆÊ±£¬Èç¹û³¬Ê±ÔòÖØĞÂ·¢ËÍÇëÇó£©
+TIM3æ—¶é’Ÿåˆå§‹åŒ–:50msæº¢å‡ºï¼ˆè‡ªåŠ¨é‡å‘è¶…æ—¶è®¡æ—¶ï¼Œå¦‚æœè¶…æ—¶åˆ™é‡æ–°å‘é€è¯·æ±‚ï¼‰
 */
 void TIM3_init(void)
 {
 	NVIC_InitTypeDef NVIC_InitStructure;
-    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+	TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
 
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);  													
-    NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;	  
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3;		//ÓÅÏÈ¼¶³åÍ»£¿
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;	
-    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Init(&NVIC_InitStructure);
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+	NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3; //ä¼˜å…ˆçº§å†²çªï¼Ÿ
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
 
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3 , ENABLE);
-    
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3 , ENABLE);
+
 	TIM_DeInit(TIM3);
 
-    TIM_TimeBaseStructure.TIM_Period=50000;		 							
-    TIM_TimeBaseStructure.TIM_Prescaler=72;				   
-    TIM_TimeBaseStructure.TIM_ClockDivision=TIM_CKD_DIV1; 	
-    TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up; 
-    TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
-	
-	printf("×Ô¶¯ÖØ·¢ÅäÖÃ\t\tÍê³É\r\n");
-	printf("·¢ËÍ¼à¿ØÅäÖÃ\t\tÍê³É\r\n");															
+	TIM_TimeBaseStructure.TIM_Period=50000;
+	TIM_TimeBaseStructure.TIM_Prescaler=72;
+	TIM_TimeBaseStructure.TIM_ClockDivision=TIM_CKD_DIV1;
+	TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up;
+	TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
+
+	printf("è‡ªåŠ¨é‡å‘é…ç½®\t\tå®Œæˆ\r\n");
+	printf("å‘é€ç›‘æ§é…ç½®\t\tå®Œæˆ\r\n");
 }
 /*
-TIM4Ê±ÖÓ³õÊ¼»¯:1msÒç³ö £¨´®¿Ú¼àÌı£©
+TIM4æ—¶é’Ÿåˆå§‹åŒ–:1msæº¢å‡º ï¼ˆä¸²å£ç›‘å¬ï¼‰
 */
 void TIM4_init(void)
 {
 	NVIC_InitTypeDef NVIC_InitStructure;
-    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+	TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
 
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);  													
-    NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn;	  
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;	
-    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Init(&NVIC_InitStructure);
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+	NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
 
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4 , ENABLE);
-    
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4 , ENABLE);
+
 	TIM_DeInit(TIM4);
 
-    TIM_TimeBaseStructure.TIM_Period=10;		 							
-    TIM_TimeBaseStructure.TIM_Prescaler=7200;				   
-    TIM_TimeBaseStructure.TIM_ClockDivision=TIM_CKD_DIV1; 	
-    TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up; 
-    TIM_TimeBaseInit(TIM4, &TIM_TimeBaseStructure);
-	
-	printf("ÃüÁîÄ£Ê½Æô¶¯\t\tÍê³É\r\n");
-																
+	TIM_TimeBaseStructure.TIM_Period=10;
+	TIM_TimeBaseStructure.TIM_Prescaler=7200;
+	TIM_TimeBaseStructure.TIM_ClockDivision=TIM_CKD_DIV1;
+	TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up;
+	TIM_TimeBaseInit(TIM4, &TIM_TimeBaseStructure);
+
+	printf("å‘½ä»¤æ¨¡å¼å¯åŠ¨\t\tå®Œæˆ\r\n");
+
 }
 
 /*
-Íâ²¿ÖĞ¶Ï³õÊ¼»¯£¬Ê¹ÓÃPA1£¬ÉÏÉıÑØ´¥·¢ÖĞ¶Ï
+å¤–éƒ¨ä¸­æ–­åˆå§‹åŒ–ï¼Œä½¿ç”¨PA1ï¼Œä¸Šå‡æ²¿è§¦å‘ä¸­æ–­
 */
 void EXTI_init(void)
 {
 	NVIC_InitTypeDef NVIC_InitStructure;
-	GPIO_InitTypeDef GPIO_InitStructure; 
+	GPIO_InitTypeDef GPIO_InitStructure;
 	EXTI_InitTypeDef EXTI_InitStructure;
-	
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);                          
-    NVIC_InitStructure.NVIC_IRQChannel=EXTI1_IRQn;   
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1; 
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;        
-    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;           
-    NVIC_Init(&NVIC_InitStructure);
+
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+	NVIC_InitStructure.NVIC_IRQChannel=EXTI1_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
 
 	RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOA | RCC_APB2Periph_AFIO, ENABLE);
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;                                           
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;          
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;                 
-    GPIO_Init(GPIOA,&GPIO_InitStructure);
-    GPIO_ResetBits(GPIOA,GPIO_Pin_1);  
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;
+	GPIO_Init(GPIOA,&GPIO_InitStructure);
+	GPIO_ResetBits(GPIOA,GPIO_Pin_1);
 
 	EXTI_ClearITPendingBit(EXTI_Line1);
 	GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource1);
 	EXTI_InitStructure.EXTI_Line = EXTI_Line1;
-    EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt; 
-    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling; 
-    EXTI_InitStructure.EXTI_LineCmd = ENABLE;                                         
-    EXTI_Init(&EXTI_InitStructure);
-	
-	printf("Íâ²¿ÖĞ¶ÏÅäÖÃ\t\tÍê³É\r\n");
+	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
+	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+	EXTI_Init(&EXTI_InitStructure);
+
+	printf("å¤–éƒ¨ä¸­æ–­é…ç½®\t\tå®Œæˆ\r\n");
 }
 
 /*
- * º¯ÊıÃû£ºmain
- * ÃèÊö  £ºÖ÷º¯Êı
- * ÊäÈë  £ºÎŞ
- * Êä³ö  £ºÎŞ
+ * å‡½æ•°åï¼šmain
+ * æè¿°  ï¼šä¸»å‡½æ•°
+ * è¾“å…¥  ï¼šæ— 
+ * è¾“å‡º  ï¼šæ— 
  */
 int main(void)
 {
 	SystemInit();
-	USART1_init();// USART1³õÊ¼»¯,²¨ÌØÂÊ115200£¬µ¥´Î8±ÈÌØ£¬ÎŞÆæÅ¼Ğ£Ñé£¬1Í£Ö¹Î»£ºÓÃÓÚÉÏÎ»»úÏÂ·¢ÃüÁî
-	SPI1_init()	;//SPI³õÊ¼»¯£ºÓÃÓÚÓëDW1000Í¨ĞÅ
-	TIM2_init(); //TIM2Ê±ÖÓ³õÊ¼»¯:3sÒç³ö£¨¶¨Î»ÖÜÆÚ£©
-	TIM3_init(); //TIM3Ê±ÖÓ³õÊ¼»¯:1msÒç³ö£¨×Ô¶¯ÖØ·¢³¬Ê±¼ÆÊ±£©
-	DW1000_init();//DW1000³õÊ¼»¯£¬¼Ä´æÆ÷µÄÅäÖÃ
-	EXTI_init();  //Íâ²¿ÖĞ¶Ï³õÊ¼»¯£¬Ê¹ÓÃPA1£¬ÉÏÉıÑØ´¥·¢ÖĞ¶Ï
-	TIM4_init(); //TIM4Ê±ÖÓ³õÊ¼»¯:1msÒç³ö £¨´®¿Ú¼àÌı£©
+	USART1_init();// USART1åˆå§‹åŒ–,æ³¢ç‰¹ç‡115200ï¼Œå•æ¬¡8æ¯”ç‰¹ï¼Œæ— å¥‡å¶æ ¡éªŒï¼Œ1åœæ­¢ä½ï¼šç”¨äºä¸Šä½æœºä¸‹å‘å‘½ä»¤
+	SPI1_init()	;//SPIåˆå§‹åŒ–ï¼šç”¨äºä¸DW1000é€šä¿¡
+	TIM2_init(); //TIM2æ—¶é’Ÿåˆå§‹åŒ–:3sæº¢å‡ºï¼ˆå®šä½å‘¨æœŸï¼‰
+	TIM3_init(); //TIM3æ—¶é’Ÿåˆå§‹åŒ–:1msæº¢å‡ºï¼ˆè‡ªåŠ¨é‡å‘è¶…æ—¶è®¡æ—¶ï¼‰
+	DW1000_init();//DW1000åˆå§‹åŒ–ï¼Œå¯„å­˜å™¨çš„é…ç½®
+	EXTI_init();  //å¤–éƒ¨ä¸­æ–­åˆå§‹åŒ–ï¼Œä½¿ç”¨PA1ï¼Œä¸Šå‡æ²¿è§¦å‘ä¸­æ–­
+	TIM4_init(); //TIM4æ—¶é’Ÿåˆå§‹åŒ–:1msæº¢å‡º ï¼ˆä¸²å£ç›‘å¬ï¼‰
 	//RX_mode_enable();
 	printf("**********************************\r\n");
 
-   
+
 	while (1)
 	{
-		;      
+		;
 	}
 }
-
-
-
