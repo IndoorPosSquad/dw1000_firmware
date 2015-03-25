@@ -29,9 +29,6 @@
 #ifdef RX
 #include <stdio.h>
 u8 status_flag=0;
-u8 usart_buffer[64];
-u8 usart_index;
-u8 usart_status;
 u8 Receive_buffer[14];
 #endif
 
@@ -40,13 +37,13 @@ u8 Receive_buffer[14];
 extern u8 Sequence_Number;
 u8 ars_counter;
 u8 ars_counter;
+u8 usart_buffer[64];
+u8 usart_index;
+u8 usart_status;
 
 #ifdef TX
 u8 distance_flag;
 u8 ars_max=3;
-u8 usart_buffer[64];
-u8 usart_index;
-u8 usart_status;
 // TODO : disable PAN
 u16 pan;
 
