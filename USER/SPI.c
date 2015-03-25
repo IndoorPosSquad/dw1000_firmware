@@ -106,7 +106,7 @@ length：读出数据的长度
 */
 void Read_DW1000(u8 addr,u16 offset_index,u8 *data,u16 length)
 {
-	u8 SPI_send_and_receive_byte(u8 *data) ;
+	u8 SPI_send_and_receive_byte(u8 *data);
 	u16 i;
 	u8 tmp;
 	SPI1_CS_Low;
