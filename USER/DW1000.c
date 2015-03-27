@@ -25,7 +25,7 @@ u8 Rx_stp_H;
 
 #ifdef RX
 extern u8 status_flag;
-u8 Tx_Buff[14];
+u8 Tx_Buff[128];
 u32 diff;
 u8 tmp;
 extern u8 Receive_buffer[14];
@@ -152,18 +152,36 @@ void DW1000_init(void)
 	/////////////////////使用功能配置/////////////////////////
 	//local address ：写入本机地址（PAN_ID 和本机短地址）
 	//TODO : disable PAN
+	// #ifdef TX
+	// tmp=PANIDS[toggle];
+	// tmp=(tmp<<16)+_TX_sADDR;
+	// #endif
+	// #ifdef RX
+	// tmp=_PAN_ID;
+	// tmp=(tmp<<16)+_RX_sADDR;
+	// #endif
+	// //ENDTODO
+	// Write_DW1000(0x03,0x00,(u8 *)(&tmp),4);
+	u8 mac[8];
+	mac[0] = 0xff;
+	mac[1] = 0xff;
+	mac[2] = 0xff;
+	mac[3] = 0xff;
+	mac[4] = 0xff;
+	mac[5] = 0xff;
+	mac[6] = 0xff;
 	#ifdef TX
-	tmp=PANIDS[toggle];
-	tmp=(tmp<<16)+_TX_sADDR;
+	mac[7] = 0xf0;
 	#endif
 	#ifdef RX
-	tmp=_PAN_ID;
-	tmp=(tmp<<16)+_RX_sADDR;
+	mac[7] = 0xf1;
 	#endif
-	//ENDTODO
-	Write_DW1000(0x03,0x00,(u8 *)(&tmp),4);
+	// set_MAC((u8 *)(&mac[0]));
+	set_MAC(mac);
+	
 	//re-enable auto ack Frame Filter ：开启接收自动重启功能、自动应答功能、帧过滤功能
-	tmp=0x200011FD;
+	tmp=0x2000107D;
+	// 0010 0000 0000 0001 0000 0111 1101
 	Write_DW1000(0x04,0x00,(u8 *)(&tmp),4);
 	// test pin SYNC：用于测试的LED灯引脚初始化，SYNC引脚禁用
 	tmp=0x00101540;
@@ -185,31 +203,49 @@ void DW1000_init(void)
 */
 void Location_polling(void)	 //发送定位帧
 {
-	u8 tmp;
-
+	// u8 tmp;
 	distance_flag=0;
 	//地址：反正！！ （低字节在前 单字节正常写入）
-	Tx_Buff[0]=0x41;
-	Tx_Buff[1]=0x88;
+	Tx_Buff[0]=0b00100010; // only DST PANID
+	Tx_Buff[1]=0b00110111;
+	// 0100 0001 1000 1000
 	Tx_Buff[2]=Sequence_Number++; //计数第几个序列
-	Tx_Buff[4]=PANIDS[toggle]>>8;
-	Tx_Buff[3]=(0x74);//MAC_maker((u8)_PAN_ID);
-	Tx_Buff[6]=(0x20);//MAC_maker((u8)(_RX_sADDR>>8));
-	Tx_Buff[5]=(0x15);//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[8]=0x20;//MAC_maker((u8)(_TX_sADDR>>8));
-	Tx_Buff[7]=0x14;//MAC_maker((u8)_TX_sADDR);
-	Tx_Buff[9]=_POLLING_FLAG;
-	Tx_Buff[10]=0x12;
-	Tx_Buff[11]=0x34;
-
-	to_IDLE();
-	Write_DW1000(0x09,0x00,Tx_Buff,12);
-	tmp=14;
-	Write_DW1000(0x08,0x00,&tmp,1);		//设置长度
-	//Read_DW1000(0x08,0x00,&tmp,1);
-	//printf("%2x\r\n",tmp);
-	tmp=0x82;						//发送完成后立即转变为接收状态
-	Write_DW1000(0x0D,0x00,&tmp,1);
+	//SN end
+	Tx_Buff[4]=0xFF;
+	Tx_Buff[3]=0xFF;
+	//DST PAN end
+	Tx_Buff[6]=(0xFF);//MAC_maker((u8)(_RX_sADDR>>8));
+	Tx_Buff[7]=(0xFF);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[8]=(0xFF);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[9]=(0xFF);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[10]=(0xFF);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[11]=(0xFF);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[12]=(0xFF);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[13]=(0xF0);//MAC_maker((u8)_RX_sADDR);
+	//DST MAC end
+	Tx_Buff[14]=(0xFF);//MAC_maker((u8)(_RX_sADDR>>8));
+	Tx_Buff[15]=(0xFF);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[16]=(0xFF);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[17]=(0xFF);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[18]=(0xFF);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[19]=(0xFF);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[20]=(0xFF);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[21]=(0xF1);//MAC_maker((u8)_RX_sADDR);
+	//SRC MAC end
+	//NO AUX
+	//Payload begin
+	Tx_Buff[22]=_POLLING_FLAG;
+	Tx_Buff[23]=0x12;
+	Tx_Buff[24]=0x34;
+	raw_write(Tx_Buff, 24)
+	// to_IDLE();
+	// Write_DW1000(0x09,0x00,Tx_Buff,12);
+	// tmp=14;
+	// Write_DW1000(0x08,0x00,&tmp,1);		//设置长度
+	// //Read_DW1000(0x08,0x00,&tmp,1);
+	// //printf("%2x\r\n",tmp);
+	// tmp=0x82;						//发送完成后立即转变为接收状态
+	// Write_DW1000(0x0D,0x00,&tmp,1);
 
 	//开启计数器TIM3
 	TIM_ClearFlag(TIM3, TIM_FLAG_Update);
@@ -454,3 +490,18 @@ void ACK_send(void)
 	TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE);
 }
 #endif
+
+int raw_write(u8* tx_buff, int* size)
+{
+	to_IDLE();
+	Write_DW1000(0x09, 0x00, tx_buff, *size);
+	u8 tmp = (u8)(*size + 2);
+	Write_DW1000(0x08, 0x00, &tmp, 1);
+	tmp = 0x82;
+	Write_DW1000(0x0D, 0x00, &tmp, 1);
+}
+
+void set_MAC(u8* mac)
+{
+	Write_DW1000(0x01, 0x00, mac, 8);
+}
