@@ -26,38 +26,35 @@
 #include "DW1000.h"
 #include "USART.h"
 #include "SPI.h"
-#ifdef RX
 #include <stdio.h>
-u8 status_flag=0;
-extern u8 Rx_Buff[128];
-#endif
-
 
 // Common
+u8 status_flag = IDLE;
+u8 distance_flag = IDLE;
+extern u8 Rx_Buff[128];
+extern u8 Tx_Buff[128];
 extern u8 Sequence_Number;
+extern u8 mac[8];
 u8 ars_counter;
 u8 ars_counter;
 u8 usart_buffer[64];
 u8 usart_index;
 u8 usart_status;
 
-#ifdef TX
-u8 distance_flag;
-u8 ars_max=3;
-// TODO : disable PAN
-u16 pan;
-
-extern u8 toggle;
 extern u32 Tx_stp_L;
 extern u8 Tx_stp_H;
 extern u32 Rx_stp_L;
 extern u8 Rx_stp_H;
+extern u32 LS_DATA;
+#ifdef TX
+u8 ars_max=3;
+// TODO : disable PAN
+u16 pan;
 extern u32 data;
 extern u32 tmp1;
 extern s32 tmp2;
 extern double diff;
 extern double distance;
-
 u8 i;
 
 extern u16 std_noise;
@@ -207,7 +204,7 @@ void SysTick_Handler(void)
 /**
 * @}
 */
-#ifdef TX
+#ifdef TXX
 /*
 状态转换说明
 distance_flag=0  初始状态
@@ -221,7 +218,7 @@ void EXTI1_IRQHandler(void)
 	u8 tmp;
 	//u8 i;
 	EXTI_ClearITPendingBit(EXTI_Line1);
-	int size;
+	u16 size;
 
 	while(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1)==0)
 {
@@ -376,86 +373,135 @@ void EXTI1_IRQHandler(void)
 	//printf("%d\r\n",distance_flag);
 }
 #endif
-#ifdef RX
- void EXTI1_IRQHandler(void)
+
+void EXTI1_IRQHandler(void)
 {
 	u32 status;
 	u8 tmp;
-	//u8 i;
+	u16 size;
+	u16 pl_size;
+	u8 *dst;
+	static u8 *src; // need improvement
+	u8 *payload;
+	
 	EXTI_ClearITPendingBit(EXTI_Line1);
+	// enter interrupt
 	while(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1)==0)
-{
-
-	Read_DW1000(0x0F,0x00,(u8 *)(&status),4);
-	if((status&0x00006000)==0x00002000)
 	{
-		tmp=0x20;
-		Write_DW1000(0x0F,0x01,&tmp,1);
-		//printf("sth res:0x%8x\r\n",status);
-		to_IDLE();
-	}
-	Read_DW1000(0x0F,0x00,(u8 *)(&status),4);
-
-	if((status&0x00000080)==0x00000080)
-	{
-		tmp=0x80;
-		Write_DW1000(0x0F,0x00,&tmp,1);
-		if(status_flag==1)
+		read_status(&status);
+		if((status&0x00040000)==0x00040000) //LDE算法检测标志位
 		{
-			//计数器TIM3清零
-			status_flag=2;	//定位应答发送成功
-			printf("定位应答\t\t发送成功\r\n");
-			TIM_ITConfig(TIM3,TIM_IT_Update,DISABLE);
-			TIM_SetCounter(TIM3,0x0000);
-			TIM_ClearFlag(TIM3, TIM_FLAG_Update);
-			TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE);
-			data_response();
+			tmp=0x04;
+			Write_DW1000(0x0F,0x02,&tmp,1); //强制写入1
+			to_IDLE();
+			RX_mode_enable();
 		}
-		else if(status_flag==2)
+		
+		if((status&0x00006000)==0x00002000) // CRC err
 		{
-			printf("定位数据%d\t\t发送成功\r\n",ars_counter+1);
-			status_flag=3;	 //定位数据发送成功
-			//计数器TIM3清零
-			TIM_ITConfig(TIM3,TIM_IT_Update,DISABLE);
-			TIM_SetCounter(TIM3,0x0000);
-			TIM_ClearFlag(TIM3, TIM_FLAG_Update);
-			TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE);
+			tmp=0x20;
+			Write_DW1000(0x0F,0x01,&tmp,1);
+			to_IDLE();
+			RX_mode_enable();
 		}
-	}
-
-		Read_DW1000(0x0F,0x00,(u8 *)(&status),4);
-		if((status&0x00004000)==0x00004000)
+		// read_status(&status);
+		else if((status&0x00000080)==0x00000080) // transmit done
 		{
-			//printf("sth done:0x%8x\r\n",status);
-			//Read_DW1000(0x10,0x00,&tmp,1);
-			//printf("0x%02x\r\n",tmp);
+			tmp=0x80;
+			Write_DW1000(0x0F,0x00,&tmp,1);
+			// clear the flag
+			if(status_flag == SENT_LS_ACK)
+			{
+				printf("定位应答\t\t发送成功\r\n");
+				status_flag = CONFIRM_SENT_LS_ACK;
+				data_response(mac, src);
+			}
+			else if(status_flag == CONFIRM_SENT_LS_ACK)
+			{
+				printf("定位数据%d\t\t发送成功\r\n",ars_counter+1);
+				status_flag = SENT_LS_DATA;
+			}
+			// currently to avoid err, cannot work as an anchor and a client at the same time
+			else if(distance_flag == SENT_LS_REQ) // &&status_flag == IDLE
+			{
+				distance_flag = CONFIRM_SENT_LS_REQ;
+				// Read Time Stamp
+				Read_DW1000(0x17,0x00,(u8 *)(&Tx_stp_L),4);
+				Read_DW1000(0x17,0x04,&Tx_stp_H,1);
+				printf("0x%8x\r\n",Tx_stp_L);
+				printf("0x%2x\r\n",Tx_stp_H);
+			}
+			
+		}
+		// read_status(&status);
+		else if((status&0x00004000)==0x00004000) // receive done
+		{
+			to_IDLE();
+			// clear flag
 			tmp=0x60;
 			Write_DW1000(0x0F,0x01,&tmp,1);
-			//printf("%8x\r\n",status) ;
-			//to_IDLE();
-			//RX_mode_enable();
-// lucus: TODO
-			Read_DW1000(0x11,0x00,Rx_Buff,14);
-
-			//Read_DW1000(0x0f,0x03,&tmp,1);
-			//tmp=((tmp&0x40)==0x00);
-			//Write_DW1000(0x0D,0x03,&tmp,1);
-			/*for(i=0;i<14;i++)
+			raw_read(Rx_Buff, &size);
+			parse_rx(Rx_Buff, size, src, dst, payload, &pl_size);
+			printf("Got a Frame:\n \
+			Frame type: %X\n \
+			src: %P%P\n\
+			dst: %P%P\n\
+			pl_size: %d\
+			first byte of pl: %P\
+			", Rx_Buff[0]>>5, src, src+4, dst, dst+4, pl_size, payload);
+			if (Rx_Buff[0]&0xE0 == 0x80) // LS Frame
 			{
-				printf("%02x",Receive_buffer[i]);
+				if ((payload[0]&0xFF == 0x00)&&(status_flag == IDLE)) // GOT LS Req
+				{
+					send_LS_ACK(mac, src);
+					status_flag = SENT_LS_ACK;
+					printf("\r\n===========Got LS Req===========\r\n");
+				}
+				else if ((payload[0]&0xFF == 0x01)&&((distance_flag == CONFIRM_SENT_LS_REQ)||(distance_flag == SENT_LS_REQ))) // GOT LS ACK
+				{
+					// TODO
+					Read_DW1000(0x15,0x00,(u8 *)(&Rx_stp_L),4);
+					Read_DW1000(0x15,0x04,&Rx_stp_H,1);
+					printf("0x%8x\r\n",Rx_stp_L);
+					printf("0x%2x\r\n",Rx_stp_H);
+					Read_DW1000(0x12,0x00,(u8 *)(&std_noise),2);
+					Read_DW1000(0x12,0x02,(u8 *)(&fp_ampl2),2);
+					Read_DW1000(0x12,0x04,(u8 *)(&fp_ampl3),2);
+					Read_DW1000(0x12,0x06,(u8 *)(&cir_mxg),2);
+					Read_DW1000(0x15,0x07,(u8 *)(&fp_ampl1),2);
+					Read_DW1000(0x10,0x02,(u8 *)(&rxpacc),2);
+					printf("定位应答%d\t\t接收成功\r\n",ars_counter+1);
+					distance_flag = GOT_LS_ACK;
+				}
+				else if ((payload[0]&0xFF == 0x02)&&(distance_flag == GOT_LS_ACK)) // GOT LS DATA
+				{
+					// TODO
+					distance_flag = GOT_LS_DATA;
+					LS_DATA = *(u32 *)(payload + 1);
+					printf("定位数据\t\t接收成功\r\n");
+					distance_measurement();
+					quality_measurement();
+					// TODO
+					// sent_LS_RETURN(mac, src);
+				}
+				else if (payload[0]&0xFF == 0x03) // GOT LS RETURN
+				{
+					// TODO
+					status_flag = IDLE; // TODO: set a watch dog
+				}
 			}
-			printf("\r\n")  ;  	 */
-
+			/*
 			if(((Rx_Buff[0]&0x07)==0x04)&&(status_flag==3)) //如果是ACK
 			{
 				if(Rx_Buff[2]==Sequence_Number)
 				{
 					//计数器TIM3清零,停止工作
-					TIM_ITConfig(TIM3,TIM_IT_Update,DISABLE);
-					TIM_SetCounter(TIM3,0x0000);
-					TIM_Cmd(TIM3, DISABLE);
-					TIM_ClearFlag(TIM3, TIM_FLAG_Update);
-					TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE);
+					// TIM_ITConfig(TIM3,TIM_IT_Update,DISABLE);
+					// TIM_SetCounter(TIM3,0x0000);
+					// TIM_Cmd(TIM3, DISABLE);
+					// TIM_ClearFlag(TIM3, TIM_FLAG_Update);
+					// TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE);
+					//
 					status_flag=0; //对端已接收
 					ars_counter=0;
 					printf("定位数据\t\t对端已接收\r\n");
@@ -483,10 +529,11 @@ void EXTI1_IRQHandler(void)
 			}
 		}
 		//Read_DW1000(0x0F,0x00,(u8 *)(&status),2);
+*/
+		}
+	}
+}
 
-}
-}
-#endif
 
 #ifdef TX
 void TIM2_IRQHandler(void)
