@@ -22,13 +22,13 @@ u32 Tx_stp_L;
 u8 Tx_stp_H;
 u32 Rx_stp_L;
 u8 Rx_stp_H;
+u8 Tx_Buff[128];
+u8 Rx_Buff[128];
 
 #ifdef RX
 extern u8 status_flag;
-u8 Tx_Buff[128];
 u32 diff;
 u8 tmp;
-extern u8 Receive_buffer[14];
 #endif
 
 #ifdef TX
@@ -42,7 +42,6 @@ double diff;
 double distance;
 extern u8 ars_counter;
 extern u8 tmpp[14];
-u8 Tx_Buff[12];
 
 u16 std_noise;
 u16 fp_ampl1;
@@ -206,9 +205,8 @@ void Location_polling(void)	 //发送定位帧
 	// u8 tmp;
 	distance_flag=0;
 	//地址：反正！！ （低字节在前 单字节正常写入）
-	Tx_Buff[0]=0b00100010; // only DST PANID
-	Tx_Buff[1]=0b00110111;
-	// 0100 0001 1000 1000
+	Tx_Buff[0]=0x22; // 0b00100010; // only DST PANID
+	Tx_Buff[1]=0x37; // 0b00110111;
 	Tx_Buff[2]=Sequence_Number++; //计数第几个序列
 	//SN end
 	Tx_Buff[4]=0xFF;
@@ -254,35 +252,16 @@ void Location_polling(void)	 //发送定位帧
 
 }
 /*
-打开接收模式
-*/
-void RX_mode_enable(void)
-{
-	u16 tmp;
-	tmp=0x00;
-	Write_DW1000(0x36,0x06,(u8 *)(&tmp),1);
-	//ROM TO RAM
-	//LDE LOAD=1
-	tmp=0x8000;
-	Write_DW1000(0x2D,0x06,(u8 *)(&tmp),2);
-	Delay(20);
-	tmp=0x0002;
-	Write_DW1000(0x36,0x06,(u8 *)(&tmp),1);
-	tmp=0x0001;
-	Write_DW1000(0x0D,0x01,(u8 *)(&tmp),1);
-}
-
-/*
 计算距离信息(单位：cm)并串口输出
 */
 void distance_measurement(void)
 {
 	u32 tmp;
-	toggle = !toggle;
-	//printf("Toggled\n");
-	tmp=PANIDS[toggle];
-	tmp=(tmp<<16)+_TX_sADDR;
-	Write_DW1000(0x03,0x00,(u8 *)(&tmp),4);
+	// toggle = !toggle;
+	// //printf("Toggled\n");
+	// tmp=PANIDS[toggle];
+	// tmp=(tmp<<16)+_TX_sADDR;
+	// Write_DW1000(0x03,0x00,(u8 *)(&tmp),4);
 
 	if(distance_flag!=3)
 	{
@@ -323,9 +302,7 @@ void distance_measurement(void)
 				printf("Position: %f %f", reciever_position[0][0], reciever_position[0][1]);
 			}
 		}
-
 		printf("\r\n=====================================\r\n");
-
 	}
 }
 
@@ -364,8 +341,6 @@ void quality_measurement(void)
 #ifdef RX
 void data_response(void)
 {
-
-
 	if(status_flag==2)
 	{
 		Read_DW1000(0x17,0x00,(u8 *)(&Tx_stp_L),4);
@@ -390,32 +365,48 @@ void data_response(void)
 		{
 			diff=((0xFF-Rx_stp_H+Tx_stp_H+1)*0xFFFFFFFF+Tx_stp_L-Rx_stp_L);
 		}
-	 }
+	}
 	printf("%08x\r\n",diff);
-	Tx_Buff[0]=0x41;
-	Tx_Buff[1]=0x88;
-	Tx_Buff[2]=Sequence_Number;
-	Tx_Buff[4]=(u8)(_PAN_ID>>8);
-	Tx_Buff[3]=(u8)_PAN_ID;
-	Tx_Buff[6]=(u8)(_TX_sADDR>>8);
-	Tx_Buff[5]=(u8)_TX_sADDR;
-	Tx_Buff[8]=(u8)(_RX_sADDR>>8);
-	Tx_Buff[7]=(u8)_RX_sADDR;
-	Tx_Buff[9]=(u8)diff;
+	Tx_Buff[0]=0b00100010; // only DST PANID
+	Tx_Buff[1]=0b00110111;
+	// 0100 0001 1000 1000
+	Tx_Buff[2]=Sequence_Number++; //计数第几个序列
+	//SN end
+	Tx_Buff[4]=0xFF;
+	Tx_Buff[3]=0xFF;
+	//DST PAN end
+	Tx_Buff[6]=(0xFF);//MAC_maker((u8)(_RX_sADDR>>8));
+	Tx_Buff[7]=(0xFF);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[8]=(0xFF);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[9]=(0xFF);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[10]=(0xFF);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[11]=(0xFF);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[12]=(0xFF);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[13]=(0xF0);//MAC_maker((u8)_RX_sADDR);
+	//DST MAC end
+	Tx_Buff[14]=(0xFF);//MAC_maker((u8)(_RX_sADDR>>8));
+	Tx_Buff[15]=(0xFF);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[16]=(0xFF);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[17]=(0xFF);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[18]=(0xFF);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[19]=(0xFF);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[20]=(0xFF);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[21]=(0xF1);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[22]=(u8)diff;
 	diff>>=8;
-	Tx_Buff[10]=(u8)diff;
+	Tx_Buff[23]=(u8)diff;
 	diff>>=8;
-	Tx_Buff[11]=(u8)diff;
+	Tx_Buff[24]=(u8)diff;
 	diff>>=8;
-	Tx_Buff[12]=(u8)diff;
-	Tx_Buff[13]=0x01;
-
-	to_IDLE();
-	tmp=15;
-	Write_DW1000(0x08,0x00,&tmp,1);
-	Write_DW1000(0x09,0x00,Tx_Buff,14);
-	tmp=0x82;
-	Write_DW1000(0x0D,0x00,&tmp,1);
+	Tx_Buff[25]=(u8)diff;
+	Tx_Buff[26]=0x01;
+	raw_write(Tx_Buff, 16)
+	// to_IDLE();
+	// tmp=15;
+	// Write_DW1000(0x08,0x00,&tmp,1);
+	// Write_DW1000(0x09,0x00,Tx_Buff,14);
+	// tmp=0x82;
+	// Write_DW1000(0x0D,0x00,&tmp,1);
 
 	TIM_ITConfig(TIM3,TIM_IT_Update,DISABLE);
 	TIM_SetCounter(TIM3,0x0000);
@@ -424,24 +415,20 @@ void data_response(void)
 
 
 }
+
+#endif
 /*
 打开接收模式
 */
 void RX_mode_enable(void)
 {
 	u8 tmp;
-	/*Read_DW1000(0x0f,0x03,&tmp,1);
-	if(((tmp&0xc0)==0x40)||((tmp&0xc0)==0x80))
-	{
-		tmp=((tmp&0x80)==0x80);
-		Write_DW1000(0x0D,0x03,&tmp,1);
-	}	  */
+	load_LDE();
 	tmp=0x01;
 	Write_DW1000(0x0D,0x01,&tmp,1);
 
 //	printf("开启接收模式\t\t完成\r\n");
 }
-#endif
 /*
 返回IDLE状态
 */
@@ -475,7 +462,7 @@ void ACK_send(void)
 {
 	Tx_Buff[0]=0x44;
 	Tx_Buff[1]=0x00;
-	Tx_Buff[2]=Receive_buffer[2];
+	Tx_Buff[2]=Rx_Buff[2];
 
 	to_IDLE();
 	tmp=5;
@@ -491,13 +478,42 @@ void ACK_send(void)
 }
 #endif
 
-int raw_write(u8* tx_buff, int* size)
+int raw_write(u8* tx_buff, u16* size)
 {
 	to_IDLE();
 	Write_DW1000(0x09, 0x00, tx_buff, *size);
-	u8 tmp = (u8)(*size + 2);
+	u8 full_size = (u8)(*size + 2);
+	Write_DW1000(0x08, 0x00, &full_size, 1);
+	// sent and wait
+	sent_and_wait();
+}
+
+int raw_read(u8* rx_buff, u16* size)
+{
+	to_IDLE();
+	Read_DW1000(0x10,0x00,(u8 *)(size),1);
+	*size -= 2;
+	Read_DW1000(0x11,0x00,rx_buff,*size);
 	Write_DW1000(0x08, 0x00, &tmp, 1);
-	tmp = 0x82;
+	RX_mode_enable();
+}
+
+void load_LDE(void)
+{
+	u16 tmp=0x00;
+	Write_DW1000(0x36,0x06,(u8 *)(&tmp),1);
+	//ROM TO RAM
+	//LDE LOAD=1
+	tmp=0x8000;
+	Write_DW1000(0x2D,0x06,(u8 *)(&tmp),2);
+	Delay(20);
+	tmp=0x0002;
+	Write_DW1000(0x36,0x06,(u8 *)(&tmp),1);
+}
+
+void sent_and_wait(void)
+{
+	u8 tmp = 0x82;
 	Write_DW1000(0x0D, 0x00, &tmp, 1);
 }
 

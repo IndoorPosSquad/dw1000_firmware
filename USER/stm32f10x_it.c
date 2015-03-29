@@ -29,7 +29,7 @@
 #ifdef RX
 #include <stdio.h>
 u8 status_flag=0;
-u8 Receive_buffer[14];
+extern u8 Rx_Buff[128];
 #endif
 
 
@@ -57,7 +57,7 @@ extern u32 tmp1;
 extern s32 tmp2;
 extern double diff;
 extern double distance;
-u8 tmpp[14];
+
 u8 i;
 
 extern u16 std_noise;
@@ -221,6 +221,7 @@ void EXTI1_IRQHandler(void)
 	u8 tmp;
 	//u8 i;
 	EXTI_ClearITPendingBit(EXTI_Line1);
+	int size;
 
 	while(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1)==0)
 {
@@ -265,30 +266,30 @@ void EXTI1_IRQHandler(void)
 				}
 				//printf("定位请求%d\t\t发送成功\r\n",ars_counter+1);
 			}
-
-
-
 		}
+		
 		Read_DW1000(0x0F,0x00,(u8 *)(&status),2);
 		if((status&0x4000)==0x4000)
 		{
 			tmp=0x60;
 			Write_DW1000(0x0F,0x01,&tmp,1);				 //接收回读的数据完成CRC校验
-			Read_DW1000(0x11,0x00,tmpp,14);			   //读RX_FRAME_BUFFER的值，写入tmpp
+			// lucus
+			raw_read(Rx_Buff, &size);
+			// Read_DW1000(0x11,0x00,Rx_Buff,14);			   //读RX_FRAME_BUFFER的值，写入tmpp
 			/*for(i=0;i<14;i++)
 			{
 				printf("%02x",tmpp[i]);
 			}
 			printf("\r\n")  ;*/
-			if(((tmpp[0]&0x07)==0x04)&&(distance_flag==1)) //如果是ACK
+			if(((Rx_Buff[0]&0xE0)==0x40)&&(distance_flag==1)) //如果是ACK
 			{
 				printf("ACK RX_FRAME：\r\n");
-				for(i=0;i<14;i++)
-				{
-					printf("%02x",tmpp[i]);
-				}
+				// for(i=0;i<14;i++)
+				// {
+					// printf("%02x",Rx_Buff[i]);
+				// }
 				printf("\r\n");
-				if(tmpp[2]==Sequence_Number-1)
+				if(Rx_Buff[2]==Sequence_Number-1)
 				{
 					//printf("11\r\n")  ;
 
@@ -314,23 +315,19 @@ void EXTI1_IRQHandler(void)
 
 					to_IDLE();
 					RX_mode_enable();
-
 					distance_flag=2;
-
 					printf("定位应答%d\t\t接收成功\r\n",ars_counter+1);
-
-
 				}
 			}
-			else if(((tmpp[0]&0x07)==0x01)&&(distance_flag==2))//数据
+			else if(((Rx_Buff[0]&0xE0)==0x20)&&(distance_flag==2))//数据
 			{
 				printf("DATA RX_FRAME：\r\n");
 				for(i=0;i<14;i++)
 				{
-					printf("%02x",tmpp[i]);
+					printf("%02x",Rx_Buff[i]);
 				}
 				printf("\r\n");
-				if(tmpp[2]==Sequence_Number-1)
+				if(Rx_Buff[2]==Sequence_Number-1)
 				{
 
 					//ACK_send();
@@ -357,11 +354,11 @@ void EXTI1_IRQHandler(void)
 						printf("%02x",tmpp[i]);
 					}
 					printf("\r\n");			*/
-					if((tmpp[3]==0x74)&&(tmpp[4]==0x10))	          	 //判断PAN_ID
+					if((Rx_Buff[3]==0x74)&&(Rx_Buff[4]==0x10))	          	 //判断PAN_ID
 					{
 						printf("\r\n    -------节点1测量结果-------    \r\n");
 					}
-					else if((tmpp[3]==0x74)&&(tmpp[4]==0x89))
+					else if((Rx_Buff[3]==0x74)&&(Rx_Buff[4]==0x89))
 					{
 						printf("\r\n    -------节点2测量结果-------    \r\n");
 					}
@@ -388,21 +385,7 @@ void EXTI1_IRQHandler(void)
 	EXTI_ClearITPendingBit(EXTI_Line1);
 	while(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1)==0)
 {
-	Read_DW1000(0x0F,0x00,(u8 *)(&status),4);
-	/*if((status&0x00046080)==0x00000000)
-	{
 
-		to_IDLE();
-		RX_mode_enable();
-	} */
-/*	Read_DW1000(0x0F,0x00,(u8 *)(&status),4);
-	if((status&0x00040000)==0x00040000)
-	{
-		tmp=0x04;
-		Write_DW1000(0x0F,0x02,&tmp,1);
-		to_IDLE();
-		RX_mode_enable();
-	}  	*/
 	Read_DW1000(0x0F,0x00,(u8 *)(&status),4);
 	if((status&0x00006000)==0x00002000)
 	{
@@ -411,39 +394,34 @@ void EXTI1_IRQHandler(void)
 		//printf("sth res:0x%8x\r\n",status);
 		to_IDLE();
 	}
+	Read_DW1000(0x0F,0x00,(u8 *)(&status),4);
 
-	//while(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1)==0)
-	//{
-		Read_DW1000(0x0F,0x00,(u8 *)(&status),4);
-		//Read_DW1000(0x0F,0x00,(u8 *)(&status),4);
-		//printf("0x%4x",status);
-		if((status&0x00000080)==0x00000080)
+	if((status&0x00000080)==0x00000080)
+	{
+		tmp=0x80;
+		Write_DW1000(0x0F,0x00,&tmp,1);
+		if(status_flag==1)
 		{
-			//printf("sth send:0x%8x\r\n",status);
-			tmp=0x80;
-			Write_DW1000(0x0F,0x00,&tmp,1);
-			if(status_flag==1)
-			{
-				//计数器TIM3清零
-				status_flag=2;	//定位应答发送成功
-				printf("定位应答\t\t发送成功\r\n");
-				TIM_ITConfig(TIM3,TIM_IT_Update,DISABLE);
-				TIM_SetCounter(TIM3,0x0000);
-				TIM_ClearFlag(TIM3, TIM_FLAG_Update);
-				TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE);
-				data_response();
-			}
-			else if(status_flag==2)
-			{
-				printf("定位数据%d\t\t发送成功\r\n",ars_counter+1);
-				status_flag=3;	 //定位数据发送成功
-				//计数器TIM3清零
-				TIM_ITConfig(TIM3,TIM_IT_Update,DISABLE);
-				TIM_SetCounter(TIM3,0x0000);
-				TIM_ClearFlag(TIM3, TIM_FLAG_Update);
-				TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE);
-			}
+			//计数器TIM3清零
+			status_flag=2;	//定位应答发送成功
+			printf("定位应答\t\t发送成功\r\n");
+			TIM_ITConfig(TIM3,TIM_IT_Update,DISABLE);
+			TIM_SetCounter(TIM3,0x0000);
+			TIM_ClearFlag(TIM3, TIM_FLAG_Update);
+			TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE);
+			data_response();
 		}
+		else if(status_flag==2)
+		{
+			printf("定位数据%d\t\t发送成功\r\n",ars_counter+1);
+			status_flag=3;	 //定位数据发送成功
+			//计数器TIM3清零
+			TIM_ITConfig(TIM3,TIM_IT_Update,DISABLE);
+			TIM_SetCounter(TIM3,0x0000);
+			TIM_ClearFlag(TIM3, TIM_FLAG_Update);
+			TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE);
+		}
+	}
 
 		Read_DW1000(0x0F,0x00,(u8 *)(&status),4);
 		if((status&0x00004000)==0x00004000)
@@ -456,8 +434,8 @@ void EXTI1_IRQHandler(void)
 			//printf("%8x\r\n",status) ;
 			//to_IDLE();
 			//RX_mode_enable();
-
-			Read_DW1000(0x11,0x00,Receive_buffer,14);
+// lucus: TODO
+			Read_DW1000(0x11,0x00,Rx_Buff,14);
 
 			//Read_DW1000(0x0f,0x03,&tmp,1);
 			//tmp=((tmp&0x40)==0x00);
@@ -468,9 +446,9 @@ void EXTI1_IRQHandler(void)
 			}
 			printf("\r\n")  ;  	 */
 
-			if(((Receive_buffer[0]&0x07)==0x04)&&(status_flag==3)) //如果是ACK
+			if(((Rx_Buff[0]&0x07)==0x04)&&(status_flag==3)) //如果是ACK
 			{
-				if(Receive_buffer[2]==Sequence_Number)
+				if(Rx_Buff[2]==Sequence_Number)
 				{
 					//计数器TIM3清零,停止工作
 					TIM_ITConfig(TIM3,TIM_IT_Update,DISABLE);
@@ -486,13 +464,13 @@ void EXTI1_IRQHandler(void)
 					RX_mode_enable();
 				}
 			}
-			else if(((Receive_buffer[0]&0x07)==0x01)&&(status_flag==0)&&(Receive_buffer[9]==0x38))//申请数据
+			else if(((Rx_Buff[0]&0x07)==0x01)&&(status_flag==0)&&(Rx_Buff[9]==0x38))//申请数据
 			{
 
 				ACK_send();
 
 				//开启计数器TIM3
-				Sequence_Number=Receive_buffer[2];
+				Sequence_Number=Rx_Buff[2];
 				status_flag=1;//收到定位申请
 				printf("\r\n===========收到定位申请===========\r\n");
 

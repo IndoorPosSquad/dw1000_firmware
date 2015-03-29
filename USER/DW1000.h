@@ -14,7 +14,10 @@ void quality_measurement(void);
 #ifdef RX
 void data_response(void);
 #endif
+
 void DW1000_init(void);
 void RX_mode_enable(void);
 void to_IDLE(void);
 void ACK_send(void);
+void set_MAC(u8* mac);
+int raw_write(u8* tx_buff, u16* size);
