@@ -72,6 +72,7 @@ int fputc(int ch, FILE *f)
 设置光速偏移    0x04    光速的百分比偏移（单位：1%；从真空光速中以百分比形式减去；默认0）
 读取DW1000寄存器 0x05     地址（一字节） 偏移地址（两字节，低位在前） 读取字节长度（两字节，低位在前,最多128）
 */
+#ifdef TX
 void usart_handle(void)
 {
 	u16 i;
@@ -149,3 +150,36 @@ void usart_handle(void)
 	}
 
 }
+#endif
+
+#ifdef RX
+void usart_handle(void)
+{
+	u16 i;
+	u32 tmp=0;
+	u8 tmpp[128];
+	if(usart_status==2)
+	{
+		tmp=0;
+		if	(((usart_buffer[0]==0x05)&&(usart_index==6)))
+		{
+			tmp=(usart_buffer[4]+(usart_buffer[5]<<8));
+			Read_DW1000(usart_buffer[1],(usart_buffer[2]+(usart_buffer[3]<<8)),tmpp,tmp);
+			printf("*访问地址 0x%02x:0x%02x 访问长度 %d *\r\n[返回数据 0x",usart_buffer[1],(usart_buffer[2]+(usart_buffer[3]<<8)),tmp);
+			for(i=0;i<tmp;i++)
+			{
+				printf("%02x",*(tmpp+tmp-i-1));
+			}
+			printf("]\r\n");
+		}
+		else
+		{
+			printf("\r\n*输入错误*\r\n");
+			//RX_mode_enable();
+		}
+		usart_status=0;
+		usart_index=0;
+
+	}
+}
+#endif
