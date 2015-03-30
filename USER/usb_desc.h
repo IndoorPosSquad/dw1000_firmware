@@ -1,10 +1,10 @@
 /**
   ******************************************************************************
-  * @file    hw_config.h
+  * @file    usb_desc.h
   * @author  MCD Application Team
   * @version V4.0.0
   * @date    21-January-2013
-  * @brief   Hardware Configuration & Setup
+  * @brief   Descriptor Header for Virtual COM Port Device
   ******************************************************************************
   * @attention
   *
@@ -27,28 +27,41 @@
 
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __HW_CONFIG_H
-#define __HW_CONFIG_H
+#ifndef __USB_DESC_H
+#define __USB_DESC_H
 
 /* Includes ------------------------------------------------------------------*/
-#include "platform_config.h"
-#include "usb_type.h"
-
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 /* Exported define -----------------------------------------------------------*/
+#define USB_DEVICE_DESCRIPTOR_TYPE              0x01
+#define USB_CONFIGURATION_DESCRIPTOR_TYPE       0x02
+#define USB_STRING_DESCRIPTOR_TYPE              0x03
+#define USB_INTERFACE_DESCRIPTOR_TYPE           0x04
+#define USB_ENDPOINT_DESCRIPTOR_TYPE            0x05
+
+#define VIRTUAL_COM_PORT_DATA_SIZE              64
+#define VIRTUAL_COM_PORT_INT_SIZE               8
+
+#define VIRTUAL_COM_PORT_SIZ_DEVICE_DESC        18
+#define VIRTUAL_COM_PORT_SIZ_CONFIG_DESC        46
+#define VIRTUAL_COM_PORT_SIZ_STRING_LANGID      4
+#define VIRTUAL_COM_PORT_SIZ_STRING_VENDOR      16
+#define VIRTUAL_COM_PORT_SIZ_STRING_PRODUCT     34
+#define VIRTUAL_COM_PORT_SIZ_STRING_SERIAL      26
+
+#define STANDARD_ENDPOINT_DESC_SIZE             0x09
 
 /* Exported functions ------------------------------------------------------- */
-void Set_System(void);
-void Set_USBClock(void);
-void Enter_LowPowerMode(void);
-void Leave_LowPowerMode(void);
-void USB_Interrupts_Config(void);
-void USB_Cable_Config (FunctionalState NewState);
-void Get_SerialNum(void);
-static void IntToUnicode (uint32_t value , uint8_t *pbuf , uint8_t len);
-/* External variables --------------------------------------------------------*/
+extern const uint8_t Virtual_Com_Port_DeviceDescriptor[VIRTUAL_COM_PORT_SIZ_DEVICE_DESC];
+extern const uint8_t Virtual_Com_Port_ConfigDescriptor[VIRTUAL_COM_PORT_SIZ_CONFIG_DESC];
 
-#endif  /*__HW_CONFIG_H*/
+extern const uint8_t Virtual_Com_Port_StringLangID[VIRTUAL_COM_PORT_SIZ_STRING_LANGID];
+extern const uint8_t Virtual_Com_Port_StringVendor[VIRTUAL_COM_PORT_SIZ_STRING_VENDOR];
+extern const uint8_t Virtual_Com_Port_StringProduct[VIRTUAL_COM_PORT_SIZ_STRING_PRODUCT];
+extern uint8_t Virtual_Com_Port_StringSerial[VIRTUAL_COM_PORT_SIZ_STRING_SERIAL];
+
+#endif /* __USB_DESC_H */
+// done
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

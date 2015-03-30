@@ -35,6 +35,7 @@
 #include "hw_config.h"
 #include "usb_pwr.h"
 
+EXTI_InitTypeDef EXTI_InitStructure;
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -136,11 +137,6 @@ void USB_Interrupts_Config(void)
   NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
   NVIC_Init(&NVIC_InitStructure);
  
-
-  /* Enable USART Interrupt */
-  NVIC_InitStructure.NVIC_IRQChannel = EVAL_COM1_IRQn;
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-  NVIC_Init(&NVIC_InitStructure);
 }
 
 /*******************************************************************************

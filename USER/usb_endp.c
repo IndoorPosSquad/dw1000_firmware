@@ -52,7 +52,7 @@ void EP1_IN_Callback(void)
   // SetEPTxStatus(ENDP1, EP_TX_VALID);
 }
 
-void EP2_OUT_Callback(void)
+void EP1_OUT_Callback(void)
 {
   // DataLen = USB_SIL_Write(EP1_OUT, Data_Pointer);
   // SetEPRxStatus(ENDP1, EP_RX_VALID);

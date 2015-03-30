@@ -12,7 +12,10 @@
 #include "SPI.h"
 #include "USART.h"
 #include "DW1000.h"
-
+#include "hw_config.h"
+#include "usb_lib.h"
+#include "usb_desc.h"
+#include "usb_pwr.h"
 
 /*
 TIM2时钟初始化:3s溢出（定位周期）

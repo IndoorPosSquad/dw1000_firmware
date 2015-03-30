@@ -41,8 +41,8 @@ const uint8_t Virtual_Com_Port_DeviceDescriptor[VIRTUAL_COM_PORT_SIZ_DEVICE_DESC
     0x00,   /* bDeviceProtocol */
     0x40,   /* bMaxPacketSize0 */
     0x83,
-    0x04,   /* idVendor = 0x0483 */
-    0x41,
+    0x05,   /* idVendor = 0x0483 */
+    0x45,
     0x57,   /* idProduct = 0x7541 */
     0x00,
     0x02,   /* bcdDevice = 2.00 */
