@@ -114,6 +114,10 @@ int main(void)
 {
 	
 	SystemInit();
+	Set_System();
+	Set_USBClock();
+	USB_Interrupts_Config();
+	USB_Init();
 	USART1_init(); // USART1初始化,波特率115200，单次8比特，无奇偶校验，1停止位：用于上位机下发命令
 	SPI1_init()	;
 	#ifdef TX
