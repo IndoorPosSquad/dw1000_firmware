@@ -1,20 +1,14 @@
 #include "stm32f10x.h"
 #include "SPI.h"
 #include "DW1000.h"
-
-#ifdef TX
 #include "USART.h"
 #include "math.h"
 #include "delay.h"
+
 u8 mac[8];
 u8 toggle = 1;
 const u16 PANIDS[2] = {0x8974, 0x1074};
 const u8 broadcast_addr[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-u8 mesurement_done[2] = {0, 0};
-float reciever_position[2][2] = {{0,0}, {0,0}};
-float pseudolites_position[2][2] = {{0, 0}, {5.5, 0}};
-float distance1;
-#endif
 
 // Common
 u8 Sequence_Number=0x00;
@@ -22,29 +16,22 @@ u32 Tx_stp_L;
 u8 Tx_stp_H;
 u32 Rx_stp_L;
 u8 Rx_stp_H;
+
+u32 Tx_stp_LT[3];
+u8 Tx_stp_HT[3];
+u32 Rx_stp_LT[3];
+u8 Rx_stp_HT[3];
+
 u8 Tx_Buff[128];
 u8 Rx_Buff[128];
-u32 LS_DATA;
-double double_diff;
+u32 LS_DATA[3];
 u32 u32_diff;
 
-#ifdef RX
-extern u8 status_flag;
-
-u8 tmp;
-#endif
-
-#ifdef TX
 extern u8 distance_flag;
+
 u32 time_offset=0; //电磁波传播时间调整
 u8 speed_offset=0; //电磁波传播速度调整
-
-u32 tmp1;
-s32 tmp2;
-double diff;
-double distance;
-extern u8 ars_counter;
-
+double distance[3];
 
 u16 std_noise;
 u16 fp_ampl1;
@@ -54,7 +41,7 @@ u16 cir_mxg;
 u16 rxpacc;
 double fppl;
 double rxl;
-#endif
+
 /*
 DW1000初始化
 */
@@ -90,19 +77,7 @@ void DW1000_init(void)
 	//FS_PLLTUNE ：PPL设置为适应频道5
 	tmp=0x000000A6;
 	Write_DW1000(0x2B,0x0B,(u8 *)(&tmp),1);
-	/////////////////////使用功能配置/////////////////////////
-	//local address ：写入本机地址（PAN_ID 和本机短地址）
-	//TODO : disable PAN
-	// #ifdef TX
-	// tmp=PANIDS[toggle];
-	// tmp=(tmp<<16)+_TX_sADDR;
-	// #endif
-	// #ifdef RX
-	// tmp=_PAN_ID;
-	// tmp=(tmp<<16)+_RX_sADDR;
-	// #endif
-	// //ENDTODO
-	// Write_DW1000(0x03,0x00,(u8 *)(&tmp),4);
+
 	mac[0] = 0xff;
 	mac[1] = 0xff;
 	mac[2] = 0xff;
@@ -113,12 +88,16 @@ void DW1000_init(void)
 	#ifdef TX
 	mac[7] = 0xf0;
 	#endif
-	#ifdef RX
+	#ifdef RX1
 	mac[7] = 0xf1;
 	#endif
-	// set_MAC((u8 *)(&mac[0]));
+	#ifdef RX2
+	mac[7] = 0xf2;
+	#endif
+	#ifdef RX3
+	mac[7] = 0xf3;
+	#endif
 	set_MAC(mac);
-	
 	//no auto ack Frame Filter
 	tmp=0x200011FD;
 	// 0010 0000 0000 0001 0000 0111 1101
@@ -134,108 +113,76 @@ void DW1000_init(void)
 	// ack等待
 	tmp=3;
 	Write_DW1000(0x1A,0x03,(u8 *)(&tmp),1);
-
+	load_LDE();
 	printf("定位芯片配置\t\t完成\r\n");
 }
-#ifdef TX
+
 /*
 申请定位
 */
-void Location_polling(void)	 //发送定位帧
+void Location_polling(void)
 {
 	u16 tmp;
-	distance_flag=0;
-	//地址：反正！！ （低字节在前 单字节正常写入）
 	// Tx_Buff[0]=0b10000010; // only DST PANID
 	// Tx_Buff[1]=0b00110111;
 	Tx_Buff[0] = 0x82;
 	Tx_Buff[1] = 0x37;
-	Tx_Buff[2]=Sequence_Number++; //计数第几个序列
+	Tx_Buff[2] = Sequence_Number++;
 	//SN end
-	Tx_Buff[4]=0xFF;
-	Tx_Buff[3]=0xFF;
+	Tx_Buff[4] = 0xFF;
+	Tx_Buff[3] = 0xFF;
 	//DST PAN end
-	Tx_Buff[6]=(0xFF);//MAC_maker((u8)(_RX_sADDR>>8));
-	Tx_Buff[7]=(0xFF);//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[8]=(0xFF);//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[9]=(0xFF);//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[10]=(0xFF);//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[11]=(0xFF);//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[12]=(0xFF);//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[13]=(0xF0);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[6]=broadcast_addr[0];
+	Tx_Buff[7]=broadcast_addr[1];
+	Tx_Buff[8]=broadcast_addr[2];
+	Tx_Buff[9]=broadcast_addr[3];
+	Tx_Buff[10]=broadcast_addr[4];
+	Tx_Buff[11]=broadcast_addr[5];
+	Tx_Buff[12]=broadcast_addr[6];
+	Tx_Buff[13]=broadcast_addr[7];
 	//DST MAC end
-	Tx_Buff[14]=(0xFF);//MAC_maker((u8)(_RX_sADDR>>8));
-	Tx_Buff[15]=(0xFF);//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[16]=(0xFF);//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[17]=(0xFF);//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[18]=(0xFF);//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[19]=(0xFF);//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[20]=(0xFF);//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[21]=(0xF1);//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[14]=mac[0];
+	Tx_Buff[15]=mac[1];
+	Tx_Buff[16]=mac[2];
+	Tx_Buff[17]=mac[3];
+	Tx_Buff[18]=mac[4];
+	Tx_Buff[19]=mac[5];
+	Tx_Buff[20]=mac[6];
+	Tx_Buff[21]=mac[7];
 	//SRC MAC end
 	//NO AUX
 	//Payload begin
-	Tx_Buff[22]=0x00;
-	Tx_Buff[23]=0xFF;
+	Tx_Buff[22] = 0x00; // 0x00 = LS Req
+	Tx_Buff[23] = 0xFF;
 	tmp = 23;
 	raw_write(Tx_Buff, &tmp);
-	// to_IDLE();
-	// Write_DW1000(0x09,0x00,Tx_Buff,12);
-	// tmp=14;
-	// Write_DW1000(0x08,0x00,&tmp,1);		//设置长度
-	// //Read_DW1000(0x08,0x00,&tmp,1);
-	// //printf("%2x\r\n",tmp);
-	// tmp=0x82;						//发送完成后立即转变为接收状态
-	// Write_DW1000(0x0D,0x00,&tmp,1);
-
-	//开启计数器TIM3
-	TIM_ClearFlag(TIM3, TIM_FLAG_Update);
-	TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE);
-	TIM_Cmd(TIM3, ENABLE);
-
+	distance_flag = SENT_LS_REQ;
 }
 /*
 计算距离信息(单位：cm)并串口输出
 */
-void distance_measurement(void)
+void distance_measurement(int n)
 {
-	u32 tmp;
-	// toggle = !toggle;
-	// //printf("Toggled\n");
-	// tmp=PANIDS[toggle];
-	// tmp=(tmp<<16)+_TX_sADDR;
-	// Write_DW1000(0x03,0x00,(u8 *)(&tmp),4);
-	if(Tx_stp_H==Rx_stp_H)
+	double double_diff;
+	if(Tx_stp_H == Rx_stp_HT[n])
 	{
-		double_diff=1.0*(Rx_stp_L-Tx_stp_L);
+		double_diff = 1.0* (Rx_stp_HT[n] - Tx_stp_L);
 	}
-	else if(Tx_stp_H<Rx_stp_H)
+	else if(Tx_stp_H < Rx_stp_HT[n])
 	{
-		double_diff=1.0*((Rx_stp_H-Tx_stp_H)*0xFFFFFFFF+Rx_stp_L-Tx_stp_L);
+		double_diff = 1.0*((Rx_stp_HT[n] - Tx_stp_H)*0xFFFFFFFF + Rx_stp_HT[n] - Tx_stp_L);
 	}
 	else
 	{
-		double_diff=1.0*((0xFF-Tx_stp_H+Rx_stp_H+1)*0xFFFFFFFF+Rx_stp_L-Tx_stp_L);
+		double_diff = 1.0*((0xFF - Tx_stp_H + Rx_stp_HT[n] +1)*0xFFFFFFFF + Rx_stp_HT[n] - Tx_stp_L);
 	}
 
-	double_diff=double_diff-1.0*LS_DATA ;
+	double_diff = double_diff - 1.0*LS_DATA[n];
 
-	distance=15.65*double_diff/1000000000000/2*_WAVE_SPEED*(1.0-0.01*speed_offset);
-	printf("测定距离\t\t%.2lf米\r\n\n\n",distance);
-	// TODO
-	// need rewrite
-	// if (distance > 148.93 && distance < 200.0){
-		// if (toggle == 0) {
-			// mesurement_done[0] = 1;
-			// distance1 = distance - 150.13;
-
-		// } else if (toggle == 1 && mesurement_done[0] == 1) {
-			// mesurement_done[0] = 0;
-			// printf("\nd1-------------- %f\n", distance1 - 148.63);
-			// solve_2d(reciever_position, pseudolites_position, distance1, distance - 148.63);
-			// printf("Position: %f %f", reciever_position[0][0], reciever_position[0][1]);
-		// }
-	// }
+	distance[n] = 15.65*double_diff/1000000000000/2*_WAVE_SPEED*(1.0-0.01*speed_offset);
+	printf("测定距离Node1\t\t%.2lf米\r\n\n\n",distance[0]);
+	printf("测定距离Node2\t\t%.2lf米\r\n\n\n",distance[1]);
+	printf("测定距离Node3\t\t%.2lf米\r\n\n\n",distance[2]);
 	printf("\r\n=====================================\r\n");
 }
 
@@ -267,7 +214,7 @@ void quality_measurement(void)
 		//printf("LOS判定\t\t\tNLOS\r\n");
 	}
 }
-#endif
+
 
 /*
 打开接收模式
@@ -275,11 +222,9 @@ void quality_measurement(void)
 void RX_mode_enable(void)
 {
 	u8 tmp;
-	load_LDE();
+	// load_LDE(); // lucus: why here?
 	tmp=0x01;
 	Write_DW1000(0x0D,0x01,&tmp,1);
-
-//	printf("开启接收模式\t\t完成\r\n");
 }
 /*
 返回IDLE状态
@@ -290,23 +235,6 @@ void to_IDLE(void)
 	tmp=0x40;
 	Write_DW1000(0x0D,0x00,&tmp,1);
 }
-
-
-#ifdef RX
-void ACK_send(void)
-{
-	Tx_Buff[0]=0x44;
-	Tx_Buff[1]=0x00;
-	Tx_Buff[2]=Rx_Buff[2];
-
-	to_IDLE();
-	tmp=5;
-	Write_DW1000(0x08,0x00,&tmp,1);
-	Write_DW1000(0x09,0x00,Tx_Buff,3);
-	tmp=0x82;
-	Write_DW1000(0x0D,0x00,&tmp,1);
-}
-#endif
 
 void raw_write(u8* tx_buff, u16* size)
 {
@@ -387,47 +315,43 @@ void data_response(u8 *src, u8 *dst)
 	Tx_Buff[0] = 0x82;
 	Tx_Buff[1] = 0x37;
 	// 0100 0001 1000 1000
-	Tx_Buff[2]=Sequence_Number++; //计数第几个序列
+	Tx_Buff[2] = Sequence_Number++;
 	//SN end
-	Tx_Buff[4]=0xFF;
-	Tx_Buff[3]=0xFF;
+	Tx_Buff[4] = 0xFF;
+	Tx_Buff[3] = 0xFF;
 	//DST PAN end
-	Tx_Buff[6]=dst[0];//MAC_maker((u8)(_RX_sADDR>>8));
-	Tx_Buff[7]=dst[1];//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[8]=dst[2];//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[9]=dst[3];//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[10]=dst[4];//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[11]=dst[5];//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[12]=dst[6];//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[13]=dst[7];//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[6]=dst[0];
+	Tx_Buff[7]=dst[1];
+	Tx_Buff[8]=dst[2];
+	Tx_Buff[9]=dst[3];
+	Tx_Buff[10]=dst[4];
+	Tx_Buff[11]=dst[5];
+	Tx_Buff[12]=dst[6];
+	Tx_Buff[13]=dst[7];
 	//DST MAC end
-	Tx_Buff[14]=src[0];//MAC_maker((u8)(_RX_sADDR>>8));
-	Tx_Buff[15]=src[1];//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[16]=src[2];//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[17]=src[3];//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[18]=src[4];//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[19]=src[5];//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[20]=src[6];//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[21]=src[7];//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[14]=src[0];
+	Tx_Buff[15]=src[1];
+	Tx_Buff[16]=src[2];
+	Tx_Buff[17]=src[3];
+	Tx_Buff[18]=src[4];
+	Tx_Buff[19]=src[5];
+	Tx_Buff[20]=src[6];
+	Tx_Buff[21]=src[7];
 	//SRC MAC end
-	Tx_Buff[22]=(0x02); //LS DATA Mark
-	Tx_Buff[23]=(u8)u32_diff;
-	u32_diff>>=8;
-	Tx_Buff[24]=(u8)u32_diff;
-	u32_diff>>=8;
-	Tx_Buff[25]=(u8)u32_diff;
-	u32_diff>>=8;
-	Tx_Buff[26]=(u8)u32_diff;
-	Tx_Buff[27]=0x01;
+	Tx_Buff[22] = 0x02; // 0x02 = LS DATA
+	Tx_Buff[23] = (u8)u32_diff;
+	u32_diff >>= 8;
+	Tx_Buff[24] = (u8)u32_diff;
+	u32_diff >>= 8;
+	Tx_Buff[25] = (u8)u32_diff;
+	u32_diff >>= 8;
+	Tx_Buff[26] = (u8)u32_diff;
+	Tx_Buff[27] = 0x01;
 	tmp = 27;
 	raw_write(Tx_Buff, &tmp);
-	// TIM_ITConfig(TIM3,TIM_IT_Update,DISABLE);
-	// TIM_SetCounter(TIM3,0x0000);
-	// TIM_ClearFlag(TIM3, TIM_FLAG_Update);
-	// TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE);
 }
 
-void parse_rx(u8 *rx_buff, u16 size, u8 *src, u8 *dst, u8 *payload, u16 *pl_size)
+void parse_rx(u8 *rx_buff, u16 size, u8 **src, u8 **dst, u8 **payload, u16 *pl_size)
 {
 	u16 n = 24;
 	if (rx_buff[0]&0x02 == 0x02) {
@@ -447,9 +371,9 @@ void parse_rx(u8 *rx_buff, u16 size, u8 *src, u8 *dst, u8 *payload, u16 *pl_size
 		n -= 6;
 	}
 	
-	src = &(rx_buff[n-8]);
-	dst = &(rx_buff[n-16]);
-	payload = &(rx_buff[n]);
+	*src = &(rx_buff[n-8]);
+	*dst = &(rx_buff[n-16]);
+	*payload = &(rx_buff[n]);
 	*pl_size = size - n;
 }
 
@@ -461,31 +385,31 @@ void send_LS_ACK(u8 *src, u8 *dst)
 	Tx_Buff[0] = 0x82;
 	Tx_Buff[1] = 0x37;
 	// 0100 0001 1000 1000
-	Tx_Buff[2]=Sequence_Number++; //Seq Num
+	Tx_Buff[2] = Sequence_Number++;
 	//SN end
-	Tx_Buff[4]=0xFF;
-	Tx_Buff[3]=0xFF;
+	Tx_Buff[4] = 0xFF;
+	Tx_Buff[3] = 0xFF;
 	//DST PAN end
-	Tx_Buff[6]=dst[0];//MAC_maker((u8)(_RX_sADDR>>8));
-	Tx_Buff[7]=dst[1];//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[8]=dst[2];//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[9]=dst[3];//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[10]=dst[4];//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[11]=dst[5];//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[12]=dst[6];//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[13]=dst[7];//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[6]=dst[0];
+	Tx_Buff[7]=dst[1];
+	Tx_Buff[8]=dst[2];
+	Tx_Buff[9]=dst[3];
+	Tx_Buff[10]=dst[4];
+	Tx_Buff[11]=dst[5];
+	Tx_Buff[12]=dst[6];
+	Tx_Buff[13]=dst[7];
 	//DST MAC end
-	Tx_Buff[14]=src[0];//MAC_maker((u8)(_RX_sADDR>>8));
-	Tx_Buff[15]=src[1];//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[16]=src[2];//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[17]=src[3];//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[18]=src[4];//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[19]=src[5];//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[20]=src[6];//MAC_maker((u8)_RX_sADDR);
-	Tx_Buff[21]=src[7];//MAC_maker((u8)_RX_sADDR);
+	Tx_Buff[14]=src[0];
+	Tx_Buff[15]=src[1];
+	Tx_Buff[16]=src[2];
+	Tx_Buff[17]=src[3];
+	Tx_Buff[18]=src[4];
+	Tx_Buff[19]=src[5];
+	Tx_Buff[20]=src[6];
+	Tx_Buff[21]=src[7];
 	//SRC MAC end
-	Tx_Buff[22]=(0x01); // LS ACK Mark
-	Tx_Buff[23]=0x01;
+	Tx_Buff[22] = 0x01; // 0x01 = LS ACK
+	Tx_Buff[23] = 0x01;
 	tmp = 23;
 	raw_write(Tx_Buff, &tmp);
 }
