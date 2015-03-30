@@ -49,6 +49,7 @@ DW1000初始化
 void DW1000_init(void)
 {
 	u32 tmp;
+	load_LDE();
 	////////////////////工作模式配置////////////////////////
 	//AGC_TUNE1 ：设置为16 MHz PRF
 	tmp=0x00008870;
@@ -99,7 +100,7 @@ void DW1000_init(void)
 	#endif
 	set_MAC(mac);
 	//no auto ack Frame Filter
-	tmp=0x200011FD;
+	tmp=0x200011FC;
 	// 0010 0000 0000 0001 0000 0111 1101
 	Write_DW1000(0x04,0x00,(u8 *)(&tmp),4);
 	// test pin SYNC：用于测试的LED灯引脚初始化，SYNC引脚禁用
@@ -113,7 +114,6 @@ void DW1000_init(void)
 	// ack等待
 	tmp=3;
 	Write_DW1000(0x1A,0x03,(u8 *)(&tmp),1);
-	load_LDE();
 	printf("定位芯片配置\t\t完成\r\n");
 }
 
@@ -180,9 +180,9 @@ void distance_measurement(int n)
 	double_diff = double_diff - 1.0*LS_DATA[n];
 
 	distance[n] = 15.65*double_diff/1000000000000/2*_WAVE_SPEED*(1.0-0.01*speed_offset);
-	printf("测定距离Node1\t\t%.2lf米\r\n\n\n",distance[0]);
-	printf("测定距离Node2\t\t%.2lf米\r\n\n\n",distance[1]);
-	printf("测定距离Node3\t\t%.2lf米\r\n\n\n",distance[2]);
+	printf("D1\t\t%.2lf meters\r\n",distance[0]);
+	printf("D2\t\t%.2lf meters\r\n",distance[1]);
+	printf("D3\t\t%.2lf meters\r\n",distance[2]);
 	printf("\r\n=====================================\r\n");
 }
 
@@ -249,9 +249,11 @@ void raw_write(u8* tx_buff, u16* size)
 
 void raw_read(u8* rx_buff, u16* size)
 {
+	u8 full_size;
 	to_IDLE();
-	Read_DW1000(0x10, 0x00, (u8 *)(size), 1);
-	*size -= 2;
+	Read_DW1000(0x10, 0x00, &full_size, 1);
+	*size = (u16)(full_size - 2);
+	printf("%d\r\n", *size);
 	Read_DW1000(0x11, 0x00, rx_buff, *size);
 	RX_mode_enable();
 }
@@ -267,6 +269,8 @@ void load_LDE(void)
 	Delay(20);
 	tmp=0x0002;
 	Write_DW1000(0x36,0x06,(u8 *)(&tmp),1);
+	tmp=0x0800;
+	Write_DW1000(0x2C,0x00,(u8 *)(&tmp),1);
 }
 
 void sent_and_wait(void)
@@ -292,6 +296,7 @@ void data_response(u8 *src, u8 *dst)
 	Read_DW1000(0x15,0x09,(u8 *)(&Rx_stp_L),4);
 	Read_DW1000(0x17,0x04,&Tx_stp_H,1);
 	Read_DW1000(0x15,0x0d,&Rx_stp_H,1);
+	printf("===========Response DATA===========\r\n");
 	printf("%8x\r\n",Rx_stp_L);
 	printf("%2x\r\n",Rx_stp_H);
 	printf("%8x\r\n",Tx_stp_L);
@@ -374,7 +379,7 @@ void parse_rx(u8 *rx_buff, u16 size, u8 **src, u8 **dst, u8 **payload, u16 *pl_s
 	*src = &(rx_buff[n-8]);
 	*dst = &(rx_buff[n-16]);
 	*payload = &(rx_buff[n]);
-	*pl_size = size - n;
+	*pl_size = (u16)(size - n);
 }
 
 void send_LS_ACK(u8 *src, u8 *dst)

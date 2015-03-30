@@ -30,6 +30,7 @@
 #include "USART.h"
 #include "SPI.h"
 #include <stdio.h>
+#include "delay.h"
 
 // USB
 extern __IO uint8_t PrevXferComplete;
@@ -212,6 +213,7 @@ void EXTI1_IRQHandler(void)
 	// enter interrupt
 	while(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1)==0)
 	{
+		// printf("Int Triggered.\r\n");
 		read_status(&status);
 		if((status&0x00040000)==0x00040000) //LDE算法检测标志位
 		{
@@ -222,15 +224,26 @@ void EXTI1_IRQHandler(void)
 			RX_mode_enable();
 		}
 		
-		if((status&0x00006000)==0x00002000) // CRC err
+		if((status&0x0000C000)==0x00008000) // CRC err
 		{
-			tmp=0x20;
+			tmp=0xF0;
 			Write_DW1000(0x0F,0x01,&tmp,1);
 			to_IDLE();
 			RX_mode_enable();
+			printf("CRC Failed.\r\n");
 		}
-		else if((status&0x00000080)==0x00000080) // transmit done
+		if((status&0x00006000)==0x00002000)
 		{
+			tmp=0x20;
+			Write_DW1000(0x0F,0x01,&tmp,1);
+			printf("We got a weird status: 0x%08X\r\n",status);
+			to_IDLE();
+			RX_mode_enable();
+		}
+		read_status(&status);
+		if((status&0x00000080)==0x00000080) // transmit done
+		{
+			// printf("Transmit done.\r\n");
 			tmp=0x80;
 			Write_DW1000(0x0F,0x00,&tmp,1);
 			// clear the flag
@@ -238,22 +251,32 @@ void EXTI1_IRQHandler(void)
 			{
 				printf("LS ACK\t\tSuccessfully Sent\r\n");
 				status_flag = CONFIRM_SENT_LS_ACK;
+				printf("src: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X\r\n\
+%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X\r\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], mac[6], mac[7],\
+src[0], src[1], src[2], src[3], src[4], src[5], src[6], src[7]);
+				// Delay(20);
 				data_response(mac, src);
 			}
 			else if(status_flag == CONFIRM_SENT_LS_ACK)
 			{
 				printf("LS DATA\t\tSuccessfully Sent\r\n");
 				status_flag = SENT_LS_DATA;
+				status_flag = IDLE;
+				to_IDLE();
+				RX_mode_enable();
 			}
 			// currently to avoid err, cannot work as an anchor and a client at the same time
 			else if(distance_flag == SENT_LS_REQ)
 			{
 				distance_flag = CONFIRM_SENT_LS_REQ;
 				// Read Time Stamp
+				printf("LS Req\t\tSuccessfully Sent\r\n");
 				Read_DW1000(0x17,0x00,(u8 *)(&Tx_stp_L),4);
 				Read_DW1000(0x17,0x04,&Tx_stp_H,1);
 				printf("0x%8x\r\n",Tx_stp_L);
 				printf("0x%2x\r\n",Tx_stp_H);
+				to_IDLE();
+				RX_mode_enable();
 			}
 			else if(distance_flag == GOT_LS_DATA)
 			{
@@ -266,61 +289,93 @@ void EXTI1_IRQHandler(void)
 		}
 		else if((status&0x00004000)==0x00004000) // receive done
 		{
+			printf("receive done.\r\n");
 			to_IDLE();
 			// clear flag
 			tmp=0x60;
 			Write_DW1000(0x0F,0x01,&tmp,1);
 			raw_read(Rx_Buff, &size);
-			parse_rx(Rx_Buff, size, &src, &dst, &payload, &pl_size);
-			printf("Got a Frame:\n \
-			Frame type: %X\n \
-			src: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X\n\
-			dst: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X\n\
-			pl_size: %d\
-			first byte of pl: %02X\
-			", Rx_Buff[0]>>5,\
+			printf("raw_read completed.\r\n");
+			// parse_rx(Rx_Buff, size, &src, &dst, &payload, &pl_size);
+
+			src = &(Rx_Buff[22-8]);
+			dst = &(Rx_Buff[22-16]);
+			payload = &(Rx_Buff[22]);
+			pl_size = (u16)(size - 22);
+
+			printf("\r\nGot a Frame:\r\n\
+Frame type: %X\r\n\
+Frame size: %d\r\n\
+Frame Header: %02X %02X\r\n\
+src: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X\r\n\
+dst: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X\r\n\
+pl_size: %d\r\n\
+first byte of pl: %02X\r\n",
+			Rx_Buff[0]>>5, size, Rx_Buff[0], Rx_Buff[1],\
 			src[0], src[1], src[2], src[3], src[4], src[5], src[6], src[7],\
 			dst[0], dst[1], dst[2], dst[3], dst[4], dst[5], dst[6], dst[7],\
 			pl_size, payload[0]);
-			if (Rx_Buff[0]&0xE0 == 0x80) // LS Frame
+			printf("Header: %02X\r\n", (u8)(Rx_Buff[0]&0xE0));
+			if ((u8)(Rx_Buff[0]&0xE0) == 0x80) // LS Frame
 			{
-				if ((payload[0]&0xFF == 0x00)&&(status_flag == IDLE)) // GOT LS Req
+				printf("A LS Frame.\r\n");
+				if ((payload[0] == 0x00)&&(status_flag == IDLE)) // GOT LS Req
 				{
 					send_LS_ACK(mac, src);
 					status_flag = SENT_LS_ACK;
 					printf("\r\n===========Got LS Req===========\r\n");
 				}
-				else if ((payload[0]&0xFF == 0x01)&&((distance_flag == CONFIRM_SENT_LS_REQ)||(distance_flag == SENT_LS_REQ))) // GOT LS ACK
+				else if ((payload[0] == 0x01)&&((distance_flag == CONFIRM_SENT_LS_REQ)||(distance_flag == SENT_LS_REQ))) // GOT LS ACK
 				{
+					printf("\r\n===========Got LS ACK===========\r\n");
+					Delay(20);
 					Read_DW1000(0x15,0x00,(u8 *)(&Rx_stp_LT[(int)(src[7]&0x0F) - 1]),4);
 					Read_DW1000(0x15,0x04,&Rx_stp_HT[(int)(src[7]&0x0F) - 1],1);
 					printf("0x%8x\r\n",Rx_stp_LT[(int)(src[7]&0x0F) - 1]);
 					printf("0x%2x\r\n",Rx_stp_HT[(int)(src[7]&0x0F) - 1]);
-					Read_DW1000(0x12,0x00,(u8 *)(&std_noise),2);
-					Read_DW1000(0x12,0x02,(u8 *)(&fp_ampl2),2);
-					Read_DW1000(0x12,0x04,(u8 *)(&fp_ampl3),2);
-					Read_DW1000(0x12,0x06,(u8 *)(&cir_mxg),2);
-					Read_DW1000(0x15,0x07,(u8 *)(&fp_ampl1),2);
-					Read_DW1000(0x10,0x02,(u8 *)(&rxpacc),2);
-					printf("定位应答\t\t接收成功\r\n");
+					// Read_DW1000(0x12,0x00,(u8 *)(&std_noise),2);
+					// Read_DW1000(0x12,0x02,(u8 *)(&fp_ampl2),2);
+					// Read_DW1000(0x12,0x04,(u8 *)(&fp_ampl3),2);
+					// Read_DW1000(0x12,0x06,(u8 *)(&cir_mxg),2);
+					// Read_DW1000(0x15,0x07,(u8 *)(&fp_ampl1),2);
+					// Read_DW1000(0x10,0x02,(u8 *)(&rxpacc),2);
+					RX_mode_enable();
 				}
-				else if ((payload[0]&0xFF == 0x02)) // GOT LS DATA
+				else if (payload[0] == 0x02) // GOT LS DATA
 				{
+					printf("\r\n===========Got LS DATA===========\r\n");
 					distance_flag = GOT_LS_DATA;
 					LS_DATA[(int)(src[7]&0x0F) - 1] = *(u32 *)(payload + 1);
-					printf("定位数据\t\t接收成功\r\n");
 					distance_measurement((int)(src[7]&0x0F) - 1);
 					// quality_measurement();
 					// TODO
 					// sent_LS_RETURN(mac, src);
 					distance_flag = IDLE;
+					to_IDLE();
+					RX_mode_enable();
 				}
-				else if (payload[0]&0xFF == 0x03) // GOT LS RETURN
+				else if (payload[0] == 0x03) // GOT LS RETURN
 				{
 					// TODO
 					status_flag = IDLE;
 				}
+				else
+				{
+					to_IDLE();
+					RX_mode_enable();
+				}
 			}
+			else
+			{
+				//Here the other data processing
+				to_IDLE();
+				RX_mode_enable();
+			}
+		}
+		else
+		{
+			to_IDLE();
+			RX_mode_enable();
 		}
 	}
 }
