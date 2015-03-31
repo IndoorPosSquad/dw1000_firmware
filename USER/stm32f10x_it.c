@@ -37,6 +37,7 @@ extern __IO uint8_t PrevXferComplete;
 __IO uint8_t int_Send_Buffer[2];
 
 // Common
+volatile u8 time_up = 0;
 u8 status_flag = IDLE;
 u8 distance_flag = IDLE;
 extern u8 Rx_Buff[128];
@@ -66,7 +67,7 @@ extern	u16 cir_mxg;
 extern	u16 rxpacc;
 extern	double fppl;
 extern	double rxl;
-
+extern const u8 broadcast_addr[8];
 /*
 0:已完成处理
 1：正在接收
@@ -182,9 +183,6 @@ void PendSV_Handler(void)
 	* @param  None
 	* @retval None
 */
-void SysTick_Handler(void)
-{
-}
 
 /******************************************************************************/
 /*                 STM32F10x Peripherals Interrupt Handlers                   */
@@ -208,20 +206,32 @@ void EXTI1_IRQHandler(void)
 	static u8 *dst;
 	static u8 *src; // need improvement
 	u8 *payload;
-	
+	int i;
+	int for_me = 1;
 	EXTI_ClearITPendingBit(EXTI_Line1);
 	// enter interrupt
 	while(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1)==0)
 	{
 		// printf("Int Triggered.\r\n");
 		read_status(&status);
+		printf("status: %08X\r\n", status);
 		if((status&0x00040000)==0x00040000) //LDE算法检测标志位
 		{
 			tmp=0x04;
 			// Clear Flag
 			Write_DW1000(0x0F,0x02,&tmp,1);
+			printf("LDE err.\r\n");
 			to_IDLE();
 			RX_mode_enable();
+		}
+		if((status&0x00000400)==0x00000400) //LDE算法检测标志位
+		{
+			printf("LDE Success.\r\n");
+			if ((distance_flag == CONFIRM_SENT_LS_REQ)||(distance_flag == SENT_LS_REQ))
+			{
+				Read_DW1000(0x15,0x00,(u8 *)(&Rx_stp_L),4);
+				Read_DW1000(0x15,0x04,&Rx_stp_H,1);
+			}
 		}
 		
 		if((status&0x0000C000)==0x00008000) // CRC err
@@ -311,6 +321,22 @@ first byte of pl: %02X\r\n",
 			dst[0], dst[1], dst[2], dst[3], dst[4], dst[5], dst[6], dst[7],\
 			pl_size, payload[0]);
 			printf("Header: %02X\r\n", (u8)(Rx_Buff[0]&0xE0));
+			for (i=0;i<8;i++)
+			{
+				if( (u8)(dst[i]) != (u8)(broadcast_addr[i]) )
+				{
+					for (i=0;i<8;i++)
+					{
+						if( (u8)(dst[i]) != (u8)(mac[i]) )
+						{
+							for_me = 0;
+							break;
+						}
+					}
+					break;
+				}
+			}
+			if (for_me == 1)
 			if ((u8)(Rx_Buff[0]&0xE0) == 0x80) // LS Frame
 			{
 				printf("A LS Frame.\r\n");
@@ -323,26 +349,37 @@ first byte of pl: %02X\r\n",
 				else if ((payload[0] == 0x01)&&((distance_flag == CONFIRM_SENT_LS_REQ)||(distance_flag == SENT_LS_REQ))) // GOT LS ACK
 				{
 					printf("\r\n===========Got LS ACK===========\r\n");
-					to_IDLE();
-					while((u32)(status&0x00000400) == (u32)(0))
+
+					// while((u32)(status&0x00000400) == (u32)(0))
+					// {
+						// Delay(50);
+						// read_status(&status);
+					// }
+
+					for (i=0;i<10;i++)
 					{
-						read_status(&status);
+						Delay();
 					}
-					printf("status: %08X\r\n", status);
-					// Read_DW1000(0x15,0x00,(u8 *)(&Rx_stp_LT[(int)(src[7]&0x0F) - 1]),4);
-					// Read_DW1000(0x15,0x04,&Rx_stp_HT[(int)(src[7]&0x0F) - 1],1);
-					// printf("0x%8x\r\n",Rx_stp_LT[(int)(src[7]&0x0F) - 1]);
-					// printf("0x%2x\r\n",Rx_stp_HT[(int)(src[7]&0x0F) - 1]);
-					Read_DW1000(0x15,0x00,(u8*)(&Rx_stp_L),4);
-					Read_DW1000(0x15,0x04,&Rx_stp_H,1);
+					read_status(&status);
+					printf("status before read: %08X\r\n", status);
+					Read_DW1000(0x15,0x00,(u8 *)(&Rx_stp_LT[(int)(src[7]&0x0F) - 1]),4);
+					Read_DW1000(0x15,0x04,&Rx_stp_HT[(int)(src[7]&0x0F) - 1],1);
+					printf("0x%8x\r\n",Rx_stp_LT[(int)(src[7]&0x0F) - 1]);
+					printf("0x%2x\r\n",Rx_stp_HT[(int)(src[7]&0x0F) - 1]);
+					
 					printf("0x%8x\r\n",Rx_stp_L);
 					printf("0x%2x\r\n",Rx_stp_H);
+					// Read_DW1000(0x15,0x00,(u8*)(&Rx_stp_L),4);
+					// Read_DW1000(0x15,0x04,&Rx_stp_H,1);
+					// printf("0x%8x\r\n",Rx_stp_L);
+					// printf("0x%2x\r\n",Rx_stp_H);
 					// Read_DW1000(0x12,0x00,(u8 *)(&std_noise),2);
 					// Read_DW1000(0x12,0x02,(u8 *)(&fp_ampl2),2);
 					// Read_DW1000(0x12,0x04,(u8 *)(&fp_ampl3),2);
 					// Read_DW1000(0x12,0x06,(u8 *)(&cir_mxg),2);
 					// Read_DW1000(0x15,0x07,(u8 *)(&fp_ampl1),2);
 					// Read_DW1000(0x10,0x02,(u8 *)(&rxpacc),2);
+					to_IDLE();
 					RX_mode_enable();
 				}
 				else if (payload[0] == 0x02) // GOT LS DATA
@@ -350,6 +387,7 @@ first byte of pl: %02X\r\n",
 					printf("\r\n===========Got LS DATA===========\r\n");
 					distance_flag = GOT_LS_DATA;
 					LS_DATA[(int)(src[7]&0x0F) - 1] = *(u32 *)(payload + 1);
+					printf("data: %08X\r\n",LS_DATA[(int)(src[7]&0x0F) - 1]);
 					distance_measurement((int)(src[7]&0x0F) - 1);
 					// quality_measurement();
 					// TODO
@@ -381,7 +419,6 @@ first byte of pl: %02X\r\n",
 			to_IDLE();
 			RX_mode_enable();
 		}
-		
 	}
 }
 
@@ -399,7 +436,15 @@ void TIM2_IRQHandler(void)
 
 void TIM3_IRQHandler(void)
 {
-
+	if ( TIM_GetITStatus(TIM3 , TIM_IT_Update) != RESET )
+	{
+		TIM_ITConfig(TIM3,TIM_IT_Update,DISABLE);
+		TIM_SetCounter(TIM3,0x0000);
+		TIM_Cmd(TIM3, DISABLE);
+		TIM_ClearFlag(TIM3, TIM_FLAG_Update);
+		TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE);
+		time_up = 1;
+	}
 }
 
 
@@ -487,5 +532,10 @@ void USBWakeUp_IRQHandler(void)
 #endif
 {
   EXTI_ClearITPendingBit(EXTI_Line18);
+}
+
+void SysTick_Handler(void)
+{
+	TimingDelay_Decrement();
 }
 /******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/

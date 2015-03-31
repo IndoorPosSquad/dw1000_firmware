@@ -343,7 +343,7 @@
             <uThumb>0</uThumb>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>USE_STDPERIPH_DRIVER,STM32F10X_MD,RX,RX1</Define>
+              <Define>USE_STDPERIPH_DRIVER,STM32F10X_MD,TX</Define>
               <Undefine></Undefine>
               <IncludePath>..\CMSIS;..\USER;..\FWlib\inc;..\FWlib\src</IncludePath>
             </VariousControls>
