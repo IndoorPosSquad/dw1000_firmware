@@ -215,16 +215,17 @@ void EXTI1_IRQHandler(void)
 		// printf("Int Triggered.\r\n");
 		read_status(&status);
 		printf("status: %08X\r\n", status);
-		if((status&0x00040000)==0x00040000) //LDE算法检测标志位
+		if((status&0x00040000)==0x00040000) // LDE Err
 		{
+			to_IDLE();
 			tmp=0x04;
 			// Clear Flag
 			Write_DW1000(0x0F,0x02,&tmp,1);
 			printf("LDE err.\r\n");
-			to_IDLE();
+			load_LDE();
 			RX_mode_enable();
 		}
-		if((status&0x00000400)==0x00000400) //LDE算法检测标志位
+		if((status&0x00000400)==0x00000400) // LDE Success
 		{
 			printf("LDE Success.\r\n");
 			if ((distance_flag == CONFIRM_SENT_LS_REQ)||(distance_flag == SENT_LS_REQ))
