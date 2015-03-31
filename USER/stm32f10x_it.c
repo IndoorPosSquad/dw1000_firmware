@@ -237,10 +237,9 @@ void EXTI1_IRQHandler(void)
 			tmp=0x20;
 			Write_DW1000(0x0F,0x01,&tmp,1);
 			printf("We got a weird status: 0x%08X\r\n",status);
-			to_IDLE();
-			RX_mode_enable();
+			// to_IDLE();
+			// RX_mode_enable();
 		}
-		read_status(&status);
 		if((status&0x00000080)==0x00000080) // transmit done
 		{
 			// printf("Transmit done.\r\n");
@@ -251,10 +250,6 @@ void EXTI1_IRQHandler(void)
 			{
 				printf("LS ACK\t\tSuccessfully Sent\r\n");
 				status_flag = CONFIRM_SENT_LS_ACK;
-				printf("src: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X\r\n\
-%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X\r\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], mac[6], mac[7],\
-src[0], src[1], src[2], src[3], src[4], src[5], src[6], src[7]);
-				// Delay(20);
 				data_response(mac, src);
 			}
 			else if(status_flag == CONFIRM_SENT_LS_ACK)
@@ -287,7 +282,7 @@ src[0], src[1], src[2], src[3], src[4], src[5], src[6], src[7]);
 			}
 			
 		}
-		else if((status&0x00004000)==0x00004000) // receive done
+		else if(((status&0x00004000)==0x00004000)||((status&0x00002000)==0x00002000)) // receive done
 		{
 			printf("receive done.\r\n");
 			to_IDLE();
@@ -328,11 +323,20 @@ first byte of pl: %02X\r\n",
 				else if ((payload[0] == 0x01)&&((distance_flag == CONFIRM_SENT_LS_REQ)||(distance_flag == SENT_LS_REQ))) // GOT LS ACK
 				{
 					printf("\r\n===========Got LS ACK===========\r\n");
-					Delay(20);
-					Read_DW1000(0x15,0x00,(u8 *)(&Rx_stp_LT[(int)(src[7]&0x0F) - 1]),4);
-					Read_DW1000(0x15,0x04,&Rx_stp_HT[(int)(src[7]&0x0F) - 1],1);
-					printf("0x%8x\r\n",Rx_stp_LT[(int)(src[7]&0x0F) - 1]);
-					printf("0x%2x\r\n",Rx_stp_HT[(int)(src[7]&0x0F) - 1]);
+					to_IDLE();
+					while((u32)(status&0x00000400) == (u32)(0))
+					{
+						read_status(&status);
+					}
+					printf("status: %08X\r\n", status);
+					// Read_DW1000(0x15,0x00,(u8 *)(&Rx_stp_LT[(int)(src[7]&0x0F) - 1]),4);
+					// Read_DW1000(0x15,0x04,&Rx_stp_HT[(int)(src[7]&0x0F) - 1],1);
+					// printf("0x%8x\r\n",Rx_stp_LT[(int)(src[7]&0x0F) - 1]);
+					// printf("0x%2x\r\n",Rx_stp_HT[(int)(src[7]&0x0F) - 1]);
+					Read_DW1000(0x15,0x00,(u8*)(&Rx_stp_L),4);
+					Read_DW1000(0x15,0x04,&Rx_stp_H,1);
+					printf("0x%8x\r\n",Rx_stp_L);
+					printf("0x%2x\r\n",Rx_stp_H);
 					// Read_DW1000(0x12,0x00,(u8 *)(&std_noise),2);
 					// Read_DW1000(0x12,0x02,(u8 *)(&fp_ampl2),2);
 					// Read_DW1000(0x12,0x04,(u8 *)(&fp_ampl3),2);
@@ -377,6 +381,7 @@ first byte of pl: %02X\r\n",
 			to_IDLE();
 			RX_mode_enable();
 		}
+		
 	}
 }
 

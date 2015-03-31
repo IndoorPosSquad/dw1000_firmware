@@ -292,10 +292,15 @@ void read_status(u32 *status)
 void data_response(u8 *src, u8 *dst)
 {
 	u16 tmp;
+	to_IDLE();
+	while((u32)(status&0x00000400) == (u32)(0))
+	{
+		read_status(&status);
+	}
 	Read_DW1000(0x17,0x00,(u8 *)(&Tx_stp_L),4);
-	Read_DW1000(0x15,0x09,(u8 *)(&Rx_stp_L),4);
+	Read_DW1000(0x15,0x00,(u8 *)(&Rx_stp_L),4);
 	Read_DW1000(0x17,0x04,&Tx_stp_H,1);
-	Read_DW1000(0x15,0x0d,&Rx_stp_H,1);
+	Read_DW1000(0x15,0x04,&Rx_stp_H,1);
 	printf("===========Response DATA===========\r\n");
 	printf("%8x\r\n",Rx_stp_L);
 	printf("%2x\r\n",Rx_stp_H);
