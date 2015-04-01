@@ -12,10 +12,13 @@
 #include "SPI.h"
 #include "USART.h"
 #include "DW1000.h"
-
+#include "hw_config.h"
+#include "usb_lib.h"
+#include "usb_desc.h"
+#include "usb_pwr.h"
 
 /*
-TIM2时钟初始化:3s溢出（定位周期）
+TIM2时钟初始化:0.5s溢出（定位周期）
 */
 void TIM2_init(void)
 {
@@ -33,7 +36,7 @@ void TIM2_init(void)
 
 	TIM_DeInit(TIM2);
 
-	TIM_TimeBaseStructure.TIM_Period=2*300;
+	TIM_TimeBaseStructure.TIM_Period=1000;
 	TIM_TimeBaseStructure.TIM_Prescaler= 36000;
 	TIM_TimeBaseStructure.TIM_ClockDivision=TIM_CKD_DIV1;
 	TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up;
@@ -110,16 +113,47 @@ void EXTI_init(void)
 	printf("外部中断配置\t\t完成\r\n");
 }
 
+void TIM3_init(void)
+{
+	NVIC_InitTypeDef NVIC_InitStructure;
+    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);  													
+    NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;	  
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3;		//优先级冲突？
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;	
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
+
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3 , ENABLE);
+    
+	TIM_DeInit(TIM3);
+
+    TIM_TimeBaseStructure.TIM_Period=50;		 							
+    TIM_TimeBaseStructure.TIM_Prescaler=72;				   
+    TIM_TimeBaseStructure.TIM_ClockDivision=TIM_CKD_DIV1; 	
+    TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up; 
+    TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
+	
+	printf("自动重发配置\t\t完成\r\n");
+	printf("发送监控配置\t\t完成\r\n");															
+}
+
 int main(void)
 {
 	
 	SystemInit();
+	Set_System();
+	Set_USBClock();
+	USB_Interrupts_Config();
+	USB_Init();
 	USART1_init(); // USART1初始化,波特率115200，单次8比特，无奇偶校验，1停止位：用于上位机下发命令
 	SPI1_init()	;
 	#ifdef TX
 	TIM2_init(); // LS Poll Cycle
 	#endif
 	DW1000_init();
+	TIM3_init();
 	EXTI_init();
 	TIM4_init();
 	RX_mode_enable();

@@ -1,65 +1,46 @@
 //#include <stm32f10x_lib.h>
 #include "stm32f10x.h"
 #include "delay.h"
-//////////////////////////////////////////////////////////////////////////////////
-//使用SysTick的普通计数模式对延迟进行管理
-//包括delay_us,delay_ms
-//********************************************************************************
-//V1.2修改说明
-//修正了中断中调用出现死循环的错误
-//防止延时不准确,采用do while结构!
-//////////////////////////////////////////////////////////////////////////////////
-static u8  fac_us=0;//us延时倍乘数
-static u16 fac_ms=0;//ms延时倍乘数
-//初始化延迟函数
-//SYSTICK的时钟固定为HCLK时钟的1/8
-//SYSCLK:系统时钟
-void delay_init(u8 SYSCLK)
+
+static u32 Delay_Time;
+extern volatile u8 time_up;
+
+void SysTick_init(void)
 {
-	SysTick->CTRL&=0xfffffffb;//bit2清空,选择外部时钟  HCLK/8
-	fac_us=SYSCLK/8;
-	fac_ms=(u16)fac_us*1000;
-}
-//延时nms
-//注意nms的范围
-//SysTick->LOAD为24位寄存器,所以,最大延时为:
-//nms<=0xffffff*8*1000/SYSCLK
-//SYSCLK单位为Hz,nms单位为ms
-//对72M条件下,nms<=1864
-void delay_ms(u16 nms)
-{
-	u32 temp;
-	SysTick->LOAD=(u32)nms*fac_ms;//时间加载(SysTick->LOAD为24bit)
-	SysTick->VAL =0x00;           //清空计数器
-	SysTick->CTRL=0x01 ;          //开始倒数
-	do
-	{
-		temp=SysTick->CTRL;
+	//Systick 配置，1us进入一次中断
+	if (SysTick_Config(SystemFrequency / 1000000))	
+	{ 
+		/* Capture error */ 
+		while (1);
 	}
-	while(temp&0x01&&!(temp&(1<<16)));//等待时间到达
-	SysTick->CTRL=0x00;       //关闭计数器
-	SysTick->VAL =0X00;       //清空计数器
-}
-//延时nus
-//nus为要延时的us数.
-void delay_us(u32 nus)
-{
-	u32 temp;
-	SysTick->LOAD=nus*fac_us; //时间加载
-	SysTick->VAL=0x00;        //清空计数器
-	SysTick->CTRL=0x01 ;      //开始倒数
-	do
-	{
-		temp=SysTick->CTRL;
-	}
-	while(temp&0x01&&!(temp&(1<<16)));//等待时间到达
-	SysTick->CTRL=0x00;       //关闭计数器
-	SysTick->VAL =0X00;       //清空计数器
+	//关闭定时器
+	SysTick->CTRL &= ~ SysTick_CTRL_ENABLE_Msk;
 }
 
-void Delay(unsigned int i)
+void Delay_us(u32 Time)
+{ 
+	Delay_Time = Time;	
+	//使能Systick定时器
+	SysTick->CTRL |=  SysTick_CTRL_ENABLE_Msk;
+
+	while(Delay_Time != 0);
+}
+
+void Delay(void)
 {
-	unsigned int j;
-	for(;i>0;i--)
-		for(j=0;j<100;j++);
+	time_up = 0;
+	TIM_ITConfig(TIM3,TIM_IT_Update,DISABLE);
+	TIM_SetCounter(TIM3,0x0000);
+	TIM_ClearFlag(TIM3, TIM_FLAG_Update);					    		
+    TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE);
+	TIM_Cmd(TIM3, ENABLE);
+	while(time_up!=0);
+}
+
+void TimingDelay_Decrement(void)
+{
+	if (Delay_Time != 0x00)
+	{ 
+		Delay_Time--;
+	}
 }

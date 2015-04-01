@@ -4,10 +4,10 @@
 #include "USART.h"
 #include "math.h"
 #include "delay.h"
-
+// When I started writing those codes, only God and I know what are them supposed to do.
+// But now, only God knows.
 u8 mac[8];
 u8 toggle = 1;
-const u16 PANIDS[2] = {0x8974, 0x1074};
 const u8 broadcast_addr[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 // Common
@@ -16,6 +16,7 @@ u32 Tx_stp_L;
 u8 Tx_stp_H;
 u32 Rx_stp_L;
 u8 Rx_stp_H;
+u32 Tx_diff;
 
 u32 Tx_stp_LT[3];
 u8 Tx_stp_HT[3];
@@ -49,7 +50,14 @@ DW1000初始化
 void DW1000_init(void)
 {
 	u32 tmp;
+	int i;
+	for (i=0;i<1000;i++)
+		Delay();
 	////////////////////工作模式配置////////////////////////
+	//lucus
+	//Channel Control PCODE 4 CHAN 5
+	tmp=0x21040055;
+	Write_DW1000(0x1F,0x00,(u8 *)(&tmp),4);
 	//AGC_TUNE1 ：设置为16 MHz PRF
 	tmp=0x00008870;
 	Write_DW1000(0x23,0x04,(u8 *)(&tmp),2);
@@ -60,7 +68,7 @@ void DW1000_init(void)
 	tmp=0x311A002D;
 	Write_DW1000(0x27,0x08,(u8 *)(&tmp),4);
 	//NSTDEV ：LDE多径干扰消除算法的相关配置
-	tmp=0x0000006D;
+	tmp=0x0000006C;
 	Write_DW1000(0x2E,0x0806,(u8 *)(&tmp),1);
 	//LDE_CFG2 ：将LDE算法配置为适应16MHz PRF环境
 	tmp=0x00001607;
@@ -71,13 +79,21 @@ void DW1000_init(void)
 	//RF_TXCTRL ：选择发送通道5
 	tmp=0x001E3FE0;
 	Write_DW1000(0x28,0x0C,(u8 *)(&tmp),4);
+	//lucus
+	//RF_RXCTRLH CHAN 5
+	tmp=0x000000D8;
+	Write_DW1000(0x28,0x0B,(u8 *)(&tmp),1);
+	//lucus
+	//LDE_REPC PCODE 4
+	tmp=0x0000428E;
+	Write_DW1000(0x2E,0x2804,(u8 *)(&tmp),2);
 	//TC_PGDELAY ：脉冲产生延时设置为适应频道5
 	tmp=0x000000C0;
 	Write_DW1000(0x2A,0x0B,(u8 *)(&tmp),1);
 	//FS_PLLTUNE ：PPL设置为适应频道5
 	tmp=0x000000A6;
 	Write_DW1000(0x2B,0x0B,(u8 *)(&tmp),1);
-
+	load_LDE();
 	mac[0] = 0xff;
 	mac[1] = 0xff;
 	mac[2] = 0xff;
@@ -99,7 +115,7 @@ void DW1000_init(void)
 	#endif
 	set_MAC(mac);
 	//no auto ack Frame Filter
-	tmp=0x200011FD;
+	tmp=0x200011FC;
 	// 0010 0000 0000 0001 0000 0111 1101
 	Write_DW1000(0x04,0x00,(u8 *)(&tmp),4);
 	// test pin SYNC：用于测试的LED灯引脚初始化，SYNC引脚禁用
@@ -108,13 +124,19 @@ void DW1000_init(void)
 	tmp=0x01;
 	Write_DW1000(0x36,0x28,(u8 *)(&tmp),1);
 	// interrupt   ：中断功能选择（只开启收发成功中断）
-	tmp=0x00006080;
+	tmp=0x00002080;
 	Write_DW1000(0x0E,0x00,(u8 *)(&tmp),2);
 	// ack等待
 	tmp=3;
 	Write_DW1000(0x1A,0x03,(u8 *)(&tmp),1);
+	for (i=0;i<100000;i++)
+		Delay();
 	load_LDE();
-	printf("定位芯片配置\t\t完成\r\n");
+	load_LDE();
+	load_LDE();
+	load_LDE();
+	load_LDE();
+	printf("DW1K Setup\t\tFinished!\r\n");
 }
 
 /*
@@ -125,6 +147,7 @@ void Location_polling(void)
 	u16 tmp;
 	// Tx_Buff[0]=0b10000010; // only DST PANID
 	// Tx_Buff[1]=0b00110111;
+	static int count;
 	Tx_Buff[0] = 0x82;
 	Tx_Buff[1] = 0x37;
 	Tx_Buff[2] = Sequence_Number++;
@@ -139,7 +162,8 @@ void Location_polling(void)
 	Tx_Buff[10]=broadcast_addr[4];
 	Tx_Buff[11]=broadcast_addr[5];
 	Tx_Buff[12]=broadcast_addr[6];
-	Tx_Buff[13]=broadcast_addr[7];
+	Tx_Buff[13]=0xF0|(count%3);
+	count++;
 	//DST MAC end
 	Tx_Buff[14]=mac[0];
 	Tx_Buff[15]=mac[1];
@@ -166,23 +190,23 @@ void distance_measurement(int n)
 	double double_diff;
 	if(Tx_stp_H == Rx_stp_HT[n])
 	{
-		double_diff = 1.0* (Rx_stp_HT[n] - Tx_stp_L);
+		double_diff = 1.0* (Rx_stp_LT[n] - Tx_stp_L);
 	}
 	else if(Tx_stp_H < Rx_stp_HT[n])
 	{
-		double_diff = 1.0*((Rx_stp_HT[n] - Tx_stp_H)*0xFFFFFFFF + Rx_stp_HT[n] - Tx_stp_L);
+		double_diff = 1.0*((Rx_stp_HT[n] - Tx_stp_H)*0xFFFFFFFF + Rx_stp_LT[n] - Tx_stp_L);
 	}
 	else
 	{
-		double_diff = 1.0*((0xFF - Tx_stp_H + Rx_stp_HT[n] +1)*0xFFFFFFFF + Rx_stp_HT[n] - Tx_stp_L);
+		double_diff = 1.0*((0xFF - Tx_stp_H + Rx_stp_HT[n] +1)*0xFFFFFFFF + Rx_stp_LT[n] - Tx_stp_L);
 	}
 
 	double_diff = double_diff - 1.0*LS_DATA[n];
-
+	// distance[n] = 1.0*_WAVE_SPEED * (1.0*Tx_diff - 1.0*LS_DATA[n]) / (128.0 * 499.2 * 1000000.0);
 	distance[n] = 15.65*double_diff/1000000000000/2*_WAVE_SPEED*(1.0-0.01*speed_offset);
-	printf("测定距离Node1\t\t%.2lf米\r\n\n\n",distance[0]);
-	printf("测定距离Node2\t\t%.2lf米\r\n\n\n",distance[1]);
-	printf("测定距离Node3\t\t%.2lf米\r\n\n\n",distance[2]);
+	printf("D1\t\t%.2lf meters\r\n",distance[0]);
+	printf("D2\t\t%.2lf meters\r\n",distance[1]);
+	printf("D3\t\t%.2lf meters\r\n",distance[2]);
 	printf("\r\n=====================================\r\n");
 }
 
@@ -249,24 +273,29 @@ void raw_write(u8* tx_buff, u16* size)
 
 void raw_read(u8* rx_buff, u16* size)
 {
+	u8 full_size;
 	to_IDLE();
-	Read_DW1000(0x10, 0x00, (u8 *)(size), 1);
-	*size -= 2;
+	Read_DW1000(0x10, 0x00, &full_size, 1);
+	*size = (u16)(full_size - 2);
+	printf("%d\r\n", *size);
 	Read_DW1000(0x11, 0x00, rx_buff, *size);
 	RX_mode_enable();
 }
 
 void load_LDE(void)
 {
-	u16 tmp=0x00;
+	u16 tmp;
+	int i;
+	tmp=0x0000;
 	Write_DW1000(0x36,0x06,(u8 *)(&tmp),1);
-	//ROM TO RAM
-	//LDE LOAD=1
 	tmp=0x8000;
 	Write_DW1000(0x2D,0x06,(u8 *)(&tmp),2);
-	Delay(20);
+	for(i=0;i<100;i++)
+		Delay();
 	tmp=0x0002;
 	Write_DW1000(0x36,0x06,(u8 *)(&tmp),1);
+	tmp=0x0008;
+	Write_DW1000(0x2C,0x01,(u8 *)(&tmp),1);
 }
 
 void sent_and_wait(void)
@@ -288,10 +317,22 @@ void read_status(u32 *status)
 void data_response(u8 *src, u8 *dst)
 {
 	u16 tmp;
+	u32 status;
+	int i;
+	to_IDLE();
+	for (i=0;i<7000;i++)
+	{
+		Delay();
+	}
+	read_status(&status);
+	printf("status before read: %08X\r\n", status);
+	printf("%8x\r\n",Rx_stp_L);
+	printf("%2x\r\n",Rx_stp_H);
 	Read_DW1000(0x17,0x00,(u8 *)(&Tx_stp_L),4);
-	Read_DW1000(0x15,0x09,(u8 *)(&Rx_stp_L),4);
+	Read_DW1000(0x15,0x00,(u8 *)(&Rx_stp_L),4);
 	Read_DW1000(0x17,0x04,&Tx_stp_H,1);
-	Read_DW1000(0x15,0x0d,&Rx_stp_H,1);
+	Read_DW1000(0x15,0x04,&Rx_stp_H,1);
+	printf("===========Response DATA===========\r\n");
 	printf("%8x\r\n",Rx_stp_L);
 	printf("%2x\r\n",Rx_stp_H);
 	printf("%8x\r\n",Tx_stp_L);
@@ -348,6 +389,10 @@ void data_response(u8 *src, u8 *dst)
 	Tx_Buff[26] = (u8)u32_diff;
 	Tx_Buff[27] = 0x01;
 	tmp = 27;
+	for (i=0;i<3000;i++)
+	{
+		Delay();
+	}
 	raw_write(Tx_Buff, &tmp);
 }
 
@@ -374,7 +419,7 @@ void parse_rx(u8 *rx_buff, u16 size, u8 **src, u8 **dst, u8 **payload, u16 *pl_s
 	*src = &(rx_buff[n-8]);
 	*dst = &(rx_buff[n-16]);
 	*payload = &(rx_buff[n]);
-	*pl_size = size - n;
+	*pl_size = (u16)(size - n);
 }
 
 void send_LS_ACK(u8 *src, u8 *dst)
