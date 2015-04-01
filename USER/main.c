@@ -18,7 +18,7 @@
 #include "usb_pwr.h"
 
 /*
-TIM2时钟初始化:3s溢出（定位周期）
+TIM2时钟初始化:0.5s溢出（定位周期）
 */
 void TIM2_init(void)
 {
@@ -36,7 +36,7 @@ void TIM2_init(void)
 
 	TIM_DeInit(TIM2);
 
-	TIM_TimeBaseStructure.TIM_Period=3000;
+	TIM_TimeBaseStructure.TIM_Period=1000;
 	TIM_TimeBaseStructure.TIM_Prescaler= 36000;
 	TIM_TimeBaseStructure.TIM_ClockDivision=TIM_CKD_DIV1;
 	TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up;

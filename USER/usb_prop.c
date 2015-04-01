@@ -145,44 +145,46 @@ void Virtual_Com_Port_init(void)
 *******************************************************************************/
 void Virtual_Com_Port_Reset(void)
 {
-  /* Set Virtual_Com_Port DEVICE as not configured */
-  pInformation->Current_Configuration = 0;
-  pInformation->Current_Interface = 0;
-  /* Current Feature initialization */
-  pInformation->Current_Feature = Virtual_Com_Port_ConfigDescriptor[7];
+	/* Set Virtual_Com_Port DEVICE as not configured */
+	pInformation->Current_Configuration = 0;
+	pInformation->Current_Interface = 0;
+	/* Current Feature initialization */
+	pInformation->Current_Feature = Virtual_Com_Port_ConfigDescriptor[7];
 
-  /* Set Virtual_Com_Port DEVICE with the default Interface*/
-  pInformation->Current_Interface = 0;
+	/* Set Virtual_Com_Port DEVICE with the default Interface*/
+	pInformation->Current_Interface = 0;
 
-  SetBTABLE(BTABLE_ADDRESS);
+	SetBTABLE(BTABLE_ADDRESS);
 
-  /* Initialize Endpoint 0 */
-  SetEPType(ENDP0, EP_CONTROL);
-  SetEPTxStatus(ENDP0, EP_TX_STALL);
-  SetEPRxAddr(ENDP0, ENDP0_RXADDR);
-  SetEPTxAddr(ENDP0, ENDP0_TXADDR);
-  Clear_Status_Out(ENDP0);
-  SetEPRxCount(ENDP0, Device_Property.MaxPacketSize);
-  SetEPRxValid(ENDP0);
+	/* Initialize Endpoint 0 */
+	SetEPType(ENDP0, EP_CONTROL);
+	SetEPTxStatus(ENDP0, EP_TX_STALL);
+	SetEPRxAddr(ENDP0, ENDP0_RXADDR);
+	SetEPTxAddr(ENDP0, ENDP0_TXADDR);
+	Clear_Status_Out(ENDP0);
+	SetEPRxCount(ENDP0, Device_Property.MaxPacketSize);
+	SetEPRxValid(ENDP0);
 
-  SetEPType(ENDP2, EP_INTERRUPT);
-  SetEPTxAddr(ENDP2, ENDP2_TXADDR);
-  SetEPRxAddr(ENDP2, ENDP2_RXADDR);
-  SetEPTxCount(ENDP2, 2);
-  SetEPRxCount(ENDP2, 2);
-  SetEPRxStatus(ENDP2, EP_RX_VALID);
-  SetEPTxStatus(ENDP2, EP_TX_NAK);
-  
-  SetEPType(ENDP1, EP_BULK);
-  SetEPTxCount(ENDP1, 64);
-  SetEPRxCount(ENDP1, 64);
-  SetEPTxAddr(ENDP1, ENDP1_TXADDR);
-  SetEPRxAddr(ENDP1, ENDP1_RXADDR);
-  SetEPTxStatus(ENDP2, EP_TX_NAK);
-  SetEPRxStatus(ENDP2, EP_RX_VALID);
+	SetEPType(ENDP2, EP_INTERRUPT);
+	SetEPTxAddr(ENDP2, ENDP2_TXADDR);
+	SetEPRxAddr(ENDP2, ENDP2_RXADDR);
+	SetEPTxCount(ENDP2, 2);
+	SetEPRxCount(ENDP2, 2);
+	SetEPRxStatus(ENDP2, EP_RX_NAK);
+	SetEPTxStatus(ENDP2, EP_TX_VALID);
 
-  SetDeviceAddress(0);
-  bDeviceState = ATTACHED;
+	SetEPType(ENDP1, EP_BULK);
+	SetEPTxCount(ENDP1, 64);
+	SetEPRxCount(ENDP1, 64);
+	SetEPTxAddr(ENDP1, ENDP1_TXADDR);
+	SetEPRxAddr(ENDP1, ENDP1_RXADDR);
+	// SetEPTxStatus(ENDP1, EP_TX_NAK);
+	// SetEPRxStatus(ENDP1, EP_RX_VALID);
+	SetEPRxStatus(ENDP1, EP_RX_NAK); // NOT TX DISABLE
+	SetEPTxStatus(ENDP1, EP_TX_VALID);
+
+	SetDeviceAddress(0);
+	bDeviceState = ATTACHED;
 }
 
 /*******************************************************************************

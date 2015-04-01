@@ -51,7 +51,7 @@ void DW1000_init(void)
 {
 	u32 tmp;
 	int i;
-	for (i=0;i<10000;i++)
+	for (i=0;i<1000;i++)
 		Delay();
 	////////////////////工作模式配置////////////////////////
 	//lucus
@@ -147,6 +147,7 @@ void Location_polling(void)
 	u16 tmp;
 	// Tx_Buff[0]=0b10000010; // only DST PANID
 	// Tx_Buff[1]=0b00110111;
+	static int count;
 	Tx_Buff[0] = 0x82;
 	Tx_Buff[1] = 0x37;
 	Tx_Buff[2] = Sequence_Number++;
@@ -161,7 +162,8 @@ void Location_polling(void)
 	Tx_Buff[10]=broadcast_addr[4];
 	Tx_Buff[11]=broadcast_addr[5];
 	Tx_Buff[12]=broadcast_addr[6];
-	Tx_Buff[13]=broadcast_addr[7];
+	Tx_Buff[13]=0xF0|(count%3);
+	count++;
 	//DST MAC end
 	Tx_Buff[14]=mac[0];
 	Tx_Buff[15]=mac[1];

@@ -347,7 +347,8 @@ first byte of pl: %02X\r\n",
 					status_flag = SENT_LS_ACK;
 					printf("\r\n===========Got LS Req===========\r\n");
 				}
-				else if ((payload[0] == 0x01)&&((distance_flag == CONFIRM_SENT_LS_REQ)||(distance_flag == SENT_LS_REQ))) // GOT LS ACK
+				else if ((payload[0] == 0x01)) // GOT LS ACK
+				//&&((distance_flag == CONFIRM_SENT_LS_REQ)||(distance_flag == SENT_LS_REQ))
 				{
 					printf("\r\n===========Got LS ACK===========\r\n");
 
@@ -357,10 +358,10 @@ first byte of pl: %02X\r\n",
 						// read_status(&status);
 					// }
 
-					for (i=0;i<10;i++)
-					{
-						Delay();
-					}
+					// for (i=0;i<10;i++)
+					// {
+						// Delay();
+					// }
 					read_status(&status);
 					printf("status before read: %08X\r\n", status);
 					Read_DW1000(0x15,0x00,(u8 *)(&Rx_stp_LT[(int)(src[7]&0x0F) - 1]),4);

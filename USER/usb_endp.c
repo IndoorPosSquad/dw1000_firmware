@@ -32,6 +32,7 @@
 #include "hw_config.h"
 #include "usb_istr.h"
 #include "usb_pwr.h"
+#include "DW1000.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -41,15 +42,16 @@
 
 uint8_t int_Receive_Buffer[2];
 __IO uint8_t PrevXferComplete = 1;
-
+u32 data[16]={1250, 230, 806};
 extern void  snddata(void);
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 void EP1_IN_Callback(void)
 {
-  // USB_SIL_Write(EP1_IN, Data_Pointer, Data_Len);
-  // SetEPTxStatus(ENDP1, EP_TX_VALID);
+	USB_SIL_Write(EP1_IN, (u8*)(data), 64);
+	SetEPRxStatus(ENDP1, EP_RX_NAK); // NOT TX DISABLE
+	SetEPTxStatus(ENDP1, EP_TX_VALID);
 }
 
 void EP1_OUT_Callback(void)
