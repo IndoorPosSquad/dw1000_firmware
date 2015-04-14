@@ -162,7 +162,7 @@ void Location_polling(void)
 	Tx_Buff[10]=broadcast_addr[4];
 	Tx_Buff[11]=broadcast_addr[5];
 	Tx_Buff[12]=broadcast_addr[6];
-	Tx_Buff[13]=0xF0|(count%3);
+	Tx_Buff[13]=0xF0|(count%3 + 1);
 	count++;
 	//DST MAC end
 	Tx_Buff[14]=mac[0];
