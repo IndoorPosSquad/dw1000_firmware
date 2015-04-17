@@ -69,7 +69,7 @@ const uint8_t Virtual_Com_Port_ConfigDescriptor[VIRTUAL_COM_PORT_SIZ_CONFIG_DESC
 						USB_INTERFACE_DESCRIPTOR_TYPE,  /* bDescriptorType: */
 						0x00,   /* bInterfaceNumber: Number of Interface */
 						0x00,   /* bAlternateSetting: Alternate setting */
-						0x04,   /* bNumEndpoints: 4 endpoints used */
+						0x03,   /* bNumEndpoints: 3 endpoints used */
 						0x00,   /* bInterfaceClass: CDC */
 						0x00,   /* bInterfaceSubClass: */
 						0x00,   /* bInterfaceProtocol: */
@@ -84,33 +84,33 @@ const uint8_t Virtual_Com_Port_ConfigDescriptor[VIRTUAL_COM_PORT_SIZ_CONFIG_DESC
 									0x00,
 									0x00,   /* bInterval */
 // 25
-									/*Endpoint 1 OUT Descriptor*/
-									0x07,   /* bLength: Endpoint Descriptor size */
-									USB_ENDPOINT_DESCRIPTOR_TYPE,   /* bDescriptorType: Endpoint */
-									0x01,   /* bEndpointAddress: (IN1) */
-									0x02,   /* bmAttributes: Bulk */
-									0x40,   /* wMaxPacketSize: */
-									0x00,
-									0x00,   /* bInterval */
-// 32
-									/*Endpoint 2 IN Descriptor*/
-									0x07,   /* bLength: Endpoint Descriptor size */
-									USB_ENDPOINT_DESCRIPTOR_TYPE,   /* bDescriptorType: Endpoint */
-									0x82,   /* bEndpointAddress: (IN2) */
-									0x03,   /* bmAttributes: Interrupt */
-									0x02,   /* wMaxPacketSize: */
-									0x00,
-									0x02,   /* bInterval: 2ms */
-// 39
+									// /*Endpoint 2 IN Descriptor*/
+									// 0x07,   /* bLength: Endpoint Descriptor size */
+									// USB_ENDPOINT_DESCRIPTOR_TYPE,   /* bDescriptorType: Endpoint */
+									// 0x82,   /* bEndpointAddress: (IN2) */
+									// 0x03,   /* bmAttributes: Interrupt */
+									// 0x02,   /* wMaxPacketSize: */
+									// 0x00,
+									// 0x02,   /* bInterval: 2ms */
+
 									/*Endpoint 2 OUT Descriptor*/
 									0x07,   /* bLength: Endpoint Descriptor size */
 									USB_ENDPOINT_DESCRIPTOR_TYPE,   /* bDescriptorType: Endpoint */
-									0x02,   /* bEndpointAddress: (OUT3) */
+									0x82,   /* bEndpointAddress: (IN2) */
 									0x03,   /* bmAttributes: Bulk */
 									0x02,   /* wMaxPacketSize: */
 									0x00,
-									0x02    /* bInterval: 2ms */
-//46
+									0x02,   /* bInterval: 2ms */
+// 32
+									/*Endpoint 3 OUT Descriptor*/
+									0x07,   /* bLength: Endpoint Descriptor size */
+									USB_ENDPOINT_DESCRIPTOR_TYPE,   /* bDescriptorType: Endpoint */
+									0x03,   /* bEndpointAddress: (OUT3) */
+									0x02,   /* bmAttributes: Bulk */
+									0x40,   /* wMaxPacketSize: */
+									0x00,
+									0x00    /* bInterval */
+//39
   };
  /* USB String Descriptors */
 const uint8_t Virtual_Com_Port_StringLangID[VIRTUAL_COM_PORT_SIZ_STRING_LANGID] =

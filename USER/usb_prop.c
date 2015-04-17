@@ -167,22 +167,28 @@ void Virtual_Com_Port_Reset(void)
 
 	SetEPType(ENDP2, EP_INTERRUPT);
 	SetEPTxAddr(ENDP2, ENDP2_TXADDR);
-	SetEPRxAddr(ENDP2, ENDP2_RXADDR);
+	// SetEPRxAddr(ENDP2, ENDP2_RXADDR);
 	SetEPTxCount(ENDP2, 2);
-	SetEPRxCount(ENDP2, 2);
+	// SetEPRxCount(ENDP2, 2);
 	SetEPRxStatus(ENDP2, EP_RX_NAK);
 	SetEPTxStatus(ENDP2, EP_TX_VALID);
 
 	SetEPType(ENDP1, EP_BULK);
 	SetEPTxCount(ENDP1, 64);
-	SetEPRxCount(ENDP1, 64);
+	// SetEPRxCount(ENDP1, 64);
 	SetEPTxAddr(ENDP1, ENDP1_TXADDR);
-	SetEPRxAddr(ENDP1, ENDP1_RXADDR);
-	// SetEPTxStatus(ENDP1, EP_TX_NAK);
-	// SetEPRxStatus(ENDP1, EP_RX_VALID);
-	SetEPRxStatus(ENDP1, EP_RX_NAK); // NOT TX DISABLE
-	SetEPTxStatus(ENDP1, EP_TX_VALID);
+	// SetEPRxAddr(ENDP1, ENDP1_RXADDR);
+	SetEPRxStatus(ENDP1, EP_RX_NAK); // DISABLE RX
+	SetEPTxStatus(ENDP1, EP_TX_VALID); // ENABLE TX
 
+	SetEPType(ENDP3, EP_BULK);
+	// SetEPTxCount(ENDP3, 64);
+	SetEPRxCount(ENDP3, 64);
+	// SetEPTxAddr(ENDP3, ENDP1_TXADDR);
+	SetEPRxAddr(ENDP3, ENDP3_RXADDR);
+	SetEPTxStatus(ENDP3, EP_TX_NAK);
+	SetEPRxStatus(ENDP3, EP_RX_VALID);
+	
 	SetDeviceAddress(0);
 	bDeviceState = ATTACHED;
 }
