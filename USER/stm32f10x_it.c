@@ -251,12 +251,16 @@ void EXTI1_IRQHandler(void)
 			// to_IDLE();
 			// RX_mode_enable();
 		}
+		
 		if((status&0x00000080)==0x00000080) // transmit done
 		{
 			// printf("Transmit done.\r\n");
 			tmp=0x80;
 			Write_DW1000(0x0F,0x00,&tmp,1);
 			// clear the flag
+			
+			// Inform Host
+			
 			if(status_flag == SENT_LS_ACK)
 			{
 				printf("LS ACK\t\tSuccessfully Sent\r\n");
@@ -300,6 +304,12 @@ void EXTI1_IRQHandler(void)
 			// clear flag
 			tmp=0x60;
 			Write_DW1000(0x0F,0x01,&tmp,1);
+			
+			// LS or Ethernet?
+			// to me?
+			// inform Host
+			// send buffer to host
+			
 			raw_read(Rx_Buff, &size);
 			printf("raw_read completed.\r\n");
 			// parse_rx(Rx_Buff, size, &src, &dst, &payload, &pl_size);
@@ -309,18 +319,19 @@ void EXTI1_IRQHandler(void)
 			payload = &(Rx_Buff[22]);
 			pl_size = (u16)(size - 22);
 
-			printf("\r\nGot a Frame:\r\n\
-Frame type: %X\r\n\
-Frame size: %d\r\n\
-Frame Header: %02X %02X\r\n\
-src: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X\r\n\
-dst: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X\r\n\
-pl_size: %d\r\n\
-first byte of pl: %02X\r\n",
-			Rx_Buff[0]>>5, size, Rx_Buff[0], Rx_Buff[1],\
-			src[0], src[1], src[2], src[3], src[4], src[5], src[6], src[7],\
-			dst[0], dst[1], dst[2], dst[3], dst[4], dst[5], dst[6], dst[7],\
-			pl_size, payload[0]);
+			// printf("\r\nGot a Frame:\r\n\
+// Frame type: %X\r\n\
+// Frame size: %d\r\n\
+// Frame Header: %02X %02X\r\n\
+// src: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X\r\n\
+// dst: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X\r\n\
+// pl_size: %d\r\n\
+// first byte of pl: %02X\r\n",
+			// Rx_Buff[0]>>5, size, Rx_Buff[0], Rx_Buff[1],\
+			// src[0], src[1], src[2], src[3], src[4], src[5], src[6], src[7],\
+			// dst[0], dst[1], dst[2], dst[3], dst[4], dst[5], dst[6], dst[7],\
+			// pl_size, payload[0]);
+			
 			printf("Header: %02X\r\n", (u8)(Rx_Buff[0]&0xE0));
 			for (i=0;i<8;i++)
 			{
