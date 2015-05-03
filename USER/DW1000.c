@@ -9,7 +9,7 @@
 u8 mac[8];
 u8 toggle = 1;
 const u8 broadcast_addr[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-
+extern u32 data[16];
 // Common
 u8 Sequence_Number=0x00;
 u32 Tx_stp_L;
@@ -163,6 +163,7 @@ void Location_polling(void)
 	Tx_Buff[11]=broadcast_addr[5];
 	Tx_Buff[12]=broadcast_addr[6];
 	Tx_Buff[13]=0xF0|(count%3 + 1);
+	// Tx_Buff[13]=broadcast_addr[7];
 	count++;
 	//DST MAC end
 	Tx_Buff[14]=mac[0];
@@ -207,6 +208,9 @@ void distance_measurement(int n)
 	printf("D1\t\t%.2lf meters\r\n",distance[0]);
 	printf("D2\t\t%.2lf meters\r\n",distance[1]);
 	printf("D3\t\t%.2lf meters\r\n",distance[2]);
+	data[0] = (u32)(100*distance[0]);
+	data[1] = (u32)(100*distance[1]);
+	data[2] = (u32)(100*distance[2]);
 	printf("\r\n=====================================\r\n");
 }
 
@@ -320,10 +324,24 @@ void data_response(u8 *src, u8 *dst)
 	u32 status;
 	int i;
 	to_IDLE();
-	for (i=0;i<7000;i++)
+	for (i=0;i<1000;i++)
 	{
 		Delay();
 	}
+	#ifdef RX1
+	for (i=0;i<2000;i++)
+	{
+		Delay();
+	}
+	#endif
+	#ifdef RX2
+	for (i=0;i<4000;i++)
+	{
+		Delay();
+	}
+	#endif
+	#ifdef RX3
+	#endif
 	read_status(&status);
 	printf("status before read: %08X\r\n", status);
 	printf("%8x\r\n",Rx_stp_L);

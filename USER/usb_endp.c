@@ -41,9 +41,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 uint8_t int_Receive_Buffer[2];
-__IO uint8_t PrevXferComplete = 1;
+volatile uint8_t PrevXferComplete = 1;
 u32 data[16]={500, 707, 500};
-extern void  snddata(void);
+
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
