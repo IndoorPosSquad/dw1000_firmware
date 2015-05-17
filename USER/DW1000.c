@@ -113,6 +113,9 @@ void DW1000_init(void)
 	#ifdef RX3
 	mac[7] = 0xf3;
 	#endif
+	#ifdef RX4
+	mac[7] = 0xf4;
+	#endif
 	set_MAC(mac);
 	//no auto ack Frame Filter
 	tmp=0x200011FC;
@@ -212,6 +215,58 @@ void distance_measurement(int n)
 	data[1] = (u32)(100*distance[1]);
 	data[2] = (u32)(100*distance[2]);
 	printf("\r\n=====================================\r\n");
+}
+
+void distance_forward(int n, u32 dist)
+{
+	u16 tmp;
+	// Tx_Buff[0]=0b10000010; // only DST PANID
+	// Tx_Buff[1]=0b00110111;
+	Tx_Buff[0] = 0x82;
+	Tx_Buff[1] = 0x37;
+	Tx_Buff[2] = Sequence_Number; // HHHHHHHHHHHEAR remove ++
+	//SN end
+	Tx_Buff[4] = 0xFF;
+	Tx_Buff[3] = 0xFF;
+	//DST PAN end
+	Tx_Buff[6]=broadcast_addr[0];
+	Tx_Buff[7]=broadcast_addr[1];
+	Tx_Buff[8]=broadcast_addr[2];
+	Tx_Buff[9]=broadcast_addr[3];
+	Tx_Buff[10]=broadcast_addr[4];
+	Tx_Buff[11]=broadcast_addr[5];
+	Tx_Buff[12]=broadcast_addr[6];
+	Tx_Buff[13]=0xF4; // for RX4
+
+	// Tx_Buff[13]=broadcast_addr[7];
+	//DST MAC end
+	Tx_Buff[14]=mac[0];
+	Tx_Buff[15]=mac[1];
+	Tx_Buff[16]=mac[2];
+	Tx_Buff[17]=mac[3];
+	Tx_Buff[18]=mac[4];
+	Tx_Buff[19]=mac[5];
+	Tx_Buff[20]=mac[6];
+	Tx_Buff[21]=mac[7];
+	//SRC MAC end
+	//NO AUX
+	//Payload begin
+	Tx_Buff[22] = 0x04; // 0x04 = distance forward
+
+	Tx_Buff[23] = (dist >> 24) | 0x00;
+	Tx_Buff[24] = (dist >> 16) | 0x00;
+	Tx_Buff[25] = (dist >> 8)  | 0x00;
+	Tx_Buff[26] = (dist)       | 0x00;
+
+	Tx_Buff[27] = 0xFF;
+	tmp = 27;
+	raw_write(Tx_Buff, &tmp);
+	distance_flag = SENT_LS_REQ;
+}
+
+void handle_distance_forward(int n, u32 distance)
+{
+	data[n] = distance;
 }
 
 /*
@@ -343,7 +398,7 @@ void data_response(u8 *src, u8 *dst)
 	{
 		u32_diff=((0xFF-Rx_stp_H+Tx_stp_H+1)*0xFFFFFFFF+Tx_stp_L-Rx_stp_L);
 	}
-	
+
 	printf("%08x\r\n", u32_diff);
 	// Tx_Buff[0]=0b10000010; // only DST PANID
 	// Tx_Buff[1]=0b00110111;
@@ -393,19 +448,19 @@ void parse_rx(u8 *rx_buff, u16 size, u8 **src, u8 **dst, u8 **payload, u16 *pl_s
 		// PANID compress
 		n -= 2;
 	}
-	
+
 	if (rx_buff[1]&0x30 == 0x00) {
 		n -= 8;
 	} else if (rx_buff[1]&0x30 == 0x20) {
 		n -= 6;
 	}
-	
+
 	if (rx_buff[1]&0x03 == 0x00) {
 		n -= 8;
 	} else if (rx_buff[1]&0x03 == 0x02) {
 		n -= 6;
 	}
-	
+
 	*src = &(rx_buff[n-8]);
 	*dst = &(rx_buff[n-16]);
 	*payload = &(rx_buff[n]);
