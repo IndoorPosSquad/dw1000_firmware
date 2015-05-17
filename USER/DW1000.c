@@ -51,7 +51,7 @@ void DW1000_init(void)
 {
 	u32 tmp;
 	int i;
-	for (i=0;i<1000;i++)
+	for (i=0;i<10;i++)
 		Delay();
 	////////////////////工作模式配置////////////////////////
 	//lucus
@@ -129,7 +129,7 @@ void DW1000_init(void)
 	// ack等待
 	tmp=3;
 	Write_DW1000(0x1A,0x03,(u8 *)(&tmp),1);
-	for (i=0;i<100000;i++)
+	for (i=0;i<10;i++)
 		Delay();
 	load_LDE();
 	load_LDE();
@@ -321,31 +321,7 @@ void read_status(u32 *status)
 void data_response(u8 *src, u8 *dst)
 {
 	u16 tmp;
-	u32 status;
-	int i;
 	to_IDLE();
-	for (i=0;i<1000;i++)
-	{
-		Delay();
-	}
-	#ifdef RX1
-	for (i=0;i<2000;i++)
-	{
-		Delay();
-	}
-	#endif
-	#ifdef RX2
-	for (i=0;i<4000;i++)
-	{
-		Delay();
-	}
-	#endif
-	#ifdef RX3
-	#endif
-	read_status(&status);
-	printf("status before read: %08X\r\n", status);
-	printf("%8x\r\n",Rx_stp_L);
-	printf("%2x\r\n",Rx_stp_H);
 	Read_DW1000(0x17,0x00,(u8 *)(&Tx_stp_L),4);
 	Read_DW1000(0x15,0x00,(u8 *)(&Rx_stp_L),4);
 	Read_DW1000(0x17,0x04,&Tx_stp_H,1);
@@ -407,10 +383,6 @@ void data_response(u8 *src, u8 *dst)
 	Tx_Buff[26] = (u8)u32_diff;
 	Tx_Buff[27] = 0x01;
 	tmp = 27;
-	for (i=0;i<3000;i++)
-	{
-		Delay();
-	}
 	raw_write(Tx_Buff, &tmp);
 }
 
