@@ -21,8 +21,8 @@
 
 void Location_polling(void);
 void distance_measurement(int n);
-void distance_forward(int n, u32 dist);
-void handle_distance_forward(int n, u32 distance);
+void distance_forward(void);
+void handle_distance_forward(u8* payload);
 void quality_measurement(void);
 
 void DW1000_init(void);

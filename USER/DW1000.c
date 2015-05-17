@@ -217,7 +217,7 @@ void distance_measurement(int n)
 	printf("\r\n=====================================\r\n");
 }
 
-void distance_forward(int n, u32 dist)
+void distance_forward(void)
 {
 	u16 tmp;
 	// Tx_Buff[0]=0b10000010; // only DST PANID
@@ -253,20 +253,29 @@ void distance_forward(int n, u32 dist)
 	//Payload begin
 	Tx_Buff[22] = 0x04; // 0x04 = distance forward
 
-	Tx_Buff[23] = (dist >> 24) | 0x00;
-	Tx_Buff[24] = (dist >> 16) | 0x00;
-	Tx_Buff[25] = (dist >> 8)  | 0x00;
-	Tx_Buff[26] = (dist)       | 0x00;
+	Tx_Buff[23] = (data[0] >> 24) | 0x00;
+	Tx_Buff[24] = (data[0] >> 16) | 0x00;
+	Tx_Buff[25] = (data[0] >> 8)  | 0x00;
+	Tx_Buff[26] = (data[0])       | 0x00;
+	Tx_Buff[27] = (data[1] >> 24) | 0x00;
+	Tx_Buff[28] = (data[1] >> 16) | 0x00;
+	Tx_Buff[29] = (data[1] >> 8)  | 0x00;
+	Tx_Buff[30] = (data[1])       | 0x00;
+	Tx_Buff[31] = (data[2] >> 24) | 0x00;
+	Tx_Buff[32] = (data[2] >> 16) | 0x00;
+	Tx_Buff[33] = (data[2] >> 8)  | 0x00;
+	Tx_Buff[34] = (data[2])       | 0x00;
 
-	Tx_Buff[27] = 0xFF;
-	tmp = 27;
+	Tx_Buff[35] = 0xFF;
+	tmp = 35;
 	raw_write(Tx_Buff, &tmp);
-	distance_flag = SENT_LS_REQ;
 }
 
-void handle_distance_forward(int n, u32 distance)
+void handle_distance_forward(u8* payload)
 {
-	data[n] = distance;
+	data[0] = (payload[1] << 24) + (payload[2] << 16) + (payload[3] << 8) + (payload[4]);
+	data[1] = (payload[5] << 24) + (payload[6] << 16) + (payload[7] << 8) + (payload[8]);
+	data[2] = (payload[9] << 24) + (payload[10] << 16) + (payload[11] << 8) + (payload[12]);
 }
 
 /*

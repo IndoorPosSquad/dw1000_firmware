@@ -36,7 +36,7 @@ void TIM2_init(void)
 
 	TIM_DeInit(TIM2);
 
-	TIM_TimeBaseStructure.TIM_Period=20; // 0.01s
+	TIM_TimeBaseStructure.TIM_Period=1000; // 0.01s
 	TIM_TimeBaseStructure.TIM_Prescaler= 36000;
 	TIM_TimeBaseStructure.TIM_ClockDivision=TIM_CKD_DIV1;
 	TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up;
