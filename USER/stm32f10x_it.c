@@ -68,6 +68,8 @@ extern	u16 rxpacc;
 extern	double fppl;
 extern	double rxl;
 extern const u8 broadcast_addr[8];
+
+extern u32 data[16];
 /*
 0:已完成处理
 1：正在接收
@@ -234,7 +236,7 @@ void EXTI1_IRQHandler(void)
 				Read_DW1000(0x15,0x04,&Rx_stp_H,1);
 			}
 		}
-		
+
 		if((status&0x0000C000)==0x00008000) // CRC err
 		{
 			tmp=0xF0;
@@ -251,16 +253,16 @@ void EXTI1_IRQHandler(void)
 			// to_IDLE();
 			// RX_mode_enable();
 		}
-		
+
 		if((status&0x00000080)==0x00000080) // transmit done
 		{
 			// printf("Transmit done.\r\n");
 			tmp=0x80;
 			Write_DW1000(0x0F,0x00,&tmp,1);
 			// clear the flag
-			
+
 			// Inform Host
-			
+
 			if(status_flag == SENT_LS_ACK)
 			{
 				printf("LS ACK\t\tSuccessfully Sent\r\n");
@@ -295,7 +297,7 @@ void EXTI1_IRQHandler(void)
 				distance_flag = IDLE;
 				printf("LS RETURN\t\tSuccessfully Sent\r\n");
 			}
-			
+
 		}
 		else if(((status&0x00004000)==0x00004000)||((status&0x00002000)==0x00002000)) // receive done
 		{
@@ -304,12 +306,12 @@ void EXTI1_IRQHandler(void)
 			// clear flag
 			tmp=0x60;
 			Write_DW1000(0x0F,0x01,&tmp,1);
-			
+
 			// LS or Ethernet?
 			// to me?
 			// inform Host
 			// send buffer to host
-			
+
 			raw_read(Rx_Buff, &size);
 			printf("raw_read completed.\r\n");
 			// parse_rx(Rx_Buff, size, &src, &dst, &payload, &pl_size);
@@ -331,7 +333,7 @@ void EXTI1_IRQHandler(void)
 // src[0], src[1], src[2], src[3], src[4], src[5], src[6], src[7],\
 // dst[0], dst[1], dst[2], dst[3], dst[4], dst[5], dst[6], dst[7],\
 // pl_size, payload[0]);
-			
+
 			printf("Header: %02X\r\n", (u8)(Rx_Buff[0]&0xE0));
 			for (i=0;i<8;i++)
 			{
@@ -379,7 +381,7 @@ void EXTI1_IRQHandler(void)
 					Read_DW1000(0x15,0x04,&Rx_stp_HT[(int)(src[7]&0x0F) - 1],1);
 					// printf("0x%8x\r\n",Rx_stp_LT[(int)(src[7]&0x0F) - 1]);
 					// printf("0x%2x\r\n",Rx_stp_HT[(int)(src[7]&0x0F) - 1]);
-					
+
 					// printf("0x%8x\r\n",Rx_stp_L);
 					// printf("0x%2x\r\n",Rx_stp_H);
 					// Read_DW1000(0x15,0x00,(u8*)(&Rx_stp_L),4);
@@ -405,6 +407,9 @@ void EXTI1_IRQHandler(void)
 					// quality_measurement();
 					// TODO
 					// sent_LS_RETURN(mac, src);
+
+					distance_forward((int)(src[7]&0x0F) - 1, data[(int)(src[7]&0x0F) - 1]);
+
 					distance_flag = IDLE;
 					to_IDLE();
 					RX_mode_enable();
@@ -413,6 +418,11 @@ void EXTI1_IRQHandler(void)
 				{
 					// TODO
 					status_flag = IDLE;
+				}
+				else if (payload[0] == 0x04) // distance forward
+				{
+					u32 dist = (payload[1] << 24) + (payload[2] << 16) + (payload[3] << 8) + (payload[4]);
+					handle_distance_forward((int)(src[7]&0x0F) - 1, dist);
 				}
 				else
 				{
@@ -443,7 +453,7 @@ void TIM2_IRQHandler(void)
 	{
 		TIM_ClearITPendingBit(TIM2 , TIM_FLAG_Update);
 		Location_polling();
-		
+
 		if (PrevXferComplete){
 		PrevXferComplete = 0;
 		int_Send_Buffer[0] = 0xFF;
