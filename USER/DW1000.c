@@ -9,7 +9,7 @@
 u8 mac[8];
 u8 toggle = 1;
 const u8 broadcast_addr[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-
+extern u32 data[16];
 // Common
 u8 Sequence_Number=0x00;
 u32 Tx_stp_L;
@@ -51,7 +51,7 @@ void DW1000_init(void)
 {
 	u32 tmp;
 	int i;
-	for (i=0;i<1000;i++)
+	for (i=0;i<10;i++)
 		Delay();
 	////////////////////工作模式配置////////////////////////
 	//lucus
@@ -113,6 +113,9 @@ void DW1000_init(void)
 	#ifdef RX3
 	mac[7] = 0xf3;
 	#endif
+	#ifdef RX4
+	mac[7] = 0xf4;
+	#endif
 	set_MAC(mac);
 	//no auto ack Frame Filter
 	tmp=0x200011FC;
@@ -129,7 +132,7 @@ void DW1000_init(void)
 	// ack等待
 	tmp=3;
 	Write_DW1000(0x1A,0x03,(u8 *)(&tmp),1);
-	for (i=0;i<100000;i++)
+	for (i=0;i<10;i++)
 		Delay();
 	load_LDE();
 	load_LDE();
@@ -163,6 +166,7 @@ void Location_polling(void)
 	Tx_Buff[11]=broadcast_addr[5];
 	Tx_Buff[12]=broadcast_addr[6];
 	Tx_Buff[13]=0xF0|(count%3 + 1);
+	// Tx_Buff[13]=broadcast_addr[7];
 	count++;
 	//DST MAC end
 	Tx_Buff[14]=mac[0];
@@ -207,7 +211,62 @@ void distance_measurement(int n)
 	printf("D1\t\t%.2lf meters\r\n",distance[0]);
 	printf("D2\t\t%.2lf meters\r\n",distance[1]);
 	printf("D3\t\t%.2lf meters\r\n",distance[2]);
+	data[0] = (u32)(100*distance[0]);
+	data[1] = (u32)(100*distance[1]);
+	data[2] = (u32)(100*distance[2]);
 	printf("\r\n=====================================\r\n");
+}
+
+void distance_forward(int n, u32 dist)
+{
+	u16 tmp;
+	// Tx_Buff[0]=0b10000010; // only DST PANID
+	// Tx_Buff[1]=0b00110111;
+	Tx_Buff[0] = 0x82;
+	Tx_Buff[1] = 0x37;
+	Tx_Buff[2] = Sequence_Number; // HHHHHHHHHHHEAR remove ++
+	//SN end
+	Tx_Buff[4] = 0xFF;
+	Tx_Buff[3] = 0xFF;
+	//DST PAN end
+	Tx_Buff[6]=broadcast_addr[0];
+	Tx_Buff[7]=broadcast_addr[1];
+	Tx_Buff[8]=broadcast_addr[2];
+	Tx_Buff[9]=broadcast_addr[3];
+	Tx_Buff[10]=broadcast_addr[4];
+	Tx_Buff[11]=broadcast_addr[5];
+	Tx_Buff[12]=broadcast_addr[6];
+	Tx_Buff[13]=0xF4; // for RX4
+
+	// Tx_Buff[13]=broadcast_addr[7];
+	//DST MAC end
+	Tx_Buff[14]=mac[0];
+	Tx_Buff[15]=mac[1];
+	Tx_Buff[16]=mac[2];
+	Tx_Buff[17]=mac[3];
+	Tx_Buff[18]=mac[4];
+	Tx_Buff[19]=mac[5];
+	Tx_Buff[20]=mac[6];
+	Tx_Buff[21]=mac[7];
+	//SRC MAC end
+	//NO AUX
+	//Payload begin
+	Tx_Buff[22] = 0x04; // 0x04 = distance forward
+
+	Tx_Buff[23] = (dist >> 24) | 0x00;
+	Tx_Buff[24] = (dist >> 16) | 0x00;
+	Tx_Buff[25] = (dist >> 8)  | 0x00;
+	Tx_Buff[26] = (dist)       | 0x00;
+
+	Tx_Buff[27] = 0xFF;
+	tmp = 27;
+	raw_write(Tx_Buff, &tmp);
+	distance_flag = SENT_LS_REQ;
+}
+
+void handle_distance_forward(int n, u32 distance)
+{
+	data[n] = distance;
 }
 
 /*
@@ -317,17 +376,7 @@ void read_status(u32 *status)
 void data_response(u8 *src, u8 *dst)
 {
 	u16 tmp;
-	u32 status;
-	int i;
 	to_IDLE();
-	for (i=0;i<7000;i++)
-	{
-		Delay();
-	}
-	read_status(&status);
-	printf("status before read: %08X\r\n", status);
-	printf("%8x\r\n",Rx_stp_L);
-	printf("%2x\r\n",Rx_stp_H);
 	Read_DW1000(0x17,0x00,(u8 *)(&Tx_stp_L),4);
 	Read_DW1000(0x15,0x00,(u8 *)(&Rx_stp_L),4);
 	Read_DW1000(0x17,0x04,&Tx_stp_H,1);
@@ -349,7 +398,7 @@ void data_response(u8 *src, u8 *dst)
 	{
 		u32_diff=((0xFF-Rx_stp_H+Tx_stp_H+1)*0xFFFFFFFF+Tx_stp_L-Rx_stp_L);
 	}
-	
+
 	printf("%08x\r\n", u32_diff);
 	// Tx_Buff[0]=0b10000010; // only DST PANID
 	// Tx_Buff[1]=0b00110111;
@@ -389,10 +438,6 @@ void data_response(u8 *src, u8 *dst)
 	Tx_Buff[26] = (u8)u32_diff;
 	Tx_Buff[27] = 0x01;
 	tmp = 27;
-	for (i=0;i<3000;i++)
-	{
-		Delay();
-	}
 	raw_write(Tx_Buff, &tmp);
 }
 
@@ -403,19 +448,19 @@ void parse_rx(u8 *rx_buff, u16 size, u8 **src, u8 **dst, u8 **payload, u16 *pl_s
 		// PANID compress
 		n -= 2;
 	}
-	
+
 	if (rx_buff[1]&0x30 == 0x00) {
 		n -= 8;
 	} else if (rx_buff[1]&0x30 == 0x20) {
 		n -= 6;
 	}
-	
+
 	if (rx_buff[1]&0x03 == 0x00) {
 		n -= 8;
 	} else if (rx_buff[1]&0x03 == 0x02) {
 		n -= 6;
 	}
-	
+
 	*src = &(rx_buff[n-8]);
 	*dst = &(rx_buff[n-16]);
 	*payload = &(rx_buff[n]);
