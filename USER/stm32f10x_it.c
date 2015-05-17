@@ -256,7 +256,7 @@ void EXTI1_IRQHandler(void)
 
 		if((status&0x00000080)==0x00000080) // transmit done
 		{
-			// printf("Transmit done.\r\n");
+			printf("Transmit done.\r\n");
 			tmp=0x80;
 			Write_DW1000(0x0F,0x00,&tmp,1);
 			// clear the flag
@@ -407,12 +407,12 @@ void EXTI1_IRQHandler(void)
 					// quality_measurement();
 					// TODO
 					// sent_LS_RETURN(mac, src);
-
-					distance_forward((int)(src[7]&0x0F) - 1, data[(int)(src[7]&0x0F) - 1]);
-
-					distance_flag = IDLE;
 					to_IDLE();
 					RX_mode_enable();
+					for (i = 0; i < 100; i++)
+						Delay();
+					distance_forward();
+					distance_flag = IDLE;
 				}
 				else if (payload[0] == 0x03) // GOT LS RETURN
 				{
@@ -421,8 +421,7 @@ void EXTI1_IRQHandler(void)
 				}
 				else if (payload[0] == 0x04) // distance forward
 				{
-					u32 dist = (payload[1] << 24) + (payload[2] << 16) + (payload[3] << 8) + (payload[4]);
-					handle_distance_forward((int)(src[7]&0x0F) - 1, dist);
+					handle_distance_forward(payload);
 				}
 				else
 				{
