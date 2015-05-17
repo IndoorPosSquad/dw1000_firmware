@@ -204,7 +204,7 @@ void EXTI1_IRQHandler(void)
 	u32 status;
 	u8 tmp;
 	u16 size;
-	u16 pl_size;
+	// u16 pl_size;
 	static u8 *dst;
 	static u8 *src; // need improvement
 	u8 *payload;
@@ -319,7 +319,7 @@ void EXTI1_IRQHandler(void)
 			src = &(Rx_Buff[22-8]);
 			dst = &(Rx_Buff[22-16]);
 			payload = &(Rx_Buff[22]);
-			pl_size = (u16)(size - 22);
+			// pl_size = (u16)(size - 22);
 
 // printf("\r\nGot a Frame:\r\n\
 // Frame type: %X\r\n\
@@ -458,11 +458,13 @@ void TIM2_IRQHandler(void)
 		PrevXferComplete = 0;
 		int_Send_Buffer[0] = 0xFF;
 		int_Send_Buffer[1] = 0x00;
-		/* Copy mouse position info in ENDP1 Tx Packet Memory Area*/
-		USB_SIL_Write(EP2_IN, int_Send_Buffer, 2);
-
-		/* Enable endpoint for transmission */
-		SetEPTxStatus(ENDP2, EP_TX_VALID);
+		// /* Copy mouse position info in ENDP1 Tx Packet Memory Area*/
+		// USB_SIL_Write(EP2_IN, int_Send_Buffer, 2);
+		// /* Enable endpoint for transmission */
+		// SetEPTxStatus(ENDP2, EP_TX_VALID);
+		UserToPMABufferCopy(int_Send_Buffer, GetEPTxAddr(ENDP2), 2);
+		SetEPTxCount(ENDP2, 2);
+		SetEPTxValid(ENDP2);
 		}
 	}
 }
