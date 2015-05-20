@@ -68,11 +68,11 @@ void EP3_OUT_Callback(void)
 		memcpy(mac, out_buf+2, 8);
 		set_MAC(mac);
 	} else{
-		if (out_buf[1] < (u8)(62)) {
+		if (out_buf[1] < (u8)(63)) {
 			Buffer[0] = 0x90;
 			memcpy(Buffer+1, out_buf+2, (u8)(out_buf[1]));
 			raw_write(Buffer, (u16*)((u8)(out_buf[1])+1));
-		} else if (out_buf[1] < (u8)(124)) {
+		} else if (out_buf[1] < (u8)(125)) {
 				// 2 frames
 				if (count == 0 && out_buf[0]==0x00) {
 					count = 1;
