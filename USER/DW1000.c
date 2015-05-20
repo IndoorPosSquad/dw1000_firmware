@@ -77,12 +77,12 @@ void Pop(u8* data){
 
 void Fifoput(u8* data, int len)
 {
-	if (len < 62) {
+	if (len < 63) {
 		buf[0] = 0x00;
 		buf[1] = (u8)(len);
 		memcpy(buf+2, data, len);
 		Push(buf);
-	} else if (len < 124) {
+	} else if (len < 125) {
 		// frame 1
 		buf[0] = 0x01;
 		buf[1] = (u8)(len);
