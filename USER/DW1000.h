@@ -37,3 +37,6 @@ void parse_rx(u8 *rx_buff, u16 size, u8 **src, u8 **dst, u8 **payload, u16 *pl_s
 void data_response(u8 *src, u8 *dst);
 void read_status(u32 *status);
 void sent_and_wait(void);
+void Fifoput(u8* data, int len);
+void Push(u8* data);
+void Pop(u8* data);
