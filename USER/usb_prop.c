@@ -170,8 +170,8 @@ void Virtual_Com_Port_Reset(void)
 	// SetEPRxAddr(ENDP2, ENDP2_RXADDR);
 	SetEPTxCount(ENDP2, 2);
 	// SetEPRxCount(ENDP2, 2);
-	SetEPRxStatus(ENDP2, EP_RX_NAK);
-	SetEPTxStatus(ENDP2, EP_TX_VALID);
+	// SetEPRxStatus(ENDP2, EP_RX_NAK);
+	SetEPTxStatus(ENDP2, EP_TX_NAK);
 
 	SetEPType(ENDP1, EP_BULK);
 	SetEPTxCount(ENDP1, 64);

@@ -70,6 +70,8 @@ extern	double rxl;
 extern const u8 broadcast_addr[8];
 
 extern u32 data[16];
+
+// extern void Fifoput(u8* data, int len);
 /*
 0:已完成处理
 1：正在接收
@@ -315,7 +317,28 @@ void EXTI1_IRQHandler(void)
 			raw_read(Rx_Buff, &size);
 			printf("raw_read completed.\r\n");
 			// parse_rx(Rx_Buff, size, &src, &dst, &payload, &pl_size);
-
+			if ((u8)(Rx_Buff[0]) == 0x90) // ethernet
+			{
+				for (i=0;i<8;i++)
+				{
+					if( (u8)(Rx_Buff[1+i]) != (u8)(broadcast_addr[i]) )
+					{
+						for (i=0;i<8;i++)
+						{
+							if( (u8)(Rx_Buff[1+i]) != (u8)(mac[i+2]) )
+							{
+								for_me = 0;
+								break;
+							}
+						}
+						break;
+					}
+				}
+				if (for_me == 1)
+					Fifoput(Rx_Buff, size);
+			}
+			else
+			{
 			src = &(Rx_Buff[22-8]);
 			dst = &(Rx_Buff[22-16]);
 			payload = &(Rx_Buff[22]);
@@ -351,89 +374,90 @@ void EXTI1_IRQHandler(void)
 				}
 			}
 			if (for_me == 1)
-			if ((u8)(Rx_Buff[0]&0xE0) == 0x80) // LS Frame
-			{
-				printf("A LS Frame.\r\n");
-				if ((payload[0] == 0x00)&&(status_flag == IDLE)) // GOT LS Req
+				if ((u8)(Rx_Buff[0]&0xE0) == 0x80) // LS Frame
 				{
-					send_LS_ACK(mac, src);
-					status_flag = SENT_LS_ACK;
-					printf("\r\n===========Got LS Req===========\r\n");
-				}
-				else if ((payload[0] == 0x01)) // GOT LS ACK
-				//&&((distance_flag == CONFIRM_SENT_LS_REQ)||(distance_flag == SENT_LS_REQ))
-				{
-					printf("\r\n===========Got LS ACK===========\r\n");
+					printf("A LS Frame.\r\n");
+					if ((payload[0] == 0x00)&&(status_flag == IDLE)) // GOT LS Req
+					{
+						send_LS_ACK(mac, src);
+						status_flag = SENT_LS_ACK;
+						printf("\r\n===========Got LS Req===========\r\n");
+					}
+					else if ((payload[0] == 0x01)) // GOT LS ACK
+					//&&((distance_flag == CONFIRM_SENT_LS_REQ)||(distance_flag == SENT_LS_REQ))
+					{
+						printf("\r\n===========Got LS ACK===========\r\n");
 
-					// while((u32)(status&0x00000400) == (u32)(0))
-					// {
-						// Delay(50);
+						// while((u32)(status&0x00000400) == (u32)(0))
+						// {
+							// Delay(50);
+							// read_status(&status);
+						// }
+
+						// for (i=0;i<10;i++)
+						// {
+							// Delay();
+						// }
 						// read_status(&status);
-					// }
+						// printf("status before read: %08X\r\n", status);
+						Read_DW1000(0x15,0x00,(u8 *)(&Rx_stp_LT[(int)(src[7]&0x0F) - 1]),4);
+						Read_DW1000(0x15,0x04,&Rx_stp_HT[(int)(src[7]&0x0F) - 1],1);
+						// printf("0x%8x\r\n",Rx_stp_LT[(int)(src[7]&0x0F) - 1]);
+						// printf("0x%2x\r\n",Rx_stp_HT[(int)(src[7]&0x0F) - 1]);
 
-					// for (i=0;i<10;i++)
-					// {
-						// Delay();
-					// }
-					// read_status(&status);
-					// printf("status before read: %08X\r\n", status);
-					Read_DW1000(0x15,0x00,(u8 *)(&Rx_stp_LT[(int)(src[7]&0x0F) - 1]),4);
-					Read_DW1000(0x15,0x04,&Rx_stp_HT[(int)(src[7]&0x0F) - 1],1);
-					// printf("0x%8x\r\n",Rx_stp_LT[(int)(src[7]&0x0F) - 1]);
-					// printf("0x%2x\r\n",Rx_stp_HT[(int)(src[7]&0x0F) - 1]);
-
-					// printf("0x%8x\r\n",Rx_stp_L);
-					// printf("0x%2x\r\n",Rx_stp_H);
-					// Read_DW1000(0x15,0x00,(u8*)(&Rx_stp_L),4);
-					// Read_DW1000(0x15,0x04,&Rx_stp_H,1);
-					// printf("0x%8x\r\n",Rx_stp_L);
-					// printf("0x%2x\r\n",Rx_stp_H);
-					// Read_DW1000(0x12,0x00,(u8 *)(&std_noise),2);
-					// Read_DW1000(0x12,0x02,(u8 *)(&fp_ampl2),2);
-					// Read_DW1000(0x12,0x04,(u8 *)(&fp_ampl3),2);
-					// Read_DW1000(0x12,0x06,(u8 *)(&cir_mxg),2);
-					// Read_DW1000(0x15,0x07,(u8 *)(&fp_ampl1),2);
-					// Read_DW1000(0x10,0x02,(u8 *)(&rxpacc),2);
-					to_IDLE();
-					RX_mode_enable();
-				}
-				else if (payload[0] == 0x02) // GOT LS DATA
-				{
-					printf("\r\n===========Got LS DATA===========\r\n");
-					distance_flag = GOT_LS_DATA;
-					LS_DATA[(int)(src[7]&0x0F) - 1] = *(u32 *)(payload + 1);
-					printf("data: %08X\r\n",LS_DATA[(int)(src[7]&0x0F) - 1]);
-					distance_measurement((int)(src[7]&0x0F) - 1);
-					// quality_measurement();
-					// TODO
-					// sent_LS_RETURN(mac, src);
-					to_IDLE();
-					RX_mode_enable();
-					for (i = 0; i < 100; i++)
-						Delay();
-					distance_forward();
-					distance_flag = IDLE;
-				}
-				else if (payload[0] == 0x03) // GOT LS RETURN
-				{
-					// TODO
-					status_flag = IDLE;
-				}
-				else if (payload[0] == 0x04) // distance forward
-				{
-					handle_distance_forward(payload);
+						// printf("0x%8x\r\n",Rx_stp_L);
+						// printf("0x%2x\r\n",Rx_stp_H);
+						// Read_DW1000(0x15,0x00,(u8*)(&Rx_stp_L),4);
+						// Read_DW1000(0x15,0x04,&Rx_stp_H,1);
+						// printf("0x%8x\r\n",Rx_stp_L);
+						// printf("0x%2x\r\n",Rx_stp_H);
+						// Read_DW1000(0x12,0x00,(u8 *)(&std_noise),2);
+						// Read_DW1000(0x12,0x02,(u8 *)(&fp_ampl2),2);
+						// Read_DW1000(0x12,0x04,(u8 *)(&fp_ampl3),2);
+						// Read_DW1000(0x12,0x06,(u8 *)(&cir_mxg),2);
+						// Read_DW1000(0x15,0x07,(u8 *)(&fp_ampl1),2);
+						// Read_DW1000(0x10,0x02,(u8 *)(&rxpacc),2);
+						to_IDLE();
+						RX_mode_enable();
+					}
+					else if (payload[0] == 0x02) // GOT LS DATA
+					{
+						printf("\r\n===========Got LS DATA===========\r\n");
+						distance_flag = GOT_LS_DATA;
+						LS_DATA[(int)(src[7]&0x0F) - 1] = *(u32 *)(payload + 1);
+						printf("data: %08X\r\n",LS_DATA[(int)(src[7]&0x0F) - 1]);
+						distance_measurement((int)(src[7]&0x0F) - 1);
+						// quality_measurement();
+						// TODO
+						// sent_LS_RETURN(mac, src);
+						to_IDLE();
+						RX_mode_enable();
+						for (i = 0; i < 100; i++)
+							Delay();
+						distance_forward();
+						distance_flag = IDLE;
+					}
+					else if (payload[0] == 0x03) // GOT LS RETURN
+					{
+						// TODO
+						status_flag = IDLE;
+					}
+					else if (payload[0] == 0x04) // distance forward
+					{
+						handle_distance_forward(payload);
+					}
+					else
+					{
+						to_IDLE();
+						RX_mode_enable();
+					}
 				}
 				else
 				{
+					//Here the other data processing
 					to_IDLE();
 					RX_mode_enable();
 				}
-			}
-			else
-			{
-				//Here the other data processing
-				to_IDLE();
-				RX_mode_enable();
 			}
 		}
 		else
@@ -453,8 +477,6 @@ void TIM2_IRQHandler(void)
 		TIM_ClearITPendingBit(TIM2 , TIM_FLAG_Update);
 		Location_polling();
 
-		if (PrevXferComplete){
-		PrevXferComplete = 0;
 		int_Send_Buffer[0] = 0xFF;
 		int_Send_Buffer[1] = 0x00;
 		// /* Copy mouse position info in ENDP1 Tx Packet Memory Area*/
@@ -464,7 +486,6 @@ void TIM2_IRQHandler(void)
 		UserToPMABufferCopy(int_Send_Buffer, GetEPTxAddr(ENDP2), 2);
 		SetEPTxCount(ENDP2, 2);
 		SetEPTxValid(ENDP2);
-		}
 	}
 }
 #endif

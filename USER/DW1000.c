@@ -4,9 +4,12 @@
 #include "USART.h"
 #include "math.h"
 #include "delay.h"
+#include "string.h"
+#define fifolen 256
 // When I started writing those codes, only God and I know what are them supposed to do.
 // But now, only God knows.
 u8 mac[8];
+u8 emac[6];
 u8 toggle = 1;
 const u8 broadcast_addr[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 extern u32 data[16];
@@ -42,6 +45,75 @@ u16 cir_mxg;
 u16 rxpacc;
 double fppl;
 double rxl;
+
+u8 Queue[fifolen*64];
+u8 buf[64];
+volatile int Length = 0;
+volatile int Head = 0, Tail = 0;
+
+
+
+void Push(u8* data){
+	if (Length == fifolen)
+		return;
+	memcpy(Queue+Head*64, data, 64);
+	Head++;
+	Length++;
+	if (Head == fifolen)
+		Head = 0;
+}
+
+void Pop(u8* data){
+	if (Length == 0){
+		memset(data, 0, 64);
+		return;
+	}
+	memcpy(data, Queue+Head*64, 64);
+	Tail++;
+	Length--;
+	if (Tail == fifolen)
+		Tail = 0;
+}
+
+void Fifoput(u8* data, int len)
+{
+	if (len < 62) {
+		buf[0] = 0x00;
+		buf[1] = (u8)(len);
+		memcpy(buf+2, data, len);
+		Push(buf);
+	} else if (len < 124) {
+		// frame 1
+		buf[0] = 0x01;
+		buf[1] = (u8)(len);
+		memcpy(buf+2, data, 62);
+		Push(buf);
+		// frame 2
+		memset(buf, 0, 64);
+		buf[0] = 0x02;
+		buf[1] = (u8)(len);
+		memcpy(buf+2, data+62, len-62);
+		Push(buf);
+	} else {
+		// frame 1
+		buf[0] = 0x01;
+		buf[1] = (u8)(len);
+		memcpy(buf+2, data, 62);
+		Push(buf);
+		// frame 2
+		memset(buf, 0, 64);
+		buf[0] = 0x02;
+		buf[1] = (u8)(len);
+		memcpy(buf+2, data+62, 62);
+		Push(buf);
+		// frame 3
+		memset(buf, 0, 64);
+		buf[0] = 0x03;
+		buf[1] = (u8)(len);
+		memcpy(buf+2, data+124, len-124);
+		Push(buf);
+	}
+}
 
 /*
 DW1000初始化
@@ -375,6 +447,12 @@ void sent_and_wait(void)
 void set_MAC(u8* mac)
 {
 	Write_DW1000(0x01, 0x00, mac, 8);
+	emac[0] = mac[2];
+	emac[1] = mac[3];
+	emac[2] = mac[4];
+	emac[3] = mac[5];
+	emac[4] = mac[6];
+	emac[5] = mac[7];
 }
 
 void read_status(u32 *status)
