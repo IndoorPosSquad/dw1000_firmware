@@ -1,4 +1,7 @@
 #include "stm32f10x.h"
+#include "usb_istr.h"
+#include "usb_lib.h"
+#include "usb_pwr.h"
 #include "SPI.h"
 #include "DW1000.h"
 #include "USART.h"
@@ -8,6 +11,9 @@
 #define fifolen 256
 // When I started writing those codes, only God and I know what are them supposed to do.
 // But now, only God knows.
+// USB
+uint8_t int_Send_Buffer[2];
+
 u8 mac[8];
 u8 emac[6];
 u8 toggle = 1;
@@ -113,6 +119,15 @@ void Fifoput(u8* data, int len)
 		memcpy(buf+2, data+124, len-124);
 		Push(buf);
 	}
+	int_Send_Buffer[0] = 0xF0;
+	int_Send_Buffer[1] = 0xF0;
+	// /* Copy mouse position info in ENDP1 Tx Packet Memory Area*/
+	// USB_SIL_Write(EP2_IN, int_Send_Buffer, 2);
+	// /* Enable endpoint for transmission */
+	// SetEPTxStatus(ENDP2, EP_TX_VALID);
+	UserToPMABufferCopy(int_Send_Buffer, GetEPTxAddr(ENDP2), 2);
+	SetEPTxCount(ENDP2, 2);
+	SetEPTxValid(ENDP2);
 }
 
 /*
@@ -187,6 +202,12 @@ void DW1000_init(void)
 	#endif
 	#ifdef RX4
 	mac[7] = 0xf4;
+	#endif
+	#ifdef RX5
+	mac[7] = 0xf5;
+	#endif
+	#ifdef RX6
+	mac[7] = 0xf6;
 	#endif
 	set_MAC(mac);
 	//no auto ack Frame Filter

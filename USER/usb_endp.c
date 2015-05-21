@@ -54,8 +54,13 @@ extern u8 mac[8];
 /* Private functions ---------------------------------------------------------*/
 void EP1_IN_Callback(void)
 {
+	#if defined(RX5) || defined(RX6)
 	Pop(in_buf);
 	USB_SIL_Write(EP1_IN, (u8*)(in_buf), 64);
+	#endif
+	#ifdef RX4
+	USB_SIL_Write(EP1_IN, (u8*)(data), 64);
+	#endif
 	// SetEPRxStatus(ENDP1, EP_RX_NAK); // NOT TX DISABLE
 	SetEPTxStatus(ENDP1, EP_TX_VALID);
 }

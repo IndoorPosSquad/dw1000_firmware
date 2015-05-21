@@ -144,9 +144,11 @@ int main(void)
 	
 	SystemInit();
 	Set_System();
+	#if defined(TX) || defined(RX4) || defined(RX5) || defined(RX6)
 	Set_USBClock();
 	USB_Interrupts_Config();
 	USB_Init();
+	#endif
 	USART1_init(); // USART1初始化,波特率115200，单次8比特，无奇偶校验，1停止位：用于上位机下发命令
 	SPI1_init()	;
 	#ifdef TX
