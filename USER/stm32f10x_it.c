@@ -33,8 +33,6 @@
 #include "delay.h"
 
 // USB
-extern volatile uint8_t PrevXferComplete;
-uint8_t int_Send_Buffer[2];
 
 // Common
 volatile u8 time_up = 0;
@@ -476,16 +474,6 @@ void TIM2_IRQHandler(void)
 	{
 		TIM_ClearITPendingBit(TIM2 , TIM_FLAG_Update);
 		Location_polling();
-
-		int_Send_Buffer[0] = 0xFF;
-		int_Send_Buffer[1] = 0x00;
-		// /* Copy mouse position info in ENDP1 Tx Packet Memory Area*/
-		// USB_SIL_Write(EP2_IN, int_Send_Buffer, 2);
-		// /* Enable endpoint for transmission */
-		// SetEPTxStatus(ENDP2, EP_TX_VALID);
-		UserToPMABufferCopy(int_Send_Buffer, GetEPTxAddr(ENDP2), 2);
-		SetEPTxCount(ENDP2, 2);
-		SetEPTxValid(ENDP2);
 	}
 }
 #endif
