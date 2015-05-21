@@ -430,10 +430,12 @@ void EXTI1_IRQHandler(void)
 						// sent_LS_RETURN(mac, src);
 						to_IDLE();
 						RX_mode_enable();
-						for (i = 0; i < 100; i++)
-							Delay();
-						distance_forward();
-						distance_flag = IDLE;
+						if (src[7] == 0xf3){
+							for (i = 0; i < 100; i++)
+								Delay();
+							distance_forward();
+							distance_flag = IDLE;
+						}
 					}
 					else if (payload[0] == 0x03) // GOT LS RETURN
 					{
