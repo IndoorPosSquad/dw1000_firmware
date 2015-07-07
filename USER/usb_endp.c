@@ -71,7 +71,7 @@ void EP1_IN_Callback(void)
 // +-------+---+---+---+---+---+---+---+---+---------------+---------------+---------------+---------------+
 // | Bits  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |               |   Variable    |                               |
 // +-------+---+---+---+---+---+---+---+---+---------------+---------------+-------------------------------+
-// |       | TYPE  |          RSV          | Packet Length |    Payload    |          FEC(Optional)        |
+// |       | TYPE  |  RSV  |     FRAG      | Packet Length |    Payload    |          FEC(Optional)        |
 // +-------+-------+-----------------------+---------------+---------------+-------------------------------+
 // 1. Frame Type
 //	00 - Set Mac
@@ -81,7 +81,7 @@ void EP1_IN_Callback(void)
 //	10 - Reserved
 //	11 - Reserved
 // 2. Packet Length
-//	Total length of Payload in Unsigned Integer 8.
+//	Total length of all Payloads in a sequence in Unsigned Integer 8.
 // 3. FEC(OPTIONAL)
 //	CRC16 of the frame.
 	
