@@ -144,7 +144,7 @@ int main(void)
 	
 	SystemInit();
 	Set_System();
-	#if defined(TX) || defined(RX4) || defined(RX5) || defined(RX6)
+	#if defined(RX4) || defined(RX5) || defined(RX6)
 	Set_USBClock();
 	USB_Interrupts_Config();
 	USB_Init();
