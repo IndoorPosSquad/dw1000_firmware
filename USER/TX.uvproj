@@ -168,7 +168,7 @@
             <RunIndependent>0</RunIndependent>
             <UpdateFlashBeforeDebugging>1</UpdateFlashBeforeDebugging>
             <Capability>1</Capability>
-            <DriverSelection>4098</DriverSelection>
+            <DriverSelection>4099</DriverSelection>
           </Flash1>
           <bUseTDR>0</bUseTDR>
           <Flash2>Segger\JL2CM3.dll</Flash2>
@@ -360,7 +360,7 @@
             <useXO>0</useXO>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>USE_STDPERIPH_DRIVER,STM32F10X_MD,TX</Define>
+              <Define>USE_STDPERIPH_DRIVER,STM32F10X_MD,RX,RX3</Define>
               <Undefine></Undefine>
               <IncludePath>..\CMSIS;..\USER;..\FWlib\inc;..\FWlib\src</IncludePath>
             </VariousControls>
