@@ -65,6 +65,26 @@ void EP1_IN_Callback(void)
 	SetEPTxStatus(ENDP1, EP_TX_VALID);
 }
 
+// Host to Controller Comm
+// +-------+---------------+---------------+---------------+---------------+---------------+
+// | Bytes |       0       |       1       |   Variable    |      N-1      |       N       |
+// +-------+---+---+---+---+---+---+---+---+---------------+---------------+---------------+
+// | Bits  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |   Variable    |                               |
+// +-------+---+---+---+---+---+---+---+---+---------------+-------------------------------+
+// |       | TYPE  |  RSV  | Packet Length |    Payload    |          FEC(Optional)        |
+// +-------+-------+-------+---------------+---------------+-------------------------------+
+// 1. Frame Type
+//	00 - Set Mac
+//		The payload carries the mac to be set.
+//	01 - Message
+//		The payload carries the raw message to sent, see raw_write().
+//	10 - Reserved
+//	11 - Reserved
+// 2. Packet Length
+//	Total length of Payload in Unsigned Integer 8.
+// 3. FEC(OPTIONAL)
+//	CRC16 of the frame.
+	
 void EP3_OUT_Callback(void)
 {
 	USB_SIL_Read(EP3_OUT, out_buf);
