@@ -8,21 +8,27 @@
 #define GOT_LS_ACK 3
 #define GOT_LS_DATA 4
 
+#define u8 unsigned char
+#define u16 unsigned short
+#define u32 unsigned int
+
 #define _WAVE_SPEED 299792458
 
-#define	DEBUG(msg) \
-	do { if (DEBUG_LVL > 0) { printf msg; } } while (0)
+#define DEBUG_LVL 2
+#define	DEBUG0(msg) \
+        do { if (DEBUG_LVL >= 0) { printf("%c", 0x02); printf msg; } } while (0)
+#define	DEBUG1(msg) \
+        do { if (DEBUG_LVL >= 1) { printf("%c", 0x02); printf msg; } } while (0)
 #define	DEBUG2(msg) \
-	do { if (DEBUG_LVL > 1) { printf msg; } } while (0)
+        do { if (DEBUG_LVL >= 2) { printf("%c", 0x02); printf msg; } } while (0)
 #define	DEBUG3(msg) \
-	do { if (DEBUG_LVL > 2) { printf msg; } } while (0)
-#define	DEBUG4(msg) \
-	do { if (DEBUG_LVL > 3) { printf msg; } } while (0)
+        do { if (DEBUG_LVL >= 3) { printf("%c", 0x02); printf msg; } } while (0)
 
 void Location_polling(void);
 void distance_measurement(int n);
 void distance_forward(void);
-void handle_distance_forward(u8* payload);
+void location_info_upload(void);
+void handle_distance_forward(u8 * payload);
 void quality_measurement(void);
 
 void DW1000_init(void);
@@ -40,3 +46,7 @@ void sent_and_wait(void);
 void Fifoput(u8* data, int len);
 void Push(u8* data);
 void Pop(u8* data);
+
+void Read_VotTmp(u8 * vot, u8 * tmp);
+void Init_VotTmp(u8 * voltage, u8 * temperature);
+void Read_Tmp(u8 * temperature);
