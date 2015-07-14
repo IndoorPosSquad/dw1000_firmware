@@ -480,11 +480,6 @@
               <FileType>1</FileType>
               <FilePath>.\MPU6050.c</FilePath>
             </File>
-            <File>
-              <FileName>GPIOLIKE51.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>C:\Users\Simpleon\Documents\百度云同步盘\Datasheets&amp;Miscs\VCC-GND\YD-STM32F103C8最小系统资料20141020\STM32F103C8T6核心板程序资料\STM32F103C8T6核心板测试程序(PC13闪烁)\USER\GPIOLIKE51.h</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
