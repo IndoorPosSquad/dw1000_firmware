@@ -73,62 +73,6 @@ int fputc(int ch, FILE *f)
         while( USART_GetFlagStatus(USART1,USART_FLAG_TC)!= SET);
         return (ch);
 }
-/*
-        命令		命令字			参数1															参数2
-设置定位周期	0x01		定位周期（单位ms；两字节，低位在前，默认3000ms）
-设置自动重发	0x02	自动重发等待时间（单位us；两字节，低位在前；默认1000us)				重发次数（默认1）
-设置时间偏移    0x03    时间差的偏移（从硬件获得数据中减去；4字节，低位在前；默认0）
-设置光速偏移    0x04    光速的百分比偏移（单位：1%；从真空光速中以百分比形式减去；默认0）
-读取DW1000寄存器 0x05     地址（一字节） 偏移地址（两字节，低位在前） 读取字节长度（两字节，低位在前,最多128）
-
-*/
-// Host to Controller Comm
-// +-------+---------------+---------------+---------------+---------------+---------------+---------------+
-// | Bytes |               0               |       1       |   Variable    |      N-1      |       N       |
-// +-------+---+---+---+---+---+---+---+---+---------------+---------------+---------------+---------------+
-// | Bits  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |               |   Variable    |                               |
-// +-------+---+---+---+---+---+---+---+---+---------------+---------------+-------------------------------+
-// |       | TYPE  |  CMD  |     FRAG      | Packet Length |    Payload    |          FEC(Optional)        |
-// +-------+-------+-----------------------+---------------+---------------+-------------------------------+
-// 1. Frame Type
-//	00 - RES
-//	01 - Message
-//		The payload carries the raw message to sent, see raw_write().
-//	10 - Distance / Location poll
-//	11 - Command
-//		CMD - 00
-//			Reboot
-//		CMD - 01
-//			Write Reg
-//		CMD - 10
-//			Read Reg
-//		CMD - 11
-//			Set log level?
-// 2. Packet Length
-//	Total length of all Payloads in a sequence in Unsigned Integer 8.
-// 3. FEC(OPTIONAL)
-//	CRC16 of the frame.
-
-// Controller to Host Comm
-// 1. Frame Type
-//	00 - Set Mac
-//		The payload carries the mac to be set.
-//	01 - Message
-//		The payload carries the raw message to sent, see raw_write().
-//	10 - Distance / Location poll
-//	11 - Command
-//		CMD - 00
-//			Reboot
-//		CMD - 01
-//			Write Reg
-//		CMD - 10
-//			Read Reg
-//		CMD - 11
-//			Set log level?
-// 2. Packet Length
-//	Total length of all Payloads in a sequence in Unsigned Integer 8.
-// 3. FEC(OPTIONAL)
-//	CRC16 of the frame.
 
 void usart_handle(void) {
         u16 i;
@@ -193,13 +137,22 @@ void upload_location_info(void) {
         //READ_MPU6050(&mpu6050_buf);
         //printf("MPU:   %.2lf %.2lf %.2lf\r\n", mpu6050_buf.Accel_X, mpu6050_buf.Accel_Y, mpu6050_buf.Accel_Z);
 
-        if (count % 100 == 0) {
-                Read_Tmp(&temperature);
-                printf("Temp:  %d\r\n", temperature);
-        }
-        count += 1;
+        //if (count % 100 == 0) {
+        //        Read_Tmp(&temperature);
+        //        printf("Temp:  %d\r\n", temperature);
+        //}
+        //count += 1;
         printf("=================================================\r\n");
 }
+/*
+        命令		命令字			参数1															参数2
+设置定位周期	0x01		定位周期（单位ms；两字节，低位在前，默认3000ms）
+设置自动重发	0x02	自动重发等待时间（单位us；两字节，低位在前；默认1000us)				重发次数（默认1）
+设置时间偏移    0x03    时间差的偏移（从硬件获得数据中减去；4字节，低位在前；默认0）
+设置光速偏移    0x04    光速的百分比偏移（单位：1%；从真空光速中以百分比形式减去；默认0）
+读取DW1000寄存器 0x05     地址（一字节） 偏移地址（两字节，低位在前） 读取字节长度（两字节，低位在前,最多128）
+
+*/
 
                 /*
                 tmp=0;
