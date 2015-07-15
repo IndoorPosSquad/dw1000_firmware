@@ -504,7 +504,44 @@ void read_status(u32 *status)
         Read_DW1000(0x0F,0x00,(u8 *)(status),4);
 }
 
-void data_response(u8 *src, u8 *dst)
+void send_LS_ACK(u8 *src, u8 *dst)
+{
+        u16 tmp;
+        // Tx_Buff[0]=0b10000010; // only DST PANID
+        // Tx_Buff[1]=0b00110111;
+        Tx_Buff[0] = 0x82;
+        Tx_Buff[1] = 0x37;
+        // 0100 0001 1000 1000
+        Tx_Buff[2] = Sequence_Number++;
+        //SN end
+        Tx_Buff[4] = 0xFF;
+        Tx_Buff[3] = 0xFF;
+        //DST PAN end
+        Tx_Buff[6]=dst[0];
+        Tx_Buff[7]=dst[1];
+        Tx_Buff[8]=dst[2];
+        Tx_Buff[9]=dst[3];
+        Tx_Buff[10]=dst[4];
+        Tx_Buff[11]=dst[5];
+        Tx_Buff[12]=dst[6];
+        Tx_Buff[13]=dst[7];
+        //DST MAC end
+        Tx_Buff[14]=src[0];
+        Tx_Buff[15]=src[1];
+        Tx_Buff[16]=src[2];
+        Tx_Buff[17]=src[3];
+        Tx_Buff[18]=src[4];
+        Tx_Buff[19]=src[5];
+        Tx_Buff[20]=src[6];
+        Tx_Buff[21]=src[7];
+        //SRC MAC end
+        Tx_Buff[22] = 0x01; // 0x01 = LS ACK
+        Tx_Buff[23] = 0x01;
+        tmp = 23;
+        raw_write(Tx_Buff, &tmp);
+}
+
+void send_LS_DATA(u8 *src, u8 *dst)
 {
         u16 tmp;
         to_IDLE();
@@ -517,16 +554,13 @@ void data_response(u8 *src, u8 *dst)
         DEBUG2(("Rx_stp_H %2x\r\n",Rx_stp_H));
         DEBUG2(("Tx_stp_L %8x\r\n",Tx_stp_L));
         DEBUG2(("Tx_stp_H %2x\r\n",Tx_stp_H));
-        if(Tx_stp_H==Rx_stp_H)
-        {
+        if (Tx_stp_H==Rx_stp_H) {
                 u32_diff=(Tx_stp_L-Rx_stp_L);
         }
-        else if(Rx_stp_H<Tx_stp_H)
-        {
-                        u32_diff=((Tx_stp_H-Rx_stp_H)*0xFFFFFFFF+Tx_stp_L-Rx_stp_L);
+        else if (Rx_stp_H<Tx_stp_H) {
+                u32_diff=((Tx_stp_H-Rx_stp_H)*0xFFFFFFFF+Tx_stp_L-Rx_stp_L);
         }
-        else
-        {
+        else {
                 u32_diff=((0xFF-Rx_stp_H+Tx_stp_H+1)*0xFFFFFFFF+Tx_stp_L-Rx_stp_L);
         }
 
@@ -598,43 +632,6 @@ void parse_rx(u8 *rx_buff, u16 size, u8 **src, u8 **dst, u8 **payload, u16 *pl_s
         *pl_size = (u16)(size - n);
 }
 
-void send_LS_ACK(u8 *src, u8 *dst)
-{
-        u16 tmp;
-        // Tx_Buff[0]=0b10000010; // only DST PANID
-        // Tx_Buff[1]=0b00110111;
-        Tx_Buff[0] = 0x82;
-        Tx_Buff[1] = 0x37;
-        // 0100 0001 1000 1000
-        Tx_Buff[2] = Sequence_Number++;
-        //SN end
-        Tx_Buff[4] = 0xFF;
-        Tx_Buff[3] = 0xFF;
-        //DST PAN end
-        Tx_Buff[6]=dst[0];
-        Tx_Buff[7]=dst[1];
-        Tx_Buff[8]=dst[2];
-        Tx_Buff[9]=dst[3];
-        Tx_Buff[10]=dst[4];
-        Tx_Buff[11]=dst[5];
-        Tx_Buff[12]=dst[6];
-        Tx_Buff[13]=dst[7];
-        //DST MAC end
-        Tx_Buff[14]=src[0];
-        Tx_Buff[15]=src[1];
-        Tx_Buff[16]=src[2];
-        Tx_Buff[17]=src[3];
-        Tx_Buff[18]=src[4];
-        Tx_Buff[19]=src[5];
-        Tx_Buff[20]=src[6];
-        Tx_Buff[21]=src[7];
-        //SRC MAC end
-        Tx_Buff[22] = 0x01; // 0x01 = LS ACK
-        Tx_Buff[23] = 0x01;
-        tmp = 23;
-        raw_write(Tx_Buff, &tmp);
-}
-
 void Read_VotTmp(u8 * voltage, u8 * temperature) {
         u8 tmp;
         tmp = 0x80;
@@ -661,13 +658,17 @@ void Read_Tmp(u8 * temperature) {
         Write_DW1000(0x28, 0x12, &tmp, 1);
         tmp = 0x0F;
         Write_DW1000(0x28, 0x12, &tmp, 1);
-        tmp = 0x01;
-        Write_DW1000(0x2A, 0x00, &tmp, 1);
-        Delay();
+
+        // SAR
         tmp = 0x00;
+        Write_DW1000(0x2A, 0x00, &tmp, 1);
+        tmp = 0x01;
         Write_DW1000(0x2A, 0x00, &tmp, 1);
 
         Read_DW1000(0x2A, 0x04, temperature, 1);
+
+        tmp = 0x00;
+        Write_DW1000(0x2A, 0x00, &tmp, 1);
 }
 
 void Init_VotTmp(u8 * voltage, u8 * temperature) {

@@ -272,7 +272,7 @@ void EXTI1_IRQHandler(void)
                         {
                                 DEBUG2(("LS ACK\t\tSuccessfully Sent\r\n"));
                                 status_flag = CONFIRM_SENT_LS_ACK;
-                                data_response(mac, src);
+                                send_LS_DATA(mac, src);
                         }
                         else if(status_flag == CONFIRM_SENT_LS_ACK)
                         {
