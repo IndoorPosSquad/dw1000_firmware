@@ -20,6 +20,8 @@
 #include "GPIOLIKE51.h"
 #include "delay.h"
 
+extern int debug_lvl;
+
 /*
 TIM2时钟初始化:0.5s溢出（定位周期）
 */

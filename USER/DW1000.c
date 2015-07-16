@@ -35,6 +35,7 @@ u8 Rx_stp_HT[3];
 u8 Tx_Buff[128];
 u8 Rx_Buff[128];
 u32 LS_DATA[3];
+u32 LS_DELAY[3];
 u32 u32_diff;
 
 extern u8 distance_flag;
@@ -57,7 +58,7 @@ u8 buf[64];
 volatile int Length = 0;
 volatile int Head = 0, Tail = 0;
 
-
+extern int debug_lvl;
 
 void Push(u8* data){
         if (Length == fifolen)
@@ -81,8 +82,7 @@ void Pop(u8* data){
                 Tail = 0;
 }
 
-void Fifoput(u8* data, int len)
-{
+void Fifoput(u8* data, int len) {
         if (len < 63) {
                 buf[0] = 0x00;
                 buf[1] = (u8)(len);
@@ -134,8 +134,7 @@ void Fifoput(u8* data, int len)
 DW1000初始化
 */
 
-void DW1000_init(void)
-{
+void DW1000_init(void) {
         u32 tmp;
         int i;
         for (i=0;i<10;i++)
@@ -280,27 +279,36 @@ void Location_polling(void)
         distance_flag = SENT_LS_REQ;
 }
 /*
-计算距离信息(单位：cm)并串口输出
+计算距离信息(单位：cm)
 */
+
 void distance_measurement(int n)
 {
         double double_diff;
+        double total_delay;
+        total_delay = 1.0 * (2 * ANTENNA_DELAY + 2 * LS_DELAY[n]);
+
+        DEBUG1(("ANTENNA_DELAY_THIS: %d\n", ANTENNA_DELAY));
+        DEBUG1(("ANTENNA_DELAY_THAT[%d]: %d\n", n, LS_DELAY[n]));
+
         if(Tx_stp_H == Rx_stp_HT[n])
         {
-                double_diff = 1.0* (Rx_stp_LT[n] - Tx_stp_L);
+                double_diff = 1.0 * (Rx_stp_LT[n] - Tx_stp_L);
         }
         else if(Tx_stp_H < Rx_stp_HT[n])
         {
-                double_diff = 1.0*((Rx_stp_HT[n] - Tx_stp_H)*0xFFFFFFFF + Rx_stp_LT[n] - Tx_stp_L);
+                double_diff = 1.0 * ((Rx_stp_HT[n] - Tx_stp_H)*0xFFFFFFFF + Rx_stp_LT[n] - Tx_stp_L);
         }
         else
         {
-                double_diff = 1.0*((0xFF - Tx_stp_H + Rx_stp_HT[n] +1)*0xFFFFFFFF + Rx_stp_LT[n] - Tx_stp_L);
+                double_diff = 1.0 * ((0xFF - Tx_stp_H + Rx_stp_HT[n] + 1) * 0xFFFFFFFF + Rx_stp_LT[n] - Tx_stp_L);
         }
 
-        double_diff = double_diff - 1.0*LS_DATA[n];
+        double_diff = double_diff - LS_DATA[n] - total_delay;
+
         // distance[n] = 1.0*_WAVE_SPEED * (1.0*Tx_diff - 1.0*LS_DATA[n]) / (128.0 * 499.2 * 1000000.0);
-        distance[n] = 15.65*double_diff/1000000000000/2*_WAVE_SPEED*(1.0-0.01*speed_offset);
+        distance[n] = 15.65 / 1000000000000 * double_diff / 2 * _WAVE_SPEED;
+        // 4.6917519677e-3 * double_diff / 2
 
         #ifdef RX4
         data[0] = (u32)(100*distance[0]);
@@ -602,7 +610,15 @@ void send_LS_DATA(u8 *src, u8 *dst)
         u32_diff >>= 8;
         Tx_Buff[26] = (u8)u32_diff;
         Tx_Buff[27] = 0x01;
-        tmp = 27;
+
+        // antenna delay
+        Tx_Buff[28] = (u8) (ANTENNA_DELAY >> 0);
+        Tx_Buff[29] = (u8) (ANTENNA_DELAY >> 8);
+        Tx_Buff[30] = (u8) (ANTENNA_DELAY >> 16);
+        Tx_Buff[31] = (u8) (ANTENNA_DELAY >> 24);
+        Tx_Buff[32] = 0x01;
+
+        tmp = 32;
         raw_write(Tx_Buff, &tmp);
 }
 

@@ -13,10 +13,16 @@ extern u8 time_offset;
 extern u8 speed_offset;
 extern double distance[3];
 
+int debug_lvl = 2;
+
+// macro for parsing command from host
 #define TYPE(buf) (((buf[0]) >> 6) & 0x03)
 #define CMD(buf)  (((buf[0]) >> 4) & 0x03)
 #define FRAG()
 #define PACKET_LENGTH(buf) (buf[1])
+
+// get the first byte of payload
+#define DATA1(buf) (buf[2])
 
 /*
  USART1初始化,波特率115200，单次8比特，无奇偶校验，1停止位
@@ -115,7 +121,8 @@ void usart_handle(void) {
                                 DEBUG0(("read reg cmd\n"));
                                 break;
                         case 0x03: //0xF0
-                                DEBUG0(("set log cmd\n"));
+                                debug_lvl = DATA1(usart_buffer);
+                                DEBUG0(("set log level to %d\n", debug_lvl));
                                 break;
                         }
                         break;
@@ -128,8 +135,8 @@ void usart_handle(void) {
 
 void upload_location_info(void) {
         static int count = 0;
-        MPU6050 mpu6050_buf;
-        u8 temperature;
+        //MPU6050 mpu6050_buf;
+        //u8 temperature;
 
         printf("=================================================\r\n");
         printf("Dists: %.2lf %.2lf %.2lf\r\n", distance[0], distance[1], distance[2]);
