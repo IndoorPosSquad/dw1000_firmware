@@ -14,15 +14,23 @@
 
 #define _WAVE_SPEED 299792458
 
-#define DEBUG_LVL 2
-#define	DEBUG0(msg) \
-        do { if (DEBUG_LVL >= 0) { printf("%c", 0x02); printf msg; } } while (0)
-#define	DEBUG1(msg) \
-        do { if (DEBUG_LVL >= 1) { printf("%c", 0x02); printf msg; } } while (0)
-#define	DEBUG2(msg) \
-        do { if (DEBUG_LVL >= 2) { printf("%c", 0x02); printf msg; } } while (0)
-#define	DEBUG3(msg) \
-        do { if (DEBUG_LVL >= 3) { printf("%c", 0x02); printf msg; } } while (0)
+#ifdef RX1
+//#define ANTENNA_DELAY 0x000000
+#define ANTENNA_DELAY 0x000041C6
+#endif
+
+#ifdef RX2
+#define ANTENNA_DELAY 0x000000
+#endif
+
+#ifdef RX3
+#define ANTENNA_DELAY 0x000000
+#endif
+
+#ifdef TX
+//#define ANTENNA_DELAY 0x0000838C
+#define ANTENNA_DELAY 0x000041C6
+#endif
 
 void Location_polling(void);
 void distance_measurement(int n);

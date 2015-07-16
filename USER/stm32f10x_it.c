@@ -58,6 +58,7 @@ extern u8 Tx_stp_HT[3];
 extern u32 Rx_stp_LT[3];
 extern u8 Rx_stp_HT[3];
 extern u32 LS_DATA[3];
+extern u32 LS_DELAY[3];
 
 extern u16 std_noise;
 extern	u16 fp_ampl1;
@@ -71,6 +72,7 @@ extern const u8 broadcast_addr[8];
 
 extern u32 data[16];
 
+extern int debug_lvl;
 // extern void Fifoput(u8* data, int len);
 /*
 0:已完成处理
@@ -268,14 +270,11 @@ void EXTI1_IRQHandler(void)
 
                         // Inform Host
 
-                        if(status_flag == SENT_LS_ACK)
-                        {
+                        if (status_flag == SENT_LS_ACK) {
                                 DEBUG2(("LS ACK\t\tSuccessfully Sent\r\n"));
                                 status_flag = CONFIRM_SENT_LS_ACK;
                                 send_LS_DATA(mac, src);
-                        }
-                        else if(status_flag == CONFIRM_SENT_LS_ACK)
-                        {
+                        } else if (status_flag == CONFIRM_SENT_LS_ACK) {
                                 DEBUG2(("LS DATA\t\tSuccessfully Sent\r\n"));
                                 status_flag = SENT_LS_DATA;
                                 status_flag = IDLE;
@@ -283,8 +282,7 @@ void EXTI1_IRQHandler(void)
                                 RX_mode_enable();
                         }
                         // currently to avoid err, cannot work as an anchor and a client at the same time
-                        else if(distance_flag == SENT_LS_REQ)
-                        {
+                        else if (distance_flag == SENT_LS_REQ) {
                                 distance_flag = CONFIRM_SENT_LS_REQ;
                                 // Read Time Stamp
                                 DEBUG2(("LS Req\t\tSuccessfully Sent\r\n"));
@@ -342,46 +340,42 @@ void EXTI1_IRQHandler(void)
                         }
                         else
                         {
-                        src = &(Rx_Buff[22-8]);
-                        dst = &(Rx_Buff[22-16]);
-                        payload = &(Rx_Buff[22]);
-                        // pl_size = (u16)(size - 22);
+                                src = &(Rx_Buff[22-8]);
+                                dst = &(Rx_Buff[22-16]);
+                                payload = &(Rx_Buff[22]);
+                                // pl_size = (u16)(size - 22);
 
-// printf("\r\nGot a Frame:\r\n\
-// Frame type: %X\r\n\
-// Frame size: %d\r\n\
-// Frame Header: %02X %02X\r\n\
-// src: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X\r\n\
-// dst: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X\r\n\
-// pl_size: %d\r\n\
-// first byte of pl: %02X\r\n",
-// Rx_Buff[0]>>5, size, Rx_Buff[0], Rx_Buff[1],\
-// src[0], src[1], src[2], src[3], src[4], src[5], src[6], src[7],\
-// dst[0], dst[1], dst[2], dst[3], dst[4], dst[5], dst[6], dst[7],\
-// pl_size, payload[0]);
+                                // printf("\r\nGot a Frame:\r\n\
+                                // Frame type: %X\r\n\
+                                // Frame size: %d\r\n\
+                                // Frame Header: %02X %02X\r\n\
+                                // src: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X\r\n\
+                                // dst: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X\r\n\
+                                // pl_size: %d\r\n\
+                                // first byte of pl: %02X\r\n",
+                                // Rx_Buff[0]>>5, size, Rx_Buff[0], Rx_Buff[1],\
+                                // src[0], src[1], src[2], src[3], src[4], src[5], src[6], src[7],\
+                                // dst[0], dst[1], dst[2], dst[3], dst[4], dst[5], dst[6], dst[7],\
+                                // pl_size, payload[0]);
 
-                        DEBUG2(("Header: %02X\r\n", (u8)(Rx_Buff[0]&0xE0)));
-                        for (i=0;i<8;i++)
-                        {
-                                if( (u8)(dst[i]) != (u8)(broadcast_addr[i]) )
-                                {
-                                        for (i=0;i<8;i++)
-                                        {
-                                                if( (u8)(dst[i]) != (u8)(mac[i]) )
-                                                {
-                                                        for_me = 0;
-                                                        break;
+                                DEBUG2(("Header: %02X\r\n", (u8)(Rx_Buff[0]&0xE0)));
+                                for (i=0;i<8;i++) {
+                                        if ((u8)(dst[i]) != (u8)(broadcast_addr[i])) {
+                                                for (i=0;i<8;i++) {
+                                                        if ((u8)(dst[i]) != (u8)(mac[i])) {
+                                                                for_me = 0;
+                                                                break;
+                                                        }
                                                 }
+                                                break;
                                         }
-                                        break;
                                 }
-                        }
                         if (for_me == 1)
-                                if ((u8)(Rx_Buff[0]&0xE0) == 0x80) // LS Frame
-                                {
+                                // LS Frame
+                                if ((u8)(Rx_Buff[0]&0xE0) == 0x80) {
                                         DEBUG2(("A LS Frame.\r\n"));
-                                        if ((payload[0] == 0x00)&&(status_flag == IDLE)) // GOT LS Req
-                                        {
+                                        // GOT LS Req
+                                        if ((payload[0] == 0x00)&&(status_flag == IDLE)) {
                                                 send_LS_ACK(mac, src);
                                                 status_flag = SENT_LS_ACK;
                                                 DEBUG2(("\r\n===========Got LS Req===========\r\n"));
@@ -428,6 +422,7 @@ void EXTI1_IRQHandler(void)
                                                 DEBUG2(("\r\n===========Got LS DATA===========\r\n"));
                                                 distance_flag = GOT_LS_DATA;
                                                 LS_DATA[(int)(src[7]&0x0F) - 1] = *(u32 *)(payload + 1);
+                                                LS_DELAY[(int)(src[7]&0x0F) - 1] = *(u32 *)(payload + 6);
                                                 DEBUG2(("data: %08X\r\n",LS_DATA[(int)(src[7]&0x0F) - 1]));
                                                 distance_measurement((int)(src[7]&0x0F) - 1);
                                                 // quality_measurement();

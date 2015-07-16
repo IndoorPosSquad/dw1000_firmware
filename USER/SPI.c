@@ -3,6 +3,9 @@
 #include "USART.h"
 #define SPI1_CS_High GPIO_SetBits(GPIOA, GPIO_Pin_3)
 #define SPI1_CS_Low GPIO_ResetBits(GPIOA, GPIO_Pin_3)
+
+extern int debug_lvl;
+
 /*配置SPI1为双向全双工，主机模式，8bit，时钟4分频*/
 void SPI1_init(void)
 {
