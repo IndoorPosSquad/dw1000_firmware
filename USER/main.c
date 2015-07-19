@@ -17,8 +17,9 @@
 #include "usb_lib.h"
 #include "usb_desc.h"
 #include "usb_pwr.h"
-#include "GPIOLIKE51.h"
 #include "delay.h"
+
+#include "utils.h"
 
 extern int debug_lvl;
 

@@ -14,24 +14,6 @@
 
 #define _WAVE_SPEED 299792458
 
-#ifdef RX1
-//#define ANTENNA_DELAY 0x000000
-#define ANTENNA_DELAY 0x000041C6
-#endif
-
-#ifdef RX2
-#define ANTENNA_DELAY 0x000000
-#endif
-
-#ifdef RX3
-#define ANTENNA_DELAY 0x000000
-#endif
-
-#ifdef TX
-//#define ANTENNA_DELAY 0x0000838C
-#define ANTENNA_DELAY 0x000041C6
-#endif
-
 void Location_polling(void);
 void distance_measurement(int n);
 void distance_forward(void);

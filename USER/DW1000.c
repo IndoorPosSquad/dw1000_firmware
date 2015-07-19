@@ -8,6 +8,9 @@
 #include "math.h"
 #include "delay.h"
 #include "string.h"
+
+#include "CONFIG.h"
+
 #define fifolen 256
 // When I started writing those codes, only God and I know what are them supposed to do.
 // But now, only God knows.
