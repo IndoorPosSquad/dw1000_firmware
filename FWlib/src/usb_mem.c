@@ -16,8 +16,8 @@
   *
   *        http://www.st.com/software_license_agreement_liberty_v2
   *
-  * Unless required by applicable law or agreed to in writing, software 
-  * distributed under the License is distributed on an "AS IS" BASIS, 
+  * Unless required by applicable law or agreed to in writing, software
+  * distributed under the License is distributed on an "AS IS" BASIS,
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   * See the License for the specific language governing permissions and
   * limitations under the License.
@@ -45,21 +45,19 @@
 * Output         : None.
 * Return         : None	.
 *******************************************************************************/
-void UserToPMABufferCopy(uint8_t *pbUsrBuf, uint16_t wPMABufAddr, uint16_t wNBytes)
-{
-  uint32_t n = (wNBytes + 1) >> 1;   /* n = (wNBytes + 1) / 2 */
-  uint32_t i, temp1, temp2;
-  uint16_t *pdwVal;
-  pdwVal = (uint16_t *)(wPMABufAddr * 2 + PMAAddr);
-  for (i = n; i != 0; i--)
-  {
-    temp1 = (uint16_t) * pbUsrBuf;
-    pbUsrBuf++;
-    temp2 = temp1 | (uint16_t) * pbUsrBuf << 8;
-    *pdwVal++ = temp2;
-    pdwVal++;
-    pbUsrBuf++;
-  }
+void UserToPMABufferCopy(uint8_t *pbUsrBuf, uint16_t wPMABufAddr, uint16_t wNBytes) {
+	uint32_t n = (wNBytes + 1) >> 1;   /* n = (wNBytes + 1) / 2 */
+	uint32_t i, temp1, temp2;
+	uint16_t *pdwVal;
+	pdwVal = (uint16_t *)(wPMABufAddr * 2 + PMAAddr);
+	for(i = n; i != 0; i--) {
+		temp1 = (uint16_t) * pbUsrBuf;
+		pbUsrBuf++;
+		temp2 = temp1 | (uint16_t) * pbUsrBuf << 8;
+		*pdwVal++ = temp2;
+		pdwVal++;
+		pbUsrBuf++;
+	}
 }
 
 /*******************************************************************************
@@ -71,17 +69,15 @@ void UserToPMABufferCopy(uint8_t *pbUsrBuf, uint16_t wPMABufAddr, uint16_t wNByt
 * Output         : None.
 * Return         : None.
 *******************************************************************************/
-void PMAToUserBufferCopy(uint8_t *pbUsrBuf, uint16_t wPMABufAddr, uint16_t wNBytes)
-{
-  uint32_t n = (wNBytes + 1) >> 1;/* /2*/
-  uint32_t i;
-  uint32_t *pdwVal;
-  pdwVal = (uint32_t *)(wPMABufAddr * 2 + PMAAddr);
-  for (i = n; i != 0; i--)
-  {
-    *(uint16_t*)pbUsrBuf++ = *pdwVal++;
-    pbUsrBuf++;
-  }
+void PMAToUserBufferCopy(uint8_t *pbUsrBuf, uint16_t wPMABufAddr, uint16_t wNBytes) {
+	uint32_t n = (wNBytes + 1) >> 1;/* /2*/
+	uint32_t i;
+	uint32_t *pdwVal;
+	pdwVal = (uint32_t *)(wPMABufAddr * 2 + PMAAddr);
+	for(i = n; i != 0; i--) {
+		*(uint16_t*)pbUsrBuf++ = *pdwVal++;
+		pbUsrBuf++;
+	}
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

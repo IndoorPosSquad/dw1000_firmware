@@ -11,7 +11,9 @@ float h1;
 float invrotation[2][2];
 float pranges[2];
 
-float sgn(float x) { return x >= 0 ? 1.0 : -1.0; }
+float sgn(float x) {
+	return x >= 0 ? 1.0 : -1.0;
+}
 
 void solve_2d(float reciever[2][2], float pseudolites[2][2], float pranges1, float pranges2) {
 	printf("\nPseudolites\n%f %f %f %f\n", pseudolites[0][0], pseudolites[0][1], pseudolites[1][0], pseudolites[1][1]);

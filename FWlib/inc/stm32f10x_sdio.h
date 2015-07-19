@@ -4,7 +4,7 @@
   * @author  MCD Application Team
   * @version  V3.0.0
   * @date  04/06/2009
-  * @brief  This file contains all the functions prototypes for the SDIO 
+  * @brief  This file contains all the functions prototypes for the SDIO
   *         firmware library.
   ******************************************************************************
   * @copy
@@ -17,7 +17,7 @@
   * CODING INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
   *
   * <h2><center>&copy; COPYRIGHT 2009 STMicroelectronics</center></h2>
-  */ 
+  */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __STM32F10x_SDIO_H
@@ -38,44 +38,41 @@
   * @{
   */
 
-typedef struct
-{
-  uint8_t SDIO_ClockDiv;
-  uint32_t SDIO_ClockEdge;
-  uint32_t SDIO_ClockBypass;
-  uint32_t SDIO_ClockPowerSave;
-  uint32_t SDIO_BusWide;
-  uint32_t SDIO_HardwareFlowControl;
+typedef struct {
+	uint8_t SDIO_ClockDiv;
+	uint32_t SDIO_ClockEdge;
+	uint32_t SDIO_ClockBypass;
+	uint32_t SDIO_ClockPowerSave;
+	uint32_t SDIO_BusWide;
+	uint32_t SDIO_HardwareFlowControl;
 } SDIO_InitTypeDef;
 
-typedef struct
-{
-  uint32_t SDIO_Argument;
-  uint32_t SDIO_CmdIndex;
-  uint32_t SDIO_Response;
-  uint32_t SDIO_Wait;
-  uint32_t SDIO_CPSM;
+typedef struct {
+	uint32_t SDIO_Argument;
+	uint32_t SDIO_CmdIndex;
+	uint32_t SDIO_Response;
+	uint32_t SDIO_Wait;
+	uint32_t SDIO_CPSM;
 } SDIO_CmdInitTypeDef;
 
-typedef struct
-{
-  uint32_t SDIO_DataTimeOut;
-  uint32_t SDIO_DataLength;
-  uint32_t SDIO_DataBlockSize;
-  uint32_t SDIO_TransferDir;
-  uint32_t SDIO_TransferMode;
-  uint32_t SDIO_DPSM;
+typedef struct {
+	uint32_t SDIO_DataTimeOut;
+	uint32_t SDIO_DataLength;
+	uint32_t SDIO_DataBlockSize;
+	uint32_t SDIO_TransferDir;
+	uint32_t SDIO_TransferMode;
+	uint32_t SDIO_DPSM;
 } SDIO_DataInitTypeDef;
 
 /**
   * @}
-  */ 
+  */
 
 /** @defgroup SDIO_Exported_Constants
   * @{
   */
 
-/** @defgroup SDIO_Clock_Edge 
+/** @defgroup SDIO_Clock_Edge
   * @{
   */
 
@@ -87,31 +84,31 @@ typedef struct
   * @}
   */
 
-/** @defgroup SDIO_Clock_Bypass 
+/** @defgroup SDIO_Clock_Bypass
   * @{
   */
 
 #define SDIO_ClockBypass_Disable             ((uint32_t)0x00000000)
-#define SDIO_ClockBypass_Enable              ((uint32_t)0x00000400)    
+#define SDIO_ClockBypass_Enable              ((uint32_t)0x00000400)
 #define IS_SDIO_CLOCK_BYPASS(BYPASS) (((BYPASS) == SDIO_ClockBypass_Disable) || \
                                      ((BYPASS) == SDIO_ClockBypass_Enable))
 /**
   * @}
-  */ 
+  */
 
-/** @defgroup SDIO_Clock_Power_Save_ 
+/** @defgroup SDIO_Clock_Power_Save_
   * @{
   */
 
 #define SDIO_ClockPowerSave_Disable         ((uint32_t)0x00000000)
-#define SDIO_ClockPowerSave_Enable          ((uint32_t)0x00000200) 
+#define SDIO_ClockPowerSave_Enable          ((uint32_t)0x00000200)
 #define IS_SDIO_CLOCK_POWER_SAVE(SAVE) (((SAVE) == SDIO_ClockPowerSave_Disable) || \
                                         ((SAVE) == SDIO_ClockPowerSave_Enable))
 /**
   * @}
   */
 
-/** @defgroup SDIO_Bus_Wide 
+/** @defgroup SDIO_Bus_Wide
   * @{
   */
 
@@ -125,7 +122,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup SDIO_Hardware_Flow_Control_ 
+/** @defgroup SDIO_Hardware_Flow_Control_
   * @{
   */
 
@@ -137,19 +134,19 @@ typedef struct
   * @}
   */
 
-/** @defgroup SDIO_Power_State 
+/** @defgroup SDIO_Power_State
   * @{
   */
 
 #define SDIO_PowerState_OFF                 ((uint32_t)0x00000000)
 #define SDIO_PowerState_ON                  ((uint32_t)0x00000003)
-#define IS_SDIO_POWER_STATE(STATE) (((STATE) == SDIO_PowerState_OFF) || ((STATE) == SDIO_PowerState_ON)) 
+#define IS_SDIO_POWER_STATE(STATE) (((STATE) == SDIO_PowerState_OFF) || ((STATE) == SDIO_PowerState_ON))
 /**
   * @}
-  */ 
+  */
 
 
-/** @defgroup SDIO_Interrupt_soucres 
+/** @defgroup SDIO_Interrupt_soucres
   * @{
   */
 
@@ -180,9 +177,9 @@ typedef struct
 #define IS_SDIO_IT(IT) ((((IT) & (uint32_t)0xFF000000) == 0x00) && ((IT) != (uint32_t)0x00))
 /**
   * @}
-  */ 
+  */
 
-/** @defgroup SDIO_Command_Index_ 
+/** @defgroup SDIO_Command_Index_
   * @{
   */
 
@@ -191,7 +188,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup SDIO_Response_Type 
+/** @defgroup SDIO_Response_Type
   * @{
   */
 
@@ -205,7 +202,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup SDIO_Wait_Interrupt_State 
+/** @defgroup SDIO_Wait_Interrupt_State
   * @{
   */
 
@@ -218,7 +215,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup SDIO_CPSM_State 
+/** @defgroup SDIO_CPSM_State
   * @{
   */
 
@@ -227,9 +224,9 @@ typedef struct
 #define IS_SDIO_CPSM(CPSM) (((CPSM) == SDIO_CPSM_Enable) || ((CPSM) == SDIO_CPSM_Disable))
 /**
   * @}
-  */ 
+  */
 
-/** @defgroup SDIO_Response_Registers 
+/** @defgroup SDIO_Response_Registers
   * @{
   */
 
@@ -243,7 +240,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup SDIO_Data_Length 
+/** @defgroup SDIO_Data_Length
   * @{
   */
 
@@ -252,7 +249,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup SDIO_Data_Block_Size 
+/** @defgroup SDIO_Data_Block_Size
   * @{
   */
 
@@ -285,12 +282,12 @@ typedef struct
                                   ((SIZE) == SDIO_DataBlockSize_2048b) || \
                                   ((SIZE) == SDIO_DataBlockSize_4096b) || \
                                   ((SIZE) == SDIO_DataBlockSize_8192b) || \
-                                  ((SIZE) == SDIO_DataBlockSize_16384b)) 
+                                  ((SIZE) == SDIO_DataBlockSize_16384b))
 /**
   * @}
   */
 
-/** @defgroup SDIO_Transfer_Direction 
+/** @defgroup SDIO_Transfer_Direction
   * @{
   */
 
@@ -302,7 +299,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup SDIO_Transfer_Type 
+/** @defgroup SDIO_Transfer_Type
   * @{
   */
 
@@ -314,7 +311,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup SDIO_DPSM_State 
+/** @defgroup SDIO_DPSM_State
   * @{
   */
 
@@ -325,7 +322,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup SDIO_Flags 
+/** @defgroup SDIO_Flags
   * @{
   */
 
@@ -411,7 +408,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup SDIO_Read_Wait_Mode 
+/** @defgroup SDIO_Read_Wait_Mode
   * @{
   */
 

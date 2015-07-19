@@ -4,7 +4,7 @@
   * @author  MCD Application Team
   * @version  V3.0.0
   * @date  04/06/2009
-  * @brief  This file contains all the functions prototypes for the PWR firmware 
+  * @brief  This file contains all the functions prototypes for the PWR firmware
   *         library.
   ******************************************************************************
   * @copy
@@ -17,7 +17,7 @@
   * CODING INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
   *
   * <h2><center>&copy; COPYRIGHT 2009 STMicroelectronics</center></h2>
-  */ 
+  */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __STM32F10x_PWR_H
@@ -32,23 +32,23 @@
 
 /** @addtogroup PWR
   * @{
-  */ 
+  */
 
 /** @defgroup PWR_Exported_Types
   * @{
-  */ 
+  */
 
 /**
   * @}
-  */ 
+  */
 
 /** @defgroup PWR_Exported_Constants
   * @{
-  */ 
+  */
 
-/** @defgroup PVD_detection_level 
+/** @defgroup PVD_detection_level
   * @{
-  */ 
+  */
 
 #define PWR_PVDLevel_2V2          ((uint32_t)0x00000000)
 #define PWR_PVDLevel_2V3          ((uint32_t)0x00000020)
@@ -66,7 +66,7 @@
   * @}
   */
 
-/** @defgroup Regulator_state_is_STOP_mode 
+/** @defgroup Regulator_state_is_STOP_mode
   * @{
   */
 
@@ -78,19 +78,19 @@
   * @}
   */
 
-/** @defgroup STOP_mode_entry 
+/** @defgroup STOP_mode_entry
   * @{
   */
 
 #define PWR_STOPEntry_WFI         ((uint8_t)0x01)
 #define PWR_STOPEntry_WFE         ((uint8_t)0x02)
 #define IS_PWR_STOP_ENTRY(ENTRY) (((ENTRY) == PWR_STOPEntry_WFI) || ((ENTRY) == PWR_STOPEntry_WFE))
- 
+
 /**
   * @}
   */
 
-/** @defgroup PWR_Flag 
+/** @defgroup PWR_Flag
   * @{
   */
 

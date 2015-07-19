@@ -4,7 +4,7 @@
   * @author  MCD Application Team
   * @version  V3.0.0
   * @date  04/06/2009
-  * @brief  This file contains all the functions prototypes for the RCC firmware 
+  * @brief  This file contains all the functions prototypes for the RCC firmware
   *         library.
   ******************************************************************************
   * @copy
@@ -17,7 +17,7 @@
   * CODING INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
   *
   * <h2><center>&copy; COPYRIGHT 2009 STMicroelectronics</center></h2>
-  */ 
+  */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __STM32F10x_RCC_H
@@ -38,14 +38,13 @@
   * @{
   */
 
-typedef struct
-{
-  uint32_t SYSCLK_Frequency;
-  uint32_t HCLK_Frequency;
-  uint32_t PCLK1_Frequency;
-  uint32_t PCLK2_Frequency;
-  uint32_t ADCCLK_Frequency;
-}RCC_ClocksTypeDef;
+typedef struct {
+	uint32_t SYSCLK_Frequency;
+	uint32_t HCLK_Frequency;
+	uint32_t PCLK1_Frequency;
+	uint32_t PCLK2_Frequency;
+	uint32_t ADCCLK_Frequency;
+} RCC_ClocksTypeDef;
 
 /**
   * @}
@@ -55,7 +54,7 @@ typedef struct
   * @{
   */
 
-/** @defgroup HSE_configuration 
+/** @defgroup HSE_configuration
   * @{
   */
 
@@ -67,9 +66,9 @@ typedef struct
 
 /**
   * @}
-  */ 
+  */
 
-/** @defgroup PLL_entry_clock_source 
+/** @defgroup PLL_entry_clock_source
   * @{
   */
 
@@ -81,9 +80,9 @@ typedef struct
                                    ((SOURCE) == RCC_PLLSource_HSE_Div2))
 /**
   * @}
-  */ 
+  */
 
-/** @defgroup PLL_multiplication_factor 
+/** @defgroup PLL_multiplication_factor
   * @{
   */
 
@@ -114,7 +113,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup System_clock_source 
+/** @defgroup System_clock_source
   * @{
   */
 
@@ -128,7 +127,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup AHB_clock_source 
+/** @defgroup AHB_clock_source
   * @{
   */
 
@@ -148,9 +147,9 @@ typedef struct
                            ((HCLK) == RCC_SYSCLK_Div512))
 /**
   * @}
-  */ 
+  */
 
-/** @defgroup APB1_APB2_clock_source 
+/** @defgroup APB1_APB2_clock_source
   * @{
   */
 
@@ -166,7 +165,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup RCC_Interrupt_source 
+/** @defgroup RCC_Interrupt_source
   * @{
   */
 
@@ -186,7 +185,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup USB_clock_source 
+/** @defgroup USB_clock_source
   * @{
   */
 
@@ -198,7 +197,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup ADC_clock_source 
+/** @defgroup ADC_clock_source
   * @{
   */
 
@@ -212,7 +211,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup LSE_configuration 
+/** @defgroup LSE_configuration
   * @{
   */
 
@@ -225,7 +224,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup RTC_clock_source 
+/** @defgroup RTC_clock_source
   * @{
   */
 
@@ -239,7 +238,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup AHB_peripheral 
+/** @defgroup AHB_peripheral
   * @{
   */
 
@@ -255,7 +254,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup APB2_peripheral 
+/** @defgroup APB2_peripheral
   * @{
   */
 
@@ -279,9 +278,9 @@ typedef struct
 #define IS_RCC_APB2_PERIPH(PERIPH) ((((PERIPH) & 0xFFFF0002) == 0x00) && ((PERIPH) != 0x00))
 /**
   * @}
-  */ 
+  */
 
-/** @defgroup APB1_peripheral 
+/** @defgroup APB1_peripheral
   * @{
   */
 
@@ -312,7 +311,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup Clock_source_to_output_on_MCO_pin 
+/** @defgroup Clock_source_to_output_on_MCO_pin
   * @{
   */
 
@@ -328,7 +327,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup RCC_Flag 
+/** @defgroup RCC_Flag
   * @{
   */
 
@@ -415,6 +414,6 @@ void RCC_ClearITPendingBit(uint8_t RCC_IT);
 
 /**
   * @}
-  */ 
+  */
 
 /******************* (C) COPYRIGHT 2009 STMicroelectronics *****END OF FILE****/

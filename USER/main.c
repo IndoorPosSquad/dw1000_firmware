@@ -26,168 +26,161 @@ extern int debug_lvl;
 /*
 TIM2时钟初始化:0.5s溢出（定位周期）
 */
-void TIM2_init(void)
-{
-        NVIC_InitTypeDef NVIC_InitStructure;
-        TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+void TIM2_init(void) {
+	NVIC_InitTypeDef NVIC_InitStructure;
+	TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
 
-        NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
-        NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn;
-        NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3;
-        NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;
-        NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-        NVIC_Init(&NVIC_InitStructure);
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+	NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
 
-        RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2 , ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2 , ENABLE);
 
-        TIM_DeInit(TIM2);
+	TIM_DeInit(TIM2);
 
-        TIM_TimeBaseStructure.TIM_Period=500; // 0.01s
-        TIM_TimeBaseStructure.TIM_Prescaler= 36000;
-        TIM_TimeBaseStructure.TIM_ClockDivision=TIM_CKD_DIV1;
-        TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up;
-        TIM_TimeBaseInit(TIM2, &TIM_TimeBaseStructure);
+	TIM_TimeBaseStructure.TIM_Period = 500; // 0.01s
+	TIM_TimeBaseStructure.TIM_Prescaler = 36000;
+	TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+	TIM_TimeBaseInit(TIM2, &TIM_TimeBaseStructure);
 
-        TIM_ClearFlag(TIM2, TIM_FLAG_Update);
-        TIM_ITConfig(TIM2,TIM_IT_Update,ENABLE);
-        TIM_Cmd(TIM2, ENABLE);
+	TIM_ClearFlag(TIM2, TIM_FLAG_Update);
+	TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
+	TIM_Cmd(TIM2, ENABLE);
 
-        DEBUG2(("定位周期配置\t\t完成\r\n"));
+	DEBUG2(("定位周期配置\t\t完成\r\n"));
 
 }
 
 /*
 TIM4时钟初始化:1ms溢出 （串口监听）
 */
-void TIM4_init(void)
-{
-        NVIC_InitTypeDef NVIC_InitStructure;
-        TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+void TIM4_init(void) {
+	NVIC_InitTypeDef NVIC_InitStructure;
+	TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
 
-        NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
-        NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn;
-        NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
-        NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
-        NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-        NVIC_Init(&NVIC_InitStructure);
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+	NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
 
-        RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4 , ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4 , ENABLE);
 
-        TIM_DeInit(TIM4);
+	TIM_DeInit(TIM4);
 
-        TIM_TimeBaseStructure.TIM_Period=10;
-        TIM_TimeBaseStructure.TIM_Prescaler=7200;
-        TIM_TimeBaseStructure.TIM_ClockDivision=TIM_CKD_DIV1;
-        TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up;
-        TIM_TimeBaseInit(TIM4, &TIM_TimeBaseStructure);
+	TIM_TimeBaseStructure.TIM_Period = 10;
+	TIM_TimeBaseStructure.TIM_Prescaler = 7200;
+	TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+	TIM_TimeBaseInit(TIM4, &TIM_TimeBaseStructure);
 
-        DEBUG2(("命令模式启动\t\t完成\r\n"));
+	DEBUG2(("命令模式启动\t\t完成\r\n"));
 }
 
 /*
 外部中断初始化，使用PA1，上升沿触发中断
 */
-void EXTI_init(void)
-{
-        NVIC_InitTypeDef NVIC_InitStructure;
-        GPIO_InitTypeDef GPIO_InitStructure;
-        EXTI_InitTypeDef EXTI_InitStructure;
+void EXTI_init(void) {
+	NVIC_InitTypeDef NVIC_InitStructure;
+	GPIO_InitTypeDef GPIO_InitStructure;
+	EXTI_InitTypeDef EXTI_InitStructure;
 
-        NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
-        NVIC_InitStructure.NVIC_IRQChannel=EXTI1_IRQn;
-        NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-        NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
-        NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-        NVIC_Init(&NVIC_InitStructure);
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+	NVIC_InitStructure.NVIC_IRQChannel = EXTI1_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
 
-        RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOA | RCC_APB2Periph_AFIO, ENABLE);
-        GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
-        GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-        GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;
-        GPIO_Init(GPIOA,&GPIO_InitStructure);
-        GPIO_ResetBits(GPIOA,GPIO_Pin_1);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_AFIO, ENABLE);
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	GPIO_ResetBits(GPIOA, GPIO_Pin_1);
 
-        EXTI_ClearITPendingBit(EXTI_Line1);
-        GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource1);
-        EXTI_InitStructure.EXTI_Line = EXTI_Line1;
-        EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
-        EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
-        EXTI_InitStructure.EXTI_LineCmd = ENABLE;
-        EXTI_Init(&EXTI_InitStructure);
+	EXTI_ClearITPendingBit(EXTI_Line1);
+	GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource1);
+	EXTI_InitStructure.EXTI_Line = EXTI_Line1;
+	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
+	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+	EXTI_Init(&EXTI_InitStructure);
 
-        DEBUG2(("外部中断配置\t\t完成\r\n"));
+	DEBUG2(("外部中断配置\t\t完成\r\n"));
 }
 
-void TIM3_init(void)
-{
-        NVIC_InitTypeDef NVIC_InitStructure;
-        TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+void TIM3_init(void) {
+	NVIC_InitTypeDef NVIC_InitStructure;
+	TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
 
-        NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
-        NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;
-        NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3;		//优先级冲突？
-        NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;
-        NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-        NVIC_Init(&NVIC_InitStructure);
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+	NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3;		//优先级冲突？
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
 
-        RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3 , ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3 , ENABLE);
 
-        TIM_DeInit(TIM3);
+	TIM_DeInit(TIM3);
 
-        TIM_TimeBaseStructure.TIM_Period=50;
-        TIM_TimeBaseStructure.TIM_Prescaler=72;
-        TIM_TimeBaseStructure.TIM_ClockDivision=TIM_CKD_DIV1;
-        TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up;
-        TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
+	TIM_TimeBaseStructure.TIM_Period = 50;
+	TIM_TimeBaseStructure.TIM_Prescaler = 72;
+	TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+	TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
 
-        DEBUG2(("自动重发配置\t\t完成\r\n"));
-        DEBUG2(("发送监控配置\t\t完成\r\n"));
+	DEBUG2(("自动重发配置\t\t完成\r\n"));
+	DEBUG2(("发送监控配置\t\t完成\r\n"));
 }
 
-void GPIO_Configuration(void)
-{
-  GPIO_InitTypeDef GPIO_InitStructure;
+void GPIO_Configuration(void) {
+	GPIO_InitTypeDef GPIO_InitStructure;
 
-  RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOC , ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC , ENABLE);
 //=============================================================================
 //LED -> PC13
 //=============================================================================
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  GPIO_Init(GPIOC, &GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
 }
 
-int main(void)
-{
-        SystemInit();
-        Set_System();
-        #if defined(RX4) || defined(RX5) || defined(RX6)
-        Set_USBClock();
-        USB_Interrupts_Config();
-        USB_Init();
-        #endif
-        USART1_init(); // USART1初始化,波特率115200，单次8比特，无奇偶校验，1停止位：用于上位机下发命令
-        TIM4_init(); // 串口监听
-        //InitMPU6050();
-        SPI1_init();
-        #ifdef TX
-        TIM2_init(); // LS Poll Cycle
-        #endif
-        DW1000_init();
-        TIM3_init();
-        EXTI_init();
-        RX_mode_enable();
-        GPIO_Configuration();
-        DEBUG0(("========Init Done=======\r\n"));
+int main(void) {
+	SystemInit();
+	Set_System();
+#if defined(RX4) || defined(RX5) || defined(RX6)
+	Set_USBClock();
+	USB_Interrupts_Config();
+	USB_Init();
+#endif
+	USART1_init(); // USART1初始化,波特率115200，单次8比特，无奇偶校验，1停止位：用于上位机下发命令
+	TIM4_init(); // 串口监听
+	//InitMPU6050();
+	SPI1_init();
+#ifdef TX
+	TIM2_init(); // LS Poll Cycle
+#endif
+	DW1000_init();
+	TIM3_init();
+	EXTI_init();
+	RX_mode_enable();
+	GPIO_Configuration();
+	DEBUG0(("========Init Done=======\r\n"));
 
-        while (1)
-        {
-                PCout(13) = 1;
-                delay(0xfffff);
-                delay(0xfffff);
-                PCout(13) = 0;
-                delay(0xfffff);
-                delay(0xfffff);
-        }
+	while(1) {
+		PCout(13) = 1;
+		delay(0xfffff);
+		delay(0xfffff);
+		PCout(13) = 0;
+		delay(0xfffff);
+		delay(0xfffff);
+	}
 }
