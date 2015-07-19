@@ -4,7 +4,7 @@
   * @author  MCD Application Team
   * @version  V3.0.0
   * @date  04/06/2009
-  * @brief  This file contains all the functions prototypes for the GPIO 
+  * @brief  This file contains all the functions prototypes for the GPIO
   *         firmware library.
   ******************************************************************************
   * @copy
@@ -17,7 +17,7 @@
   * CODING INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
   *
   * <h2><center>&copy; COPYRIGHT 2009 STMicroelectronics</center></h2>
-  */ 
+  */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __STM32F10x_GPIO_H
@@ -45,59 +45,57 @@
                                     ((*(uint32_t*)&(PERIPH)) == GPIOE_BASE) || \
                                     ((*(uint32_t*)&(PERIPH)) == GPIOF_BASE) || \
                                     ((*(uint32_t*)&(PERIPH)) == GPIOG_BASE))
-                                     
-/** 
-  * @brief  Output Maximum frequency selection  
+
+/**
+  * @brief  Output Maximum frequency selection
   */
 
-typedef enum
-{ 
-  GPIO_Speed_10MHz = 1,
-  GPIO_Speed_2MHz, 
-  GPIO_Speed_50MHz
-}GPIOSpeed_TypeDef;
+typedef enum {
+	GPIO_Speed_10MHz = 1,
+	GPIO_Speed_2MHz,
+	GPIO_Speed_50MHz
+} GPIOSpeed_TypeDef;
 #define IS_GPIO_SPEED(SPEED) (((SPEED) == GPIO_Speed_10MHz) || ((SPEED) == GPIO_Speed_2MHz) || \
                               ((SPEED) == GPIO_Speed_50MHz))
 
-/** 
-  * @brief  Configuration Mode enumeration  
+/**
+  * @brief  Configuration Mode enumeration
   */
 
-typedef enum
-{ GPIO_Mode_AIN = 0x0,		            //模拟输入
-  GPIO_Mode_IN_FLOATING = 0x04,	     //浮空输入模式， 默认
-  GPIO_Mode_IPD = 0x28,	            ///下拉输入模式
-  GPIO_Mode_IPU = 0x48,			       //上拉输入模式
-  GPIO_Mode_Out_OD = 0x14,		    //通用开漏输出  
-  GPIO_Mode_Out_PP = 0x10,		   //通用推挽输出
-  GPIO_Mode_AF_OD = 0x1C,		    //复用（开漏)输出
-  GPIO_Mode_AF_PP = 0x18		   //复用（推挽)输出
-}GPIOMode_TypeDef;
+typedef enum {
+	GPIO_Mode_AIN = 0x0,		            //模拟输入
+	GPIO_Mode_IN_FLOATING = 0x04,	     //浮空输入模式， 默认
+	GPIO_Mode_IPD = 0x28,	            ///下拉输入模式
+	GPIO_Mode_IPU = 0x48,			       //上拉输入模式
+	GPIO_Mode_Out_OD = 0x14,		    //通用开漏输出
+	GPIO_Mode_Out_PP = 0x10,		   //通用推挽输出
+	GPIO_Mode_AF_OD = 0x1C,		    //复用（开漏)输出
+	GPIO_Mode_AF_PP = 0x18		   //复用（推挽)输出
+} GPIOMode_TypeDef;
 
 #define IS_GPIO_MODE(MODE) (((MODE) == GPIO_Mode_AIN) || ((MODE) == GPIO_Mode_IN_FLOATING) || \
                             ((MODE) == GPIO_Mode_IPD) || ((MODE) == GPIO_Mode_IPU) || \
                             ((MODE) == GPIO_Mode_Out_OD) || ((MODE) == GPIO_Mode_Out_PP) || \
                             ((MODE) == GPIO_Mode_AF_OD) || ((MODE) == GPIO_Mode_AF_PP))
 
-/** 
-  * @brief  GPIO Init structure definition  
+/**
+  * @brief  GPIO Init structure definition
   */
 
-typedef struct
-{
-  uint16_t GPIO_Pin;
-  GPIOSpeed_TypeDef GPIO_Speed;
-  GPIOMode_TypeDef GPIO_Mode;
-}GPIO_InitTypeDef;
+typedef struct {
+	uint16_t GPIO_Pin;
+	GPIOSpeed_TypeDef GPIO_Speed;
+	GPIOMode_TypeDef GPIO_Mode;
+} GPIO_InitTypeDef;
 
-/** 
-  * @brief  Bit_SET and Bit_RESET enumeration  
+/**
+  * @brief  Bit_SET and Bit_RESET enumeration
   */
 
-typedef enum
-{ Bit_RESET = 0,
-  Bit_SET
-}BitAction;
+typedef enum {
+	Bit_RESET = 0,
+	Bit_SET
+} BitAction;
 
 #define IS_GPIO_BIT_ACTION(ACTION) (((ACTION) == Bit_RESET) || ((ACTION) == Bit_SET))
 
@@ -109,7 +107,7 @@ typedef enum
   * @{
   */
 
-/** @defgroup GPIO_pins_define 
+/** @defgroup GPIO_pins_define
   * @{
   */
 
@@ -154,7 +152,7 @@ typedef enum
   * @}
   */
 
-/** @defgroup GPIO_Remap_define 
+/** @defgroup GPIO_Remap_define
   * @{
   */
 
@@ -197,12 +195,12 @@ typedef enum
                               ((REMAP) == GPIO_Remap_ADC2_ETRGINJ) ||((REMAP) == GPIO_Remap_ADC2_ETRGREG) || \
                               ((REMAP) == GPIO_Remap_SWJ_NoJTRST) || ((REMAP) == GPIO_Remap_SWJ_JTAGDisable)|| \
                               ((REMAP) == GPIO_Remap_SWJ_Disable))
-                              
+
 /**
   * @}
-  */ 
+  */
 
-/** @defgroup GPIO_Port_Sources 
+/** @defgroup GPIO_Port_Sources
   * @{
   */
 
@@ -231,7 +229,7 @@ typedef enum
   * @}
   */
 
-/** @defgroup GPIO_Pin_sources 
+/** @defgroup GPIO_Pin_sources
   * @{
   */
 

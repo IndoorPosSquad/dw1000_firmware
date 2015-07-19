@@ -4,7 +4,7 @@
   * @author  MCD Application Team
   * @version  V3.0.0
   * @date  04/06/2009
-  * @brief  This file contains all the functions prototypes for the EXTI 
+  * @brief  This file contains all the functions prototypes for the EXTI
   *         firmware library.
   ******************************************************************************
   * @copy
@@ -17,7 +17,7 @@
   * CODING INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
   *
   * <h2><center>&copy; COPYRIGHT 2009 STMicroelectronics</center></h2>
-  */ 
+  */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __STM32F10x_EXTI_H
@@ -38,43 +38,40 @@
   * @{
   */
 
-/** 
-  * @brief  EXTI mode enumeration  
+/**
+  * @brief  EXTI mode enumeration
   */
 
-typedef enum
-{
-  EXTI_Mode_Interrupt = 0x00,
-  EXTI_Mode_Event = 0x04
-}EXTIMode_TypeDef;
+typedef enum {
+	EXTI_Mode_Interrupt = 0x00,
+	EXTI_Mode_Event = 0x04
+} EXTIMode_TypeDef;
 
 #define IS_EXTI_MODE(MODE) (((MODE) == EXTI_Mode_Interrupt) || ((MODE) == EXTI_Mode_Event))
 
-/** 
-  * @brief  EXTI Trigger enumeration  
+/**
+  * @brief  EXTI Trigger enumeration
   */
 
-typedef enum
-{
-  EXTI_Trigger_Rising = 0x08,
-  EXTI_Trigger_Falling = 0x0C,  
-  EXTI_Trigger_Rising_Falling = 0x10
-}EXTITrigger_TypeDef;
+typedef enum {
+	EXTI_Trigger_Rising = 0x08,
+	EXTI_Trigger_Falling = 0x0C,
+	EXTI_Trigger_Rising_Falling = 0x10
+} EXTITrigger_TypeDef;
 
 #define IS_EXTI_TRIGGER(TRIGGER) (((TRIGGER) == EXTI_Trigger_Rising) || \
                                   ((TRIGGER) == EXTI_Trigger_Falling) || \
                                   ((TRIGGER) == EXTI_Trigger_Rising_Falling))
-/** 
-  * @brief  EXTI Init Structure definition  
+/**
+  * @brief  EXTI Init Structure definition
   */
 
-typedef struct
-{
-  uint32_t EXTI_Line;
-  EXTIMode_TypeDef EXTI_Mode;
-  EXTITrigger_TypeDef EXTI_Trigger;
-  FunctionalState EXTI_LineCmd;
-}EXTI_InitTypeDef;
+typedef struct {
+	uint32_t EXTI_Line;
+	EXTIMode_TypeDef EXTI_Mode;
+	EXTITrigger_TypeDef EXTI_Trigger;
+	FunctionalState EXTI_LineCmd;
+} EXTI_InitTypeDef;
 
 /**
   * @}
@@ -84,7 +81,7 @@ typedef struct
   * @{
   */
 
-/** @defgroup EXTI_Lines 
+/** @defgroup EXTI_Lines
   * @{
   */
 

@@ -16,8 +16,8 @@
   *
   *        http://www.st.com/software_license_agreement_liberty_v2
   *
-  * Unless required by applicable law or agreed to in writing, software 
-  * distributed under the License is distributed on an "AS IS" BASIS, 
+  * Unless required by applicable law or agreed to in writing, software
+  * distributed under the License is distributed on an "AS IS" BASIS,
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   * See the License for the specific language governing permissions and
   * limitations under the License.
@@ -34,7 +34,7 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /*  The number of current endpoint, it will be used to specify an endpoint */
- uint8_t	EPindex;
+uint8_t	EPindex;
 /*  The number of current device, it is an index to the Device_Table */
 /* uint8_t	Device_no; */
 /*  Points to the DEVICE_INFO structure of current device */
@@ -63,14 +63,13 @@ USER_STANDARD_REQUESTS  *pUser_Standard_Requests;
 * Output         : None.
 * Return         : None.
 *******************************************************************************/
-void USB_Init(void)
-{
-  pInformation = &Device_Info;
-  pInformation->ControlState = 2;
-  pProperty = &Device_Property;
-  pUser_Standard_Requests = &User_Standard_Requests;
-  /* Initialize devices one by one */
-  pProperty->Init();
+void USB_Init(void) {
+	pInformation = &Device_Info;
+	pInformation->ControlState = 2;
+	pProperty = &Device_Property;
+	pUser_Standard_Requests = &User_Standard_Requests;
+	/* Initialize devices one by one */
+	pProperty->Init();
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
