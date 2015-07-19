@@ -4,7 +4,7 @@
   * @author  MCD Application Team
   * @version  V3.0.0
   * @date  04/06/2009
-  * @brief  This file contains all the functions prototypes for the ADC firmware 
+  * @brief  This file contains all the functions prototypes for the ADC firmware
   *         library.
   ******************************************************************************
   * @copy
@@ -17,7 +17,7 @@
   * CODING INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
   *
   * <h2><center>&copy; COPYRIGHT 2009 STMicroelectronics</center></h2>
-  */ 
+  */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __STM32F10x_ADC_H
@@ -38,19 +38,18 @@
   * @{
   */
 
-/** 
-  * @brief  ADC Init structure definition  
+/**
+  * @brief  ADC Init structure definition
   */
 
-typedef struct
-{
-  uint32_t ADC_Mode;
-  FunctionalState ADC_ScanConvMode; 
-  FunctionalState ADC_ContinuousConvMode;
-  uint32_t ADC_ExternalTrigConv;
-  uint32_t ADC_DataAlign;
-  uint8_t ADC_NbrOfChannel;
-}ADC_InitTypeDef;
+typedef struct {
+	uint32_t ADC_Mode;
+	FunctionalState ADC_ScanConvMode;
+	FunctionalState ADC_ContinuousConvMode;
+	uint32_t ADC_ExternalTrigConv;
+	uint32_t ADC_DataAlign;
+	uint8_t ADC_NbrOfChannel;
+} ADC_InitTypeDef;
 /**
   * @}
   */
@@ -66,7 +65,7 @@ typedef struct
 #define IS_ADC_DMA_PERIPH(PERIPH) (((*(uint32_t*)&(PERIPH)) == ADC1_BASE) || \
                                    ((*(uint32_t*)&(PERIPH)) == ADC3_BASE))
 
-/** @defgroup ADC_dual_mode 
+/** @defgroup ADC_dual_mode
   * @{
   */
 
@@ -95,12 +94,12 @@ typedef struct
   * @}
   */
 
-/** @defgroup ADC_extrenal_trigger_sources_for_regular_channels_conversion 
+/** @defgroup ADC_extrenal_trigger_sources_for_regular_channels_conversion
   * @{
   */
 
-/** 
-  * @brief  for ADC1 and ADC2  
+/**
+  * @brief  for ADC1 and ADC2
   */
 
 #define ADC_ExternalTrigConv_T1_CC1                ((uint32_t)0x00000000)
@@ -110,15 +109,15 @@ typedef struct
 #define ADC_ExternalTrigConv_T4_CC4                ((uint32_t)0x000A0000)
 #define ADC_ExternalTrigConv_Ext_IT11_TIM8_TRGO    ((uint32_t)0x000C0000)
 
-/** 
-  * @brief  for ADC1, ADC2 and ADC3  
+/**
+  * @brief  for ADC1, ADC2 and ADC3
   */
 
 #define ADC_ExternalTrigConv_T1_CC3                ((uint32_t)0x00040000)
 #define ADC_ExternalTrigConv_None                  ((uint32_t)0x000E0000)
 
-/** 
-  * @brief  for ADC3  
+/**
+  * @brief  for ADC3
   */
 
 #define ADC_ExternalTrigConv_T3_CC1                ((uint32_t)0x00000000)
@@ -146,7 +145,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup ADC_data_align 
+/** @defgroup ADC_data_align
   * @{
   */
 
@@ -158,7 +157,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup ADC_channels 
+/** @defgroup ADC_channels
   * @{
   */
 
@@ -194,7 +193,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup ADC_sampling_times 
+/** @defgroup ADC_sampling_times
   * @{
   */
 
@@ -218,12 +217,12 @@ typedef struct
   * @}
   */
 
-/** @defgroup ADC_extrenal_trigger_sources_for_injected_channels_conversion 
+/** @defgroup ADC_extrenal_trigger_sources_for_injected_channels_conversion
   * @{
   */
 
-/** 
-  * @brief  For ADC1 and ADC2  
+/**
+  * @brief  For ADC1 and ADC2
   */
 
 #define ADC_ExternalTrigInjecConv_T2_TRGO           ((uint32_t)0x00002000)
@@ -232,16 +231,16 @@ typedef struct
 #define ADC_ExternalTrigInjecConv_T4_TRGO           ((uint32_t)0x00005000)
 #define ADC_ExternalTrigInjecConv_Ext_IT15_TIM8_CC4 ((uint32_t)0x00006000)
 
-/** 
-  * @brief  For ADC1, ADC2 and ADC3  
+/**
+  * @brief  For ADC1, ADC2 and ADC3
   */
 
 #define ADC_ExternalTrigInjecConv_T1_TRGO           ((uint32_t)0x00000000)
 #define ADC_ExternalTrigInjecConv_T1_CC4            ((uint32_t)0x00001000)
 #define ADC_ExternalTrigInjecConv_None              ((uint32_t)0x00007000)
 
-/** 
-  * @brief  For ADC3  
+/**
+  * @brief  For ADC3
   */
 
 #define ADC_ExternalTrigInjecConv_T4_CC3            ((uint32_t)0x00002000)
@@ -267,7 +266,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup ADC_injected_channel_selection 
+/** @defgroup ADC_injected_channel_selection
   * @{
   */
 
@@ -283,7 +282,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup ADC_analog_watchdog_selection 
+/** @defgroup ADC_analog_watchdog_selection
   * @{
   */
 
@@ -306,7 +305,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup ADC_interrupts_definition 
+/** @defgroup ADC_interrupts_definition
   * @{
   */
 
@@ -322,7 +321,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup ADC_flags_definition 
+/** @defgroup ADC_flags_definition
   * @{
   */
 
@@ -339,7 +338,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup ADC_thresholds 
+/** @defgroup ADC_thresholds
   * @{
   */
 
@@ -349,7 +348,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup ADC_injected_offset 
+/** @defgroup ADC_injected_offset
   * @{
   */
 
@@ -359,7 +358,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup ADC_injected_length 
+/** @defgroup ADC_injected_length
   * @{
   */
 
@@ -369,7 +368,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup ADC_injected_rank 
+/** @defgroup ADC_injected_rank
   * @{
   */
 
@@ -377,10 +376,10 @@ typedef struct
 
 /**
   * @}
-  */ 
+  */
 
 
-/** @defgroup ADC_regular_length 
+/** @defgroup ADC_regular_length
   * @{
   */
 
@@ -389,7 +388,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup ADC_regular_rank 
+/** @defgroup ADC_regular_rank
   * @{
   */
 
@@ -399,7 +398,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup ADC_regular_discontinuous_mode_number 
+/** @defgroup ADC_regular_discontinuous_mode_number
   * @{
   */
 

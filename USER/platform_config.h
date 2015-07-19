@@ -16,8 +16,8 @@
   *
   *        http://www.st.com/software_license_agreement_liberty_v2
   *
-  * Unless required by applicable law or agreed to in writing, software 
-  * distributed under the License is distributed on an "AS IS" BASIS, 
+  * Unless required by applicable law or agreed to in writing, software
+  * distributed under the License is distributed on an "AS IS" BASIS,
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   * See the License for the specific language governing permissions and
   * limitations under the License.
@@ -33,10 +33,10 @@
 /* Includes ------------------------------------------------------------------*/
 
 #if defined(STM32L1XX_MD) || defined(STM32L1XX_HD)|| defined(STM32L1XX_MD_PLUS)
- #include "stm32l1xx.h"
+#include "stm32l1xx.h"
 
 #elif defined (STM32F10X_MD) || defined (STM32F10X_HD) || defined (STM32F10X_XL)
- #include "stm32f10x.h"
+#include "stm32f10x.h"
 
 #endif
 
@@ -45,17 +45,17 @@
 /* Uncomment the line corresponding to the STMicroelectronics evaluation board
    used to run the example */
 #if !defined (USE_STM3210B_EVAL) &&  !defined (USE_STM3210E_EVAL) &&  !defined (USE_STM32L152_EVAL) &&  !defined (USE_STM32L152D_EVAL)&&  !defined (USE_STM32373C_EVAL) &&  !defined (USE_STM32303C_EVAL)
- //#define USE_STM3210B_EVAL
- //#define USE_STM3210E_EVAL
- //#define USE_STM32L152_EVAL
+//#define USE_STM3210B_EVAL
+//#define USE_STM3210E_EVAL
+//#define USE_STM32L152_EVAL
 //#define USE_STM32L152D_EVAL
 //#define USE_STM32373C_EVAL
- //#define USE_STM32303C_EVAL
+//#define USE_STM32303C_EVAL
 #endif
 
 /*Unique Devices IDs register set*/
 
-#if defined(STM32L1XX_MD) || defined(STM32L1XX_HD) || defined(STM32L1XX_MD_PLUS) 
+#if defined(STM32L1XX_MD) || defined(STM32L1XX_HD) || defined(STM32L1XX_MD_PLUS)
 
 #define         ID1          (0x1FF80050)
 #define         ID2          (0x1FF80054)
@@ -83,7 +83,7 @@
                                               | RCC_AHBPeriph_GPIOE \
                                               | RCC_AHBPeriph_GPIOF )
 
-#define USB_DISCONNECT                      GPIOB  
+#define USB_DISCONNECT                      GPIOB
 #define USB_DISCONNECT_PIN                  GPIO_Pin_14
 #define RCC_APB2Periph_GPIO_DISCONNECT      RCC_APB2Periph_GPIOB
 #define ADC1_DR_Address                     ((uint32_t)0x4001244C)

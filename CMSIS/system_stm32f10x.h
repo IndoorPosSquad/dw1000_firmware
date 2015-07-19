@@ -66,7 +66,7 @@ extern const uint32_t SystemFrequency_APB2Clk;           /*!< APB Peripheral Bus
 /** @addtogroup Exported_Functions
   * @{
   */
-  
+
 extern void SystemInit(void);
 /**
   * @}

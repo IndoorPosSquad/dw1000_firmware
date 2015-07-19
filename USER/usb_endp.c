@@ -16,8 +16,8 @@
   *
   *        http://www.st.com/software_license_agreement_liberty_v2
   *
-  * Unless required by applicable law or agreed to in writing, software 
-  * distributed under the License is distributed on an "AS IS" BASIS, 
+  * Unless required by applicable law or agreed to in writing, software
+  * distributed under the License is distributed on an "AS IS" BASIS,
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   * See the License for the specific language governing permissions and
   * limitations under the License.
@@ -43,7 +43,7 @@
 
 uint8_t int_Receive_Buffer[2];
 volatile uint8_t PrevXferComplete = 1;
-u32 data[16]={500, 707, 500};
+u32 data[16] = {500, 707, 500};
 u8 in_buf[64];
 u8 out_buf[64];
 u8 Buffer[128];
@@ -52,15 +52,14 @@ extern u8 mac[8];
 // extern void Pop(u8* data);
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
-void EP1_IN_Callback(void)
-{
-	#if defined(RX5) || defined(RX6)
+void EP1_IN_Callback(void) {
+#if defined(RX5) || defined(RX6)
 	Pop(in_buf);
 	USB_SIL_Write(EP1_IN, (u8*)(in_buf), 64);
-	#endif
-	#ifdef RX4
+#endif
+#ifdef RX4
 	USB_SIL_Write(EP1_IN, (u8*)(data), 64);
-	#endif
+#endif
 	// SetEPRxStatus(ENDP1, EP_RX_NAK); // NOT TX DISABLE
 	SetEPTxStatus(ENDP1, EP_TX_VALID);
 }
@@ -92,45 +91,44 @@ void EP1_IN_Callback(void)
 //	Total length of all Payloads in a sequence in Unsigned Integer 8.
 // 3. FEC(OPTIONAL)
 //	CRC16 of the frame.
-	
-void EP3_OUT_Callback(void)
-{
+
+void EP3_OUT_Callback(void) {
 	USB_SIL_Read(EP3_OUT, out_buf);
 	// DATA PROCESSING...
-	if (out_buf[0] == 0x10) {
-		memcpy(mac, out_buf+2, 8);
+	if(out_buf[0] == 0x10) {
+		memcpy(mac, out_buf + 2, 8);
 		set_MAC(mac);
-	} else{
-		if (out_buf[1] < (u8)(63)) {
+	} else {
+		if(out_buf[1] < (u8)(63)) {
 			Buffer[0] = 0x90;
-			memcpy(Buffer+1, out_buf+2, (u8)(out_buf[1]));
-			raw_write(Buffer, (u16*)((u8)(out_buf[1])+1));
-		} else if (out_buf[1] < (u8)(125)) {
-				// 2 frames
-				if (count == 0 && out_buf[0]==0x00) {
-					count = 1;
-					Buffer[0] = 0x90;
-					memcpy(Buffer+1, out_buf+2, 62);
-				} else if (count == 1 && out_buf[0]==0x01) {
-					count = 0;
-					memcpy(Buffer+63, out_buf+2, (u8)(out_buf[1]) - 62);
-					raw_write(Buffer, (u16*)((u8)(out_buf[1])+1));
-				} else {
-					count = 0;
-				}
-		} else {
-			// 3 frames
-			if (count == 0 && out_buf[0]==0x00) {
+			memcpy(Buffer + 1, out_buf + 2, (u8)(out_buf[1]));
+			raw_write(Buffer, (u16*)((u8)(out_buf[1]) + 1));
+		} else if(out_buf[1] < (u8)(125)) {
+			// 2 frames
+			if(count == 0 && out_buf[0] == 0x00) {
 				count = 1;
 				Buffer[0] = 0x90;
-				memcpy(Buffer+1, out_buf+2, 62);
-			} else if (count == 1 && out_buf[0]==0x01) {
-				count = 2;
-				memcpy(Buffer+63, out_buf+2, 62);
-			} else if (count == 2 && out_buf[0]==0x02) {
+				memcpy(Buffer + 1, out_buf + 2, 62);
+			} else if(count == 1 && out_buf[0] == 0x01) {
 				count = 0;
-				memcpy(Buffer+63, out_buf+2, (u8)(out_buf[1]) - 124);
-				raw_write(Buffer, (u16*)((u8)(out_buf[1])+1));
+				memcpy(Buffer + 63, out_buf + 2, (u8)(out_buf[1]) - 62);
+				raw_write(Buffer, (u16*)((u8)(out_buf[1]) + 1));
+			} else {
+				count = 0;
+			}
+		} else {
+			// 3 frames
+			if(count == 0 && out_buf[0] == 0x00) {
+				count = 1;
+				Buffer[0] = 0x90;
+				memcpy(Buffer + 1, out_buf + 2, 62);
+			} else if(count == 1 && out_buf[0] == 0x01) {
+				count = 2;
+				memcpy(Buffer + 63, out_buf + 2, 62);
+			} else if(count == 2 && out_buf[0] == 0x02) {
+				count = 0;
+				memcpy(Buffer + 63, out_buf + 2, (u8)(out_buf[1]) - 124);
+				raw_write(Buffer, (u16*)((u8)(out_buf[1]) + 1));
 			} else {
 				count = 0;
 			}
@@ -141,28 +139,27 @@ void EP3_OUT_Callback(void)
 
 // void EP2_OUT_Callback (void)
 // {
-	/* Read received data (2 bytes) */  
-	// USB_SIL_Read(EP2_OUT, int_Receive_Buffer);
-	// incoming data processing
-	// SetEPRxStatus(ENDP2, EP_RX_VALID);
+/* Read received data (2 bytes) */
+// USB_SIL_Read(EP2_OUT, int_Receive_Buffer);
+// incoming data processing
+// SetEPRxStatus(ENDP2, EP_RX_VALID);
 // }
 
-void EP2_IN_Callback(void)
-{
+void EP2_IN_Callback(void) {
 	PrevXferComplete = 1;
 }
 
-	// to send an interrupt
-	// if (PrevXferComplete){
-	// PrevXferComplete = 0;
+// to send an interrupt
+// if (PrevXferComplete){
+// PrevXferComplete = 0;
 
-	// /* Copy mouse position info in ENDP1 Tx Packet Memory Area*/
-	// USB_SIL_Write(EP2_IN, Data_Pointer, Data_Len);
+// /* Copy mouse position info in ENDP1 Tx Packet Memory Area*/
+// USB_SIL_Write(EP2_IN, Data_Pointer, Data_Len);
 
-	// /* Enable endpoint for transmission */
-	// SetEPTxStatus(ENDP2, EP_TX_VALID);
-	// }
-	
+// /* Enable endpoint for transmission */
+// SetEPTxStatus(ENDP2, EP_TX_VALID);
+// }
+
 /*******************************************************************************
 * Function Name  : SOF_Callback / INTR_SOFINTR_Callback
 * Description    :
@@ -170,8 +167,7 @@ void EP2_IN_Callback(void)
 * Output         : None.
 * Return         : None.
 *******************************************************************************/
-void SOF_Callback(void)
-{
+void SOF_Callback(void) {
 }
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 // done
