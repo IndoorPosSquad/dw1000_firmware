@@ -1,6 +1,14 @@
 # DWM1000 Firmware [STM32 Program]
 
-This is the STM32 part of an UWB based indoor positioning program.
+## 简介
+基于UWB室内定位的下位机驱动。
+定位精度：20cm
+定位频率：每秒10~30次
+使用频率：6.5GHz
+使用带宽：500MHz
+使用功率：<-35dBm/MHz
+
+基本架构
 ~~~
          SPI       USB/UART
 DWM1000 <===> STM32 <===> Host(PC/Android/MCU)
@@ -112,4 +120,40 @@ Host to Controller Comm
  3. FEC(OPTIONAL)
         CRC16 of the frame.
 
+~~~
+
+## 无线通信数据包格式
+基础格式参照`IEEE 802.15.4a`标准
+
+我们尽量采用长地址
+~~~
+802.15.4a Frame:
++---------------+--------------+------------+-----------+-----------+----------+-----------+---------+
+| Frame Control | Sequence Num | Dest PANID | Dest Addr | Src PANID | Src Addr |  Payload  |   FCS   |
++---------------+--------------+------------+-----------+-----------+----------+-----------+---------+
+| 2 Bytes       | 1 Byte       | 2 Bytes    | 8 Bytes   | 2 Bytes   | 8 Bytes  | Var Bytes | 2 Bytes |
++---------------+--------------+------------+-----------+-----------+----------+-----------+---------+
+
+Frame Control:
++---+---+---+----------+---------+--------+----------+---+---+---+-----+-----+----+----+-----+----+
+| 0 | 1 | 2 |    3     |    4    |   5    |    6     | 7 | 8 | 9 | 10  | 11  | 12 | 13 | 14  | 15 |
++---+---+---+----------+---------+--------+----------+---+---+---+-----+-----+----+----+-----+----+
+| Frame     | Security | Frame   | ACK    | PANID    | Reserved  | Dest Addr | Frame   | Src Addr |
+| Type      | Enabled  | Pending | Requst | Compress |           | Mode      | Version | Mode     |
++-----------+----------+---------+--------+----------+-----------+-----------+---------+----------+
+1. Frame Type
+        100 - Location Service (802.15.4a Reserved).
+				Then the first byte of Payload is used to identify the LS message type.
+				0x00 - LS Req
+						Request for Location Service.
+				0x01 - LS ACK
+						ACK for LS Req, and mark the receive time of LS Req(T_Req) and the sent time of LS ACK(T_ACK).
+				0x02 - LS Data
+						Return T_ACK - T_Req.
+				0x03 - LS Information Return
+						Return the distance data to the ACK node.
+				0x04 - LS Forward
+						Forward the Location data to a specific node.
+2. Other Fields
+		Please reference 802.15.4a.
 ~~~
