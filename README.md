@@ -81,28 +81,28 @@ Host to Controller Comm
 |       | TYPE  |  CMD  |     FRAG      | Packet Length |    Payload    |          FEC(Optional)        |
 +-------+-------+-----------------------+---------------+---------------+-------------------------------+
  1. Frame Type
-        00 - RES
-        01 - Message
-                Host to Controller(H2C)
+		00 - RES
+		01 - Message
+				Host to Controller(H2C)
 						The payload carries the raw message to sent, see raw_write().
 				Controller to Host(C2H)
 						The payload carries the raw message received, see raw_read().
-        10 - Distance / Location poll
+		10 - Distance / Location poll
 				Trigger the Location Service.
-        11 - Command
-                CMD - 00
-                        Reboot.
-                CMD - 01
-                        Write Reg.
-                CMD - 10
-                        H2C - Read Reg.
+		11 - Command
+				CMD - 00
+						Reboot.
+				CMD - 01
+						Write Reg.
+				CMD - 10
+						H2C - Read Reg.
 						C2H - Return the Read Reg Result.
-                CMD - 11
-                        Set log level?
+				CMD - 11
+						Set log level?
  2. Packet Length
-        Total length of all Payloads in a sequence in Unsigned 8 bits Integer.
+		Total length of all Payloads in a sequence in Unsigned 8 bits Integer.
  3. FEC(OPTIONAL)
-        CRC16 of the frame.
+		CRC16 of the frame.
 ~~~
 
 ## 无线通信数据包格式
@@ -125,7 +125,7 @@ Frame Control:
 |      | Type      | Enabled  | Pending | Requst | Compress |           | Mode      | Version | Mode     |
 +------+-----------+----------+---------+--------+----------+-----------+-----------+---------+----------+
 1. Frame Type
-        100 - Location Service (802.15.4a Reserved).
+		100 - Location Service (802.15.4a Reserved).
 				Then the first byte of Payload is used to identify the LS message type.
 				0x00 - LS Req
 						Request for Location Service.
