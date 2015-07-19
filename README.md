@@ -83,43 +83,26 @@ Host to Controller Comm
  1. Frame Type
         00 - RES
         01 - Message
-                The payload carries the raw message to sent, see raw_write().
+                Host to Controller(H2C)
+						The payload carries the raw message to sent, see raw_write().
+				Controller to Host(C2H)
+						The payload carries the raw message received, see raw_read().
         10 - Distance / Location poll
+				Trigger the Location Service.
         11 - Command
                 CMD - 00
-                        Reboot
+                        Reboot.
                 CMD - 01
-                        Write Reg
+                        Write Reg.
                 CMD - 10
-                        Read Reg
+                        H2C - Read Reg.
+						C2H - Return the Read Reg Result.
                 CMD - 11
                         Set log level?
  2. Packet Length
-        Total length of all Payloads in a sequence in Unsigned Integer 8.
+        Total length of all Payloads in a sequence in Unsigned 8 bits Integer.
  3. FEC(OPTIONAL)
         CRC16 of the frame.
-
- Controller to Host Comm
- 1. Frame Type
-        00 - Set Mac
-                The payload carries the mac to be set.
-        01 - Message
-                The payload carries the raw message to sent, see raw_write().
-        10 - Distance / Location poll
-        11 - Command
-                CMD - 00
-                        Reboot
-                CMD - 01
-                        Write Reg
-                CMD - 10
-                        Read Reg
-                CMD - 11
-                        Set log level?
- 2. Packet Length
-        Total length of all Payloads in a sequence in Unsigned Integer 8.
- 3. FEC(OPTIONAL)
-        CRC16 of the frame.
-
 ~~~
 
 ## 无线通信数据包格式
@@ -156,4 +139,31 @@ Frame Control:
 						Forward the Location data to a specific node.
 2. Other Fields
 		Please reference 802.15.4a.
+~~~
+
+## API
+~~~
+void raw_write(u8* tx_buff, u16* size);
+// 原始发送一个dw1000帧
+// u8* tx_buff 为发送数据
+// u16* size 为数据长度，不要超过126
+
+void raw_read(u8* rx_buff, u16* size);
+// 从缓冲区读出一个dw1000帧
+// u8* rx_buff 接收数据
+// u16* size 接受读取的数据长度
+
+void Location_polling(void);
+// 完成一次测距请求
+// 锚点的MAC写在函数里，需要改进
+
+void send_LS_ACK(u8 *src, u8 *dst);
+// 发送定位应答
+// u8 *src 为源地址，一般为本机MAC
+// u8 *dst 为目的地地址
+
+void send_LS_DATA(u8 *src, u8 *dst);
+// 发送处理时延数据
+// u8 *src 为源地址，一般为本机MAC
+// u8 *dst 为目的地地址
 ~~~
