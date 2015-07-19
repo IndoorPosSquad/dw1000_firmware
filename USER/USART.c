@@ -3,6 +3,7 @@
 #include "MPU6050.h"
 #include "USART.h"
 #include "SPI.h"
+#include "CONFIG.h"
 
 
 extern u8 usart_buffer[64];
@@ -13,7 +14,7 @@ extern u8 time_offset;
 extern u8 speed_offset;
 extern double distance[3];
 
-int debug_lvl = 2;
+int debug_lvl = DEBUG_LVL;
 
 // macro for parsing command from host
 #define TYPE(buf) (((buf[0]) >> 6) & 0x03)
@@ -84,7 +85,7 @@ void usart_handle(void) {
         u16 i;
         u32 tmp=0;
         u8 tmpp[128];
-        TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+        //TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
         if (usart_status==2) {
                 switch (TYPE(usart_buffer)) {
                 case 0x00: //0x00
@@ -134,22 +135,25 @@ void usart_handle(void) {
 }
 
 void upload_location_info(void) {
-        static int count = 0;
-        //MPU6050 mpu6050_buf;
-        //u8 temperature;
+        #ifdef USE_MPU6050
+        MPU6050 mpu6050_buf;
+        #endif
 
-        printf("=================================================\r\n");
-        printf("Dists: %.2lf %.2lf %.2lf\r\n", distance[0], distance[1], distance[2]);
+        #ifdef USE_TEMP_VOLT_SENSOR
+        u8 temperature;
+        #endif
 
-        //READ_MPU6050(&mpu6050_buf);
-        //printf("MPU:   %.2lf %.2lf %.2lf\r\n", mpu6050_buf.Accel_X, mpu6050_buf.Accel_Y, mpu6050_buf.Accel_Z);
+        printf("Dist: %.2lf %.2lf %.2lf\r\n", distance[0], distance[1], distance[2]);
 
-        //if (count % 100 == 0) {
-        //        Read_Tmp(&temperature);
-        //        printf("Temp:  %d\r\n", temperature);
-        //}
-        //count += 1;
-        printf("=================================================\r\n");
+        #ifdef USE_MPU6050
+        READ_MPU6050(&mpu6050_buf);
+        printf("MPU: %.2lf %.2lf %.2lf\r\n", mpu6050_buf.Accel_X, mpu6050_buf.Accel_Y, mpu6050_buf.Accel_Z);
+        #endif
+
+        #ifdef USE_TEMP_VOLT_SENSOR
+        Read_Tmp(&temperature);
+        printf("Temp: %d\r\n", temperature);
+        #endif
 }
 /*
         命令		命令字			参数1															参数2
