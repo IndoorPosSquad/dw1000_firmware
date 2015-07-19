@@ -4,7 +4,7 @@
   * @author  MCD Application Team
   * @version  V3.0.0
   * @date  04/06/2009
-  * @brief  This file contains all the functions prototypes for the CAN firmware 
+  * @brief  This file contains all the functions prototypes for the CAN firmware
   *         library.
   ******************************************************************************
   * @copy
@@ -17,7 +17,7 @@
   * CODING INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
   *
   * <h2><center>&copy; COPYRIGHT 2009 STMicroelectronics</center></h2>
-  */ 
+  */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __STM32F10x_CAN_H
@@ -40,69 +40,65 @@
 
 #define IS_CAN_ALL_PERIPH(PERIPH) (((*(uint32_t*)&(PERIPH)) == CAN1_BASE))
 
-/** 
+/**
   * @brief  CAN init structure definition
   */
 
-typedef struct
-{
-  FunctionalState CAN_TTCM;
-  FunctionalState CAN_ABOM;
-  FunctionalState CAN_AWUM;
-  FunctionalState CAN_NART;
-  FunctionalState CAN_RFLM;
-  FunctionalState CAN_TXFP;
-  uint8_t CAN_Mode;
-  uint8_t CAN_SJW;
-  uint8_t CAN_BS1;
-  uint8_t CAN_BS2;
-  uint16_t CAN_Prescaler;
+typedef struct {
+	FunctionalState CAN_TTCM;
+	FunctionalState CAN_ABOM;
+	FunctionalState CAN_AWUM;
+	FunctionalState CAN_NART;
+	FunctionalState CAN_RFLM;
+	FunctionalState CAN_TXFP;
+	uint8_t CAN_Mode;
+	uint8_t CAN_SJW;
+	uint8_t CAN_BS1;
+	uint8_t CAN_BS2;
+	uint16_t CAN_Prescaler;
 } CAN_InitTypeDef;
 
-/** 
+/**
   * @brief  CAN filter init structure definition
   */
 
-typedef struct
-{
-  uint8_t CAN_FilterNumber;
-  uint8_t CAN_FilterMode;
-  uint8_t CAN_FilterScale;
-  uint16_t CAN_FilterIdHigh;
-  uint16_t CAN_FilterIdLow;
-  uint16_t CAN_FilterMaskIdHigh;
-  uint16_t CAN_FilterMaskIdLow;
-  uint16_t CAN_FilterFIFOAssignment;
-  FunctionalState CAN_FilterActivation;
+typedef struct {
+	uint8_t CAN_FilterNumber;
+	uint8_t CAN_FilterMode;
+	uint8_t CAN_FilterScale;
+	uint16_t CAN_FilterIdHigh;
+	uint16_t CAN_FilterIdLow;
+	uint16_t CAN_FilterMaskIdHigh;
+	uint16_t CAN_FilterMaskIdLow;
+	uint16_t CAN_FilterFIFOAssignment;
+	FunctionalState CAN_FilterActivation;
 } CAN_FilterInitTypeDef;
 
-/** 
-  * @brief  CAN Tx message structure definition  
+/**
+  * @brief  CAN Tx message structure definition
   */
 
-typedef struct
-{
-  uint32_t StdId;
-  uint32_t ExtId;
-  uint8_t IDE;
-  uint8_t RTR;
-  uint8_t DLC;
-  uint8_t Data[8];
+typedef struct {
+	uint32_t StdId;
+	uint32_t ExtId;
+	uint8_t IDE;
+	uint8_t RTR;
+	uint8_t DLC;
+	uint8_t Data[8];
 } CanTxMsg;
 
-/** 
-  * @brief  CAN Rx message structure definition  
+/**
+  * @brief  CAN Rx message structure definition
   */
 
-typedef struct
-{
-  uint32_t StdId;
-  uint32_t ExtId;
-  uint8_t IDE;
-  uint8_t RTR;
-  uint8_t DLC;
-  uint8_t Data[8];
-  uint8_t FMI;
+typedef struct {
+	uint32_t StdId;
+	uint32_t ExtId;
+	uint8_t IDE;
+	uint8_t RTR;
+	uint8_t DLC;
+	uint8_t Data[8];
+	uint8_t FMI;
 } CanRxMsg;
 
 /**
@@ -113,7 +109,7 @@ typedef struct
   * @{
   */
 
-/** @defgroup CAN_sleep_constants 
+/** @defgroup CAN_sleep_constants
   * @{
   */
 
@@ -124,7 +120,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup CAN_operating_mode 
+/** @defgroup CAN_operating_mode
   * @{
   */
 
@@ -139,7 +135,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup CAN_synchronisation_jump_width 
+/** @defgroup CAN_synchronisation_jump_width
   * @{
   */
 
@@ -154,7 +150,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup time_quantum_in_bit_segment_1 
+/** @defgroup time_quantum_in_bit_segment_1
   * @{
   */
 
@@ -180,7 +176,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup time_quantum_in_bit_segment_2 
+/** @defgroup time_quantum_in_bit_segment_2
   * @{
   */
 
@@ -199,7 +195,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup CAN_clock_prescaler 
+/** @defgroup CAN_clock_prescaler
   * @{
   */
 
@@ -209,7 +205,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup CAN_filter_number 
+/** @defgroup CAN_filter_number
   * @{
   */
 
@@ -219,7 +215,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup CAN_filter_mode 
+/** @defgroup CAN_filter_mode
   * @{
   */
 
@@ -232,7 +228,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup CAN_filter_scale 
+/** @defgroup CAN_filter_scale
   * @{
   */
 
@@ -246,7 +242,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup CAN_filter_FIFO_assignation 
+/** @defgroup CAN_filter_FIFO_assignation
   * @{
   */
 
@@ -259,7 +255,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup CAN_Tx 
+/** @defgroup CAN_Tx
   * @{
   */
 
@@ -272,7 +268,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup CAN_identifier_type 
+/** @defgroup CAN_identifier_type
   * @{
   */
 
@@ -284,7 +280,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup CAN_remote_transmission_request 
+/** @defgroup CAN_remote_transmission_request
   * @{
   */
 
@@ -296,7 +292,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup CAN_transmit_constants 
+/** @defgroup CAN_transmit_constants
   * @{
   */
 
@@ -309,7 +305,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup CAN_receive_FIFO_number_constants 
+/** @defgroup CAN_receive_FIFO_number_constants
   * @{
   */
 
@@ -322,7 +318,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup CAN_sleep_constants 
+/** @defgroup CAN_sleep_constants
   * @{
   */
 
@@ -333,7 +329,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup CAN_wake_up_constants 
+/** @defgroup CAN_wake_up_constants
   * @{
   */
 
@@ -344,7 +340,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup CAN_flags 
+/** @defgroup CAN_flags
   * @{
   */
 
@@ -359,7 +355,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup CAN_interrupts 
+/** @defgroup CAN_interrupts
   * @{
   */
 
