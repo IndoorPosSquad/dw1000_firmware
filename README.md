@@ -40,21 +40,24 @@ DWM1000 <===> STM32 <===> Host(PC/Android/MCU)
 
 其中4.6917519677e-3为40位计数器一个周斯内电磁波的传播距离
 
+RX与TX的Antenna Delay之和为两者测距时的稳态误差。
+例如，TX与RX1的测距稳态误差为158米，则两者天线延时之和为：
+158 / 4.691e-3 = 33675
 ~~~
 #ifdef TX
-#define ANTENNA_DELAY 0x000041C6
+#define ANTENNA_DELAY 16838
 #endif
 
 #ifdef RX1
-#define ANTENNA_DELAY 0x000041C6
+#define ANTENNA_DELAY 16965
 #endif
 
 #ifdef RX2
-#define ANTENNA_DELAY 0x000000
+#define ANTENNA_DELAY 16752
 #endif
 
 #ifdef RX3
-#define ANTENNA_DELAY 0x000000
+#define ANTENNA_DELAY 11189
 #endif
 ~~~
 
@@ -82,28 +85,28 @@ Host to Controller Comm
 |       | TYPE  |  CMD  |     FRAG      | Packet Length |    Payload    |          FEC(Optional)        |
 +-------+-------+-----------------------+---------------+---------------+-------------------------------+
  1. Frame Type
-		00 - RES
-		01 - Message
-				Host to Controller(H2C)
-						The payload carries the raw message to sent, see raw_write().
-				Controller to Host(C2H)
-						The payload carries the raw message received, see raw_read().
-		10 - Distance / Location poll
-				Trigger the Location Service.
-		11 - Command
-				CMD - 00
-						Reboot.
-				CMD - 01
-						Write Reg.
-				CMD - 10
-						H2C - Read Reg.
-						C2H - Return the Read Reg Result.
-				CMD - 11
-						Set log level?
+        00 - RES
+        01 - Message
+                Host to Controller(H2C)
+                        The payload carries the raw message to sent, see raw_write().
+                Controller to Host(C2H)
+                        The payload carries the raw message received, see raw_read().
+        10 - Distance / Location poll
+                Trigger the Location Service.
+        11 - Command
+                CMD - 00
+                        Reboot.
+                CMD - 01
+                        Write Reg.
+                CMD - 10
+                        H2C - Read Reg.
+                        C2H - Return the Read Reg Result.
+                CMD - 11
+                        Set log level?
  2. Packet Length
-		Total length of all Payloads in a sequence in Unsigned 8 bits Integer.
+        Total length of all Payloads in a sequence in Unsigned 8 bits Integer.
  3. FEC(OPTIONAL)
-		CRC16 of the frame.
+        CRC16 of the frame.
 ~~~
 
 ## 无线通信数据包格式
@@ -126,20 +129,20 @@ Frame Control:
 |      | Type      | Enabled  | Pending | Requst | Compress |           | Mode      | Version | Mode     |
 +------+-----------+----------+---------+--------+----------+-----------+-----------+---------+----------+
 1. Frame Type
-		100 - Location Service (802.15.4a Reserved).
-				Then the first byte of Payload is used to identify the LS message type.
-				0x00 - LS Req
-						Request for Location Service.
-				0x01 - LS ACK
-						ACK for LS Req, and mark the receive time of LS Req(T_Req) and the sent time of LS ACK(T_ACK).
-				0x02 - LS Data
-						Return T_ACK - T_Req.
-				0x03 - LS Information Return
-						Return the distance data to the ACK node.
-				0x04 - LS Forward
-						Forward the Location data to a specific node.
+        100 - Location Service (802.15.4a Reserved).
+                Then the first byte of Payload is used to identify the LS message type.
+                0x00 - LS Req
+                        Request for Location Service.
+                0x01 - LS ACK
+                        ACK for LS Req, and mark the receive time of LS Req(T_Req) and the sent time of LS ACK(T_ACK).
+                0x02 - LS Data
+                        Return T_ACK - T_Req.
+                0x03 - LS Information Return
+                        Return the distance data to the ACK node.
+                0x04 - LS Forward
+                        Forward the Location data to a specific node.
 2. Other Fields
-		Please reference 802.15.4a.
+        Please reference 802.15.4a.
 ~~~
 
 ## API
