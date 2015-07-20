@@ -285,26 +285,34 @@ void Location_polling(void) {
 */
 
 void distance_measurement(int n) {
-	double double_diff;
-	double total_delay;
-	total_delay = 1.0 * (2 * ANTENNA_DELAY + 2 * LS_DELAY[n]);
+	u32 double_diff;
+	u32 rxtx_antenna_delay;
 
-	DEBUG1(("ANTENNA_DELAY_THIS: %d\n", ANTENNA_DELAY));
-	DEBUG1(("ANTENNA_DELAY_THAT[%d]: %d\n", n, LS_DELAY[n]));
+	rxtx_antenna_delay = ((u32) (ANTENNA_DELAY) + (u32) (LS_DELAY[n]));
 
-	if(Tx_stp_H == Rx_stp_HT[n]) {
-		double_diff = 1.0 * (Rx_stp_LT[n] - Tx_stp_L);
-	} else if(Tx_stp_H < Rx_stp_HT[n]) {
-		double_diff = 1.0 * ((Rx_stp_HT[n] - Tx_stp_H) * 0xFFFFFFFF + Rx_stp_LT[n] - Tx_stp_L);
+	DEBUG3(("ANTENNA_DELAY_THIS: %d\r\n", ANTENNA_DELAY));
+	DEBUG3(("ANTENNA_DELAY_THAT[%d]: %d\r\n", n, LS_DELAY[n]));
+
+	if (Tx_stp_H == Rx_stp_HT[n]) {
+		double_diff = (Rx_stp_LT[n] - Tx_stp_L);
+	} else if (Tx_stp_H < Rx_stp_HT[n]) {
+		double_diff = ((Rx_stp_HT[n] - Tx_stp_H) * 0xFFFFFFFF + Rx_stp_LT[n] - Tx_stp_L);
 	} else {
-		double_diff = 1.0 * ((0xFF - Tx_stp_H + Rx_stp_HT[n] + 1) * 0xFFFFFFFF + Rx_stp_LT[n] - Tx_stp_L);
+		double_diff = ((0xFF - Tx_stp_H + Rx_stp_HT[n] + 1) * 0xFFFFFFFF + Rx_stp_LT[n] - Tx_stp_L);
 	}
 
-	double_diff = double_diff - LS_DATA[n] - total_delay;
+	DEBUG3(("rxtx_antenna_delay: %d\r\n", rxtx_antenna_delay));
+	DEBUG3(("LS_DATA[n] : %d\r\n", LS_DATA[n]));
+	DEBUG3(("double_diff: %d\r\n", double_diff));
+
+	double_diff = double_diff - 2 * rxtx_antenna_delay - LS_DATA[n];
+
+	DEBUG3(("after_diff : %d\r\n", double_diff));
 
 	// distance[n] = 1.0*_WAVE_SPEED * (1.0*Tx_diff - 1.0*LS_DATA[n]) / (128.0 * 499.2 * 1000000.0);
-	distance[n] = 15.65 / 1000000000000 * double_diff / 2 * _WAVE_SPEED;
+	distance[n] = 15.65 / 1000000000000 * (double) (double_diff) / 2 * _WAVE_SPEED;
 	// 4.6917519677e-3 * double_diff / 2
+
 
 #ifdef RX4
 	data[0] = (u32)(100 * distance[0]);

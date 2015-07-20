@@ -2,6 +2,7 @@
 #define __USART_H__
 
 #include <stdio.h>
+#include "CONFIG.h"
 void USART1_init(void);
 int fputc(int ch, FILE *f);
 void usart_handle(void);

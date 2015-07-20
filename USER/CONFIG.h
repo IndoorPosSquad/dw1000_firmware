@@ -10,39 +10,43 @@
   //#define RX3
   //#define RX4
  */
-#define TX
+//#define TX
 
-//#define RX
+#define RX
 //#define RX1
 //#define RX2
-//#define RX3
+#define RX3
 //#define RX4
 
 
 // debug level
 /*
  */
-#define DEBUG_LVL 2
+#define DEBUG_LVL 3
 
 // antenna delay
 /*
   计算公式 antenna_delay = 距离(米) / 4.6917519677e-3
   其中4.6917519677e-3为40位计数器一个周斯内电磁波的传播距离
+  RX与TX的Antenna Delay之和为两者测距时的稳态误差
+
+  例如，TX与RX1的测距稳态误差为158米，则两者天线延时之和为：
+  158 / 4.691e-3 = 33675
  */
 #ifdef TX
-#define ANTENNA_DELAY 0x000041C6
+#define ANTENNA_DELAY 16838
 #endif
 
 #ifdef RX1
-#define ANTENNA_DELAY 0x000041C6
+#define ANTENNA_DELAY 16965
 #endif
 
 #ifdef RX2
-#define ANTENNA_DELAY 0x000000
+#define ANTENNA_DELAY 16752
 #endif
 
 #ifdef RX3
-#define ANTENNA_DELAY 0x000000
+#define ANTENNA_DELAY 11189
 #endif
 
 // 若RAW_OUTPUT为0，则输出解算后的结果

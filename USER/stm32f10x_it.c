@@ -34,6 +34,8 @@
 
 #include "USART.h"
 
+#include "CONFIG.h"
+
 // USB
 
 // Common

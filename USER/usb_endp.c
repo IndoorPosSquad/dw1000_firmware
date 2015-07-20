@@ -34,6 +34,7 @@
 #include "usb_pwr.h"
 #include "DW1000.h"
 #include "string.h"
+#include "CONFIG.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -54,14 +55,14 @@ extern u8 mac[8];
 /* Private functions ---------------------------------------------------------*/
 void EP1_IN_Callback(void) {
 #if defined(RX5) || defined(RX6)
-	Pop(in_buf);
-	USB_SIL_Write(EP1_IN, (u8*)(in_buf), 64);
+        Pop(in_buf);
+        USB_SIL_Write(EP1_IN, (u8*)(in_buf), 64);
 #endif
 #ifdef RX4
-	USB_SIL_Write(EP1_IN, (u8*)(data), 64);
+        USB_SIL_Write(EP1_IN, (u8*)(data), 64);
 #endif
-	// SetEPRxStatus(ENDP1, EP_RX_NAK); // NOT TX DISABLE
-	SetEPTxStatus(ENDP1, EP_TX_VALID);
+        // SetEPRxStatus(ENDP1, EP_RX_NAK); // NOT TX DISABLE
+        SetEPTxStatus(ENDP1, EP_TX_VALID);
 }
 
 // Host to Controller Comm
@@ -93,48 +94,48 @@ void EP1_IN_Callback(void) {
 //	CRC16 of the frame.
 
 void EP3_OUT_Callback(void) {
-	USB_SIL_Read(EP3_OUT, out_buf);
-	// DATA PROCESSING...
-	if(out_buf[0] == 0x10) {
-		memcpy(mac, out_buf + 2, 8);
-		set_MAC(mac);
-	} else {
-		if(out_buf[1] < (u8)(63)) {
-			Buffer[0] = 0x90;
-			memcpy(Buffer + 1, out_buf + 2, (u8)(out_buf[1]));
-			raw_write(Buffer, (u16*)((u8)(out_buf[1]) + 1));
-		} else if(out_buf[1] < (u8)(125)) {
-			// 2 frames
-			if(count == 0 && out_buf[0] == 0x00) {
-				count = 1;
-				Buffer[0] = 0x90;
-				memcpy(Buffer + 1, out_buf + 2, 62);
-			} else if(count == 1 && out_buf[0] == 0x01) {
-				count = 0;
-				memcpy(Buffer + 63, out_buf + 2, (u8)(out_buf[1]) - 62);
-				raw_write(Buffer, (u16*)((u8)(out_buf[1]) + 1));
-			} else {
-				count = 0;
-			}
-		} else {
-			// 3 frames
-			if(count == 0 && out_buf[0] == 0x00) {
-				count = 1;
-				Buffer[0] = 0x90;
-				memcpy(Buffer + 1, out_buf + 2, 62);
-			} else if(count == 1 && out_buf[0] == 0x01) {
-				count = 2;
-				memcpy(Buffer + 63, out_buf + 2, 62);
-			} else if(count == 2 && out_buf[0] == 0x02) {
-				count = 0;
-				memcpy(Buffer + 63, out_buf + 2, (u8)(out_buf[1]) - 124);
-				raw_write(Buffer, (u16*)((u8)(out_buf[1]) + 1));
-			} else {
-				count = 0;
-			}
-		}
-	}
-	SetEPRxStatus(ENDP3, EP_RX_VALID);
+        USB_SIL_Read(EP3_OUT, out_buf);
+        // DATA PROCESSING...
+        if(out_buf[0] == 0x10) {
+                memcpy(mac, out_buf + 2, 8);
+                set_MAC(mac);
+        } else {
+                if(out_buf[1] < (u8)(63)) {
+                        Buffer[0] = 0x90;
+                        memcpy(Buffer + 1, out_buf + 2, (u8)(out_buf[1]));
+                        raw_write(Buffer, (u16*)((u8)(out_buf[1]) + 1));
+                } else if(out_buf[1] < (u8)(125)) {
+                        // 2 frames
+                        if(count == 0 && out_buf[0] == 0x00) {
+                                count = 1;
+                                Buffer[0] = 0x90;
+                                memcpy(Buffer + 1, out_buf + 2, 62);
+                        } else if(count == 1 && out_buf[0] == 0x01) {
+                                count = 0;
+                                memcpy(Buffer + 63, out_buf + 2, (u8)(out_buf[1]) - 62);
+                                raw_write(Buffer, (u16*)((u8)(out_buf[1]) + 1));
+                        } else {
+                                count = 0;
+                        }
+                } else {
+                        // 3 frames
+                        if(count == 0 && out_buf[0] == 0x00) {
+                                count = 1;
+                                Buffer[0] = 0x90;
+                                memcpy(Buffer + 1, out_buf + 2, 62);
+                        } else if(count == 1 && out_buf[0] == 0x01) {
+                                count = 2;
+                                memcpy(Buffer + 63, out_buf + 2, 62);
+                        } else if(count == 2 && out_buf[0] == 0x02) {
+                                count = 0;
+                                memcpy(Buffer + 63, out_buf + 2, (u8)(out_buf[1]) - 124);
+                                raw_write(Buffer, (u16*)((u8)(out_buf[1]) + 1));
+                        } else {
+                                count = 0;
+                        }
+                }
+        }
+        SetEPRxStatus(ENDP3, EP_RX_VALID);
 }
 
 // void EP2_OUT_Callback (void)
@@ -146,7 +147,7 @@ void EP3_OUT_Callback(void) {
 // }
 
 void EP2_IN_Callback(void) {
-	PrevXferComplete = 1;
+        PrevXferComplete = 1;
 }
 
 // to send an interrupt
