@@ -1,21 +1,11 @@
 #include "stm32f10x.h"
-#include "usb_istr.h"
-#include "usb_lib.h"
-#include "usb_pwr.h"
 #include "SPI.h"
 #include "DW1000.h"
 #include "USART.h"
 #include "math.h"
 #include "delay.h"
-#include "string.h"
 
 #include "CONFIG.h"
-
-#define fifolen 256
-// When I started writing those codes, only God and I know what are them supposed to do.
-// But now, only God knows.
-// USB
-uint8_t int_Send_Buffer[2];
 
 u8 mac[8];
 u8 emac[6];
@@ -56,82 +46,8 @@ u16 rxpacc;
 double fppl;
 double rxl;
 
-u8 Queue[fifolen * 64];
-u8 buf[64];
-volatile int Length = 0;
-volatile int Head = 0, Tail = 0;
-
 extern int debug_lvl;
 
-void Push(u8* data) {
-	if(Length == fifolen)
-		return;
-	memcpy(Queue + Head * 64, data, 64);
-	Head++;
-	Length++;
-	if(Head == fifolen)
-		Head = 0;
-}
-
-void Pop(u8* data) {
-	if(Length == 0) {
-		memset(data, 0, 64);
-		return;
-	}
-	memcpy(data, Queue + Head * 64, 64);
-	Tail++;
-	Length--;
-	if(Tail == fifolen)
-		Tail = 0;
-}
-
-void Fifoput(u8* data, int len) {
-	if(len < 63) {
-		buf[0] = 0x00;
-		buf[1] = (u8)(len);
-		memcpy(buf + 2, data, len);
-		Push(buf);
-	} else if(len < 125) {
-		// frame 1
-		buf[0] = 0x01;
-		buf[1] = (u8)(len);
-		memcpy(buf + 2, data, 62);
-		Push(buf);
-		// frame 2 */
-		memset(buf, 0, 64);
-		buf[0] = 0x02;
-		buf[1] = (u8)(len);
-		memcpy(buf + 2, data + 62, len - 62);
-		Push(buf);
-	} else {
-		// frame 1
-		buf[0] = 0x01;
-		buf[1] = (u8)(len);
-		memcpy(buf + 2, data, 62);
-		Push(buf);
-		// frame 2
-		memset(buf, 0, 64);
-		buf[0] = 0x02;
-		buf[1] = (u8)(len);
-		memcpy(buf + 2, data + 62, 62);
-		Push(buf);
-		// frame 3
-		memset(buf, 0, 64);
-		buf[0] = 0x03;
-		buf[1] = (u8)(len);
-		memcpy(buf + 2, data + 124, len - 124);
-		Push(buf);
-	}
-	int_Send_Buffer[0] = 0xF0;
-	int_Send_Buffer[1] = 0xF0;
-	// /\* Copy mouse position info in ENDP1 Tx Packet Memory Area*\/
-	// USB_SIL_Write(EP2_IN, int_Send_Buffer, 2);
-	// /\* Enable endpoint for transmission *\/
-	// SetEPTxStatus(ENDP2, EP_TX_VALID);
-	UserToPMABufferCopy(int_Send_Buffer, GetEPTxAddr(ENDP2), 2);
-	SetEPTxCount(ENDP2, 2);
-	SetEPTxValid(ENDP2);
-}
 
 /*
 DW1000初始化

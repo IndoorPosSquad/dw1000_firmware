@@ -1,6 +1,6 @@
 Dependencies for Project 'TX', Target 'TX': (DO NOT MODIFY !)
 F (..\CMSIS\startup\startup_stm32f10x_hd.s)(0x557FA8BF)(--cpu Cortex-M3 -g --apcs=interwork --pd "__MICROLIB SETA 1"-I "C:\Program Files\Keli\ARM\RV31\INC"-I "C:\Program Files\Keli\ARM\CMSIS\Include"-I "C:\Program Files\Keli\ARM\Inc\ST\STM32F10x"--list ..\listing\startup_stm32f10x_hd.lst --xref -o ..\output\startup_stm32f10x_hd.o --depend ..\output\startup_stm32f10x_hd.d)
-F (.\main.c)(0x55AC493A)(-c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork -I..\CMSIS -I..\USER -I..\FWlib\inc -I..\FWlib\src-I "C:\Program Files\Keli\ARM\RV31\INC"-I "C:\Program Files\Keli\ARM\CMSIS\Include"-I "C:\Program Files\Keli\ARM\Inc\ST\STM32F10x"-DUSE_STDPERIPH_DRIVER -DSTM32F10X_MD-o ..\output\main.o --omf_browse ..\output\main.crf --depend ..\output\main.d)
+F (.\main.c)(0x55ADA962)(-c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork -I..\CMSIS -I..\USER -I..\FWlib\inc -I..\FWlib\src-I "C:\Program Files\Keli\ARM\RV31\INC"-I "C:\Program Files\Keli\ARM\CMSIS\Include"-I "C:\Program Files\Keli\ARM\Inc\ST\STM32F10x"-DUSE_STDPERIPH_DRIVER -DSTM32F10X_MD-o ..\output\main.o --omf_browse ..\output\main.crf --depend ..\output\main.d)
 I (..\CMSIS\stm32f10x.h)(0x55AB7C03)
 I (..\CMSIS\core_cm3.h)(0x55AB7C03)
 I (C:\Program Files\Keli\ARM\ARMCC\include\stdint.h)(0x51C7C554)
@@ -36,7 +36,7 @@ I (usb_desc.h)(0x55AB7C04)
 I (usb_pwr.h)(0x55AB7C04)
 I (delay.h)(0x55A36722)
 I (utils.h)(0x55AB7C04)
-F (.\stm32f10x_it.c)(0x55AC4881)(-c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork -I..\CMSIS -I..\USER -I..\FWlib\inc -I..\FWlib\src-I "C:\Program Files\Keli\ARM\RV31\INC"-I "C:\Program Files\Keli\ARM\CMSIS\Include"-I "C:\Program Files\Keli\ARM\Inc\ST\STM32F10x"-DUSE_STDPERIPH_DRIVER -DSTM32F10X_MD-o ..\output\stm32f10x_it.o --omf_browse ..\output\stm32f10x_it.crf --depend ..\output\stm32f10x_it.d)
+F (.\stm32f10x_it.c)(0x55AD00B7)(-c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork -I..\CMSIS -I..\USER -I..\FWlib\inc -I..\FWlib\src-I "C:\Program Files\Keli\ARM\RV31\INC"-I "C:\Program Files\Keli\ARM\CMSIS\Include"-I "C:\Program Files\Keli\ARM\Inc\ST\STM32F10x"-DUSE_STDPERIPH_DRIVER -DSTM32F10X_MD-o ..\output\stm32f10x_it.o --omf_browse ..\output\stm32f10x_it.crf --depend ..\output\stm32f10x_it.d)
 I (stm32f10x_it.h)(0x55AB7C04)
 I (..\CMSIS\stm32f10x.h)(0x55AB7C03)
 I (..\CMSIS\core_cm3.h)(0x55AB7C03)
@@ -109,7 +109,7 @@ I (USART.h)(0x55AC491A)
 I (C:\Program Files\Keli\ARM\ARMCC\include\stdio.h)(0x51C7C554)
 I (CONFIG.h)(0x55AC7685)
 I (SPI.h)(0x55AB7C03)
-F (.\DW1000.c)(0x55AC73EA)(-c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork -I..\CMSIS -I..\USER -I..\FWlib\inc -I..\FWlib\src-I "C:\Program Files\Keli\ARM\RV31\INC"-I "C:\Program Files\Keli\ARM\CMSIS\Include"-I "C:\Program Files\Keli\ARM\Inc\ST\STM32F10x"-DUSE_STDPERIPH_DRIVER -DSTM32F10X_MD-o ..\output\dw1000.o --omf_browse ..\output\dw1000.crf --depend ..\output\dw1000.d)
+F (.\DW1000.c)(0x55ADAED1)(-c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork -I..\CMSIS -I..\USER -I..\FWlib\inc -I..\FWlib\src-I "C:\Program Files\Keli\ARM\RV31\INC"-I "C:\Program Files\Keli\ARM\CMSIS\Include"-I "C:\Program Files\Keli\ARM\Inc\ST\STM32F10x"-DUSE_STDPERIPH_DRIVER -DSTM32F10X_MD-o ..\output\dw1000.o --omf_browse ..\output\dw1000.crf --depend ..\output\dw1000.d)
 I (..\CMSIS\stm32f10x.h)(0x55AB7C03)
 I (..\CMSIS\core_cm3.h)(0x55AB7C03)
 I (C:\Program Files\Keli\ARM\ARMCC\include\stdint.h)(0x51C7C554)
@@ -123,20 +123,6 @@ I (..\FWlib\inc\stm32f10x_spi.h)(0x55AB7C03)
 I (..\FWlib\inc\stm32f10x_tim.h)(0x55AB7C03)
 I (..\FWlib\inc\stm32f10x_usart.h)(0x55AB7C03)
 I (..\FWlib\inc\misc.h)(0x55AB7C03)
-I (usb_istr.h)(0x55AB7C04)
-I (usb_conf.h)(0x55AB7C04)
-I (..\FWlib\inc\usb_lib.h)(0x55AB7C03)
-I (..\USER\hw_config.h)(0x55AB7C03)
-I (..\USER\platform_config.h)(0x55AB7C04)
-I (..\FWlib\inc\usb_type.h)(0x55AB7C03)
-I (..\FWlib\inc\usb_regs.h)(0x55AB7C03)
-I (..\FWlib\inc\usb_def.h)(0x55AB7C03)
-I (..\FWlib\inc\usb_core.h)(0x55AB7C03)
-I (..\FWlib\inc\usb_init.h)(0x55AB7C03)
-I (..\FWlib\inc\usb_sil.h)(0x55AB7C03)
-I (..\FWlib\inc\usb_mem.h)(0x55AB7C03)
-I (..\FWlib\inc\usb_int.h)(0x55AB7C03)
-I (usb_pwr.h)(0x55AB7C04)
 I (SPI.h)(0x55AB7C03)
 I (DW1000.h)(0x55AB7C03)
 I (USART.h)(0x55AC491A)
@@ -144,7 +130,6 @@ I (C:\Program Files\Keli\ARM\ARMCC\include\stdio.h)(0x51C7C554)
 I (CONFIG.h)(0x55AC7685)
 I (C:\Program Files\Keli\ARM\ARMCC\include\math.h)(0x51C7C554)
 I (delay.h)(0x55A36722)
-I (C:\Program Files\Keli\ARM\ARMCC\include\string.h)(0x51C7C554)
 F (.\delay.c)(0x55AB7C03)(-c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork -I..\CMSIS -I..\USER -I..\FWlib\inc -I..\FWlib\src-I "C:\Program Files\Keli\ARM\RV31\INC"-I "C:\Program Files\Keli\ARM\CMSIS\Include"-I "C:\Program Files\Keli\ARM\Inc\ST\STM32F10x"-DUSE_STDPERIPH_DRIVER -DSTM32F10X_MD-o ..\output\delay.o --omf_browse ..\output\delay.crf --depend ..\output\delay.d)
 I (..\CMSIS\stm32f10x.h)(0x55AB7C03)
 I (..\CMSIS\core_cm3.h)(0x55AB7C03)
@@ -349,6 +334,36 @@ I (..\FWlib\inc\stm32f10x_spi.h)(0x55AB7C03)
 I (..\FWlib\inc\stm32f10x_tim.h)(0x55AB7C03)
 I (..\FWlib\inc\stm32f10x_usart.h)(0x55AB7C03)
 I (..\FWlib\inc\misc.h)(0x55AB7C03)
+F (.\utils.c)(0x55ADAEDE)(-c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork -I..\CMSIS -I..\USER -I..\FWlib\inc -I..\FWlib\src-I "C:\Program Files\Keli\ARM\RV31\INC"-I "C:\Program Files\Keli\ARM\CMSIS\Include"-I "C:\Program Files\Keli\ARM\Inc\ST\STM32F10x"-DUSE_STDPERIPH_DRIVER -DSTM32F10X_MD-o ..\output\utils.o --omf_browse ..\output\utils.crf --depend ..\output\utils.d)
+I (utils.h)(0x55AB7C04)
+I (usb_istr.h)(0x55AB7C04)
+I (usb_conf.h)(0x55AB7C04)
+I (..\FWlib\inc\usb_lib.h)(0x55AB7C03)
+I (..\USER\hw_config.h)(0x55AB7C03)
+I (..\USER\platform_config.h)(0x55AB7C04)
+I (..\CMSIS\stm32f10x.h)(0x55AB7C03)
+I (..\CMSIS\core_cm3.h)(0x55AB7C03)
+I (C:\Program Files\Keli\ARM\ARMCC\include\stdint.h)(0x51C7C554)
+I (..\CMSIS\system_stm32f10x.h)(0x55AB7C03)
+I (..\USER\stm32f10x_conf.h)(0x55AB7C04)
+I (..\FWlib\inc\stm32f10x_exti.h)(0x55AB7C03)
+I (..\FWlib\inc\stm32f10x_gpio.h)(0x55AB7C03)
+I (..\FWlib\inc\stm32f10x_pwr.h)(0x55AB7C03)
+I (..\FWlib\inc\stm32f10x_rcc.h)(0x55AB7C03)
+I (..\FWlib\inc\stm32f10x_spi.h)(0x55AB7C03)
+I (..\FWlib\inc\stm32f10x_tim.h)(0x55AB7C03)
+I (..\FWlib\inc\stm32f10x_usart.h)(0x55AB7C03)
+I (..\FWlib\inc\misc.h)(0x55AB7C03)
+I (..\FWlib\inc\usb_type.h)(0x55AB7C03)
+I (..\FWlib\inc\usb_regs.h)(0x55AB7C03)
+I (..\FWlib\inc\usb_def.h)(0x55AB7C03)
+I (..\FWlib\inc\usb_core.h)(0x55AB7C03)
+I (..\FWlib\inc\usb_init.h)(0x55AB7C03)
+I (..\FWlib\inc\usb_sil.h)(0x55AB7C03)
+I (..\FWlib\inc\usb_mem.h)(0x55AB7C03)
+I (..\FWlib\inc\usb_int.h)(0x55AB7C03)
+I (usb_pwr.h)(0x55AB7C04)
+I (C:\Program Files\Keli\ARM\ARMCC\include\string.h)(0x51C7C554)
 F (..\FWlib\src\stm32f10x_gpio.c)(0x55AB7C03)(-c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork -I..\CMSIS -I..\USER -I..\FWlib\inc -I..\FWlib\src-I "C:\Program Files\Keli\ARM\RV31\INC"-I "C:\Program Files\Keli\ARM\CMSIS\Include"-I "C:\Program Files\Keli\ARM\Inc\ST\STM32F10x"-DUSE_STDPERIPH_DRIVER -DSTM32F10X_MD-o ..\output\stm32f10x_gpio.o --omf_browse ..\output\stm32f10x_gpio.crf --depend ..\output\stm32f10x_gpio.d)
 I (..\FWlib\inc\stm32f10x_gpio.h)(0x55AB7C03)
 I (..\CMSIS\stm32f10x.h)(0x55AB7C03)

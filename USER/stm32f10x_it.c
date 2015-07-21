@@ -118,9 +118,9 @@ void HardFault_Handler(void) {
 }
 
 /**
-        * @brief  This function handles Memory Manage exception.
-        * @param  None
-        * @retval None
+ * @brief  This function handles Memory Manage exception.
+ * @param  None
+ * @retval None
 */
 void MemManage_Handler(void) {
 	/* Go to infinite loop when Memory Manage exception occurs */
@@ -129,9 +129,9 @@ void MemManage_Handler(void) {
 }
 
 /**
-        * @brief  This function handles Bus Fault exception.
-        * @param  None
-        * @retval None
+ * @brief  This function handles Bus Fault exception.
+ * @param  None
+ * @retval None
 */
 void BusFault_Handler(void) {
 	/* Go to infinite loop when Bus Fault exception occurs */
@@ -140,10 +140,10 @@ void BusFault_Handler(void) {
 }
 
 /**
-        * @brief  This function handles Usage Fault exception.
-        * @param  None
-        * @retval None
-*/
+ * @brief  This function handles Usage Fault exception.
+ * @param  None
+ * @retval None
+ */
 void UsageFault_Handler(void) {
 	/* Go to infinite loop when Usage Fault exception occurs */
 	while(1) {
@@ -151,33 +151,33 @@ void UsageFault_Handler(void) {
 }
 
 /**
-        * @brief  This function handles SVCall exception.
-        * @param  None
-        * @retval None
+ * @brief  This function handles SVCall exception.
+ * @param  None
+ * @retval None
 */
 void SVC_Handler(void) {
 }
 
 /**
-        * @brief  This function handles Debug Monitor exception.
-        * @param  None
-        * @retval None
-*/
+ * @brief  This function handles Debug Monitor exception.
+ * @param  None
+ * @retval None
+ */
 void DebugMon_Handler(void) {
 }
 
 /**
-        * @brief  This function handles PendSVC exception.
-        * @param  None
-        * @retval None
+	* @brief  This function handles PendSVC exception.
+	* @param  None
+	* @retval None
 */
 void PendSV_Handler(void) {
 }
 
 /**
-        * @brief  This function handles SysTick Handler.
-        * @param  None
-        * @retval None
+	* @brief  This function handles SysTick Handler.
+	* @param  None
+	* @retval None
 */
 
 /******************************************************************************/
@@ -188,9 +188,9 @@ void PendSV_Handler(void) {
 /******************************************************************************/
 
 /**
-        * @brief  This function handles PPP interrupt request.
-        * @param  None
-        * @retval None
+	* @brief  This function handles PPP interrupt request.
+	* @param  None
+	* @retval None
 */
 
 void EXTI1_IRQHandler(void) {
@@ -281,7 +281,8 @@ void EXTI1_IRQHandler(void) {
 				DEBUG2(("LS RETURN\t\tSuccessfully Sent\r\n"));
 			}
 
-		} else if(((status & 0x00004000) == 0x00004000) || ((status & 0x00002000) == 0x00002000)) { // receive done
+		} else if (((status & 0x00004000) == 0x00004000) ||
+			   ((status & 0x00002000) == 0x00002000)) { // receive done
 			DEBUG2(("receive done.\r\n"));
 			to_IDLE();
 			// clear flag
@@ -330,10 +331,10 @@ void EXTI1_IRQHandler(void) {
 				// pl_size, payload[0]);
 
 				DEBUG2(("Header: %02X\r\n", (u8)(Rx_Buff[0] & 0xE0)));
-				for(i = 0; i < 8; i++) {
+				for (i = 0; i < 8; i++) {
 					if((u8)(dst[i]) != (u8)(broadcast_addr[i])) {
 						for(i = 0; i < 8; i++) {
-							if((u8)(dst[i]) != (u8)(mac[i])) {
+							if ((u8)(dst[i]) != (u8)(mac[i])) {
 								for_me = 0;
 								break;
 							}
@@ -341,7 +342,7 @@ void EXTI1_IRQHandler(void) {
 						break;
 					}
 				}
-				if(for_me == 1)
+				if (for_me == 1)
 					// LS Frame
 					if((u8)(Rx_Buff[0] & 0xE0) == 0x80) {
 						DEBUG2(("A LS Frame.\r\n"));
@@ -428,20 +429,17 @@ void EXTI1_IRQHandler(void) {
 	}
 }
 
-
-#ifdef TX
 void TIM2_IRQHandler(void) {
-	DEBUG2(("TIM IRQ\n"));
+	DEBUG2(("TIM IRQ\r\n"));
 	if(TIM_GetITStatus(TIM2 , TIM_IT_Update) != RESET) {
 		TIM_ClearITPendingBit(TIM2 , TIM_FLAG_Update);
-		DEBUG2(("Performing Location_polling()...\n"));
+		DEBUG2(("Performing Location_polling()...\r\n"));
 		Location_polling();
 	}
 }
-#endif
 
 void TIM3_IRQHandler(void) {
-	if(TIM_GetITStatus(TIM3 , TIM_IT_Update) != RESET) {
+	if (TIM_GetITStatus(TIM3 , TIM_IT_Update) != RESET) {
 		TIM_ITConfig(TIM3, TIM_IT_Update, DISABLE);
 		TIM_SetCounter(TIM3, 0x0000);
 		TIM_Cmd(TIM3, DISABLE);
@@ -453,7 +451,7 @@ void TIM3_IRQHandler(void) {
 
 
 void TIM4_IRQHandler(void) {
-	if(TIM_GetITStatus(TIM4 , TIM_IT_Update) != RESET) {
+	if (TIM_GetITStatus(TIM4 , TIM_IT_Update) != RESET) {
 		TIM_ClearITPendingBit(TIM4 , TIM_FLAG_Update);
 		usart_status = 2;
 		//计数器TIM4清零,停止工作
@@ -467,8 +465,8 @@ void TIM4_IRQHandler(void) {
 }
 
 void USART1_IRQHandler(void) {
-	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET) {
-		if(usart_status == 0) {
+	if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET) {
+		if (usart_status == 0) {
 			usart_status = 1;
 
 			//开启计数器TIM4
@@ -477,10 +475,10 @@ void USART1_IRQHandler(void) {
 			TIM_Cmd(TIM4, ENABLE);
 
 			usart_buffer[usart_index++] = USART1->DR;
-			if(usart_index == 64) {
+			if (usart_index == 64) {
 				usart_index = 0;
 			}
-		} else if(usart_status == 1) {
+		} else if (usart_status == 1) {
 			//计数器TIM4清零,
 			TIM_ITConfig(TIM4, TIM_IT_Update, DISABLE);
 			TIM_SetCounter(TIM4, 0x0000);
@@ -488,7 +486,7 @@ void USART1_IRQHandler(void) {
 			TIM_ITConfig(TIM4, TIM_IT_Update, ENABLE);
 
 			usart_buffer[usart_index++] = USART1->DR;
-			if(usart_index == 64) {
+			if (usart_index == 64) {
 				usart_index = 0;
 			}
 		}
