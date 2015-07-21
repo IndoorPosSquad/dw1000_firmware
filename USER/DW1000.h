@@ -16,8 +16,8 @@
 
 void Location_polling(void);
 void distance_measurement(int n);
-void distance_forward(void);
 void location_info_upload(void);
+void distance_forward(void);
 void handle_distance_forward(u8 * payload);
 void quality_measurement(void);
 
@@ -33,9 +33,6 @@ void send_LS_ACK(u8 *src, u8 *dst);
 void send_LS_DATA(u8 *src, u8 *dst);
 void read_status(u32 *status);
 void sent_and_wait(void);
-void Fifoput(u8* data, int len);
-void Push(u8* data);
-void Pop(u8* data);
 
 void Read_VotTmp(u8 * vot, u8 * tmp);
 void Init_VotTmp(u8 * voltage, u8 * temperature);
