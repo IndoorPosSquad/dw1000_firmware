@@ -1,7 +1,6 @@
 #ifndef __UTILS_H
 #define __UTILS_H
-
-///#include <stm32f10x_lib.h>
+#include <stm32f10x.h>
 
 // IO macros
 #define BITBAND(addr, bitnum) ((addr & 0xF0000000)+0x2000000+((addr &0xFFFFF)<<5)+(bitnum<<2))
@@ -44,5 +43,10 @@
 
 #define PGout(n)   BIT_ADDR(GPIOG_ODR_Addr,n)
 #define PGin(n)    BIT_ADDR(GPIOG_IDR_Addr,n)
+
+// Cycular FIFO
+void Fifoput(u8* data, int len);
+void Push(u8* data);
+void Pop(u8* data);
 
 #endif

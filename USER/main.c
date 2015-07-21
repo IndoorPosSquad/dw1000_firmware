@@ -177,11 +177,6 @@ int main(void) {
 	DEBUG0(("========Init Done=======\r\n"));
 
 	while(1) {
-		PCout(13) = 1;
-		delay(0xfffff);
-		delay(0xfffff);
-		PCout(13) = 0;
-		delay(0xfffff);
-		delay(0xfffff);
+		;
 	}
 }
