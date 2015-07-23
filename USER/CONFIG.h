@@ -24,6 +24,10 @@
  */
 #define DEBUG_LVL 3
 
+// 定位周期配置
+#define LOCATION_PERIOD (1)
+#define TICK_IN_PERIOD (15) // 5 <= TICK_IN_PERIOD <= 255
+
 // antenna delay
 /*
   计算公式 antenna_delay = 距离(米) / 4.6917519677e-3

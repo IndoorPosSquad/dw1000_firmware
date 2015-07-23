@@ -1,3 +1,4 @@
+
 /******************** (C) COPYRIGHT 2012 WildFire Team **************************
  * 文件名  ：main.c
  * 描述    ：LED流水灯，频率可调……
@@ -42,8 +43,11 @@ void TIM2_init(void) {
 
 	TIM_DeInit(TIM2);
 
-	TIM_TimeBaseStructure.TIM_Period = 500; // 0.01s
-	TIM_TimeBaseStructure.TIM_Prescaler = 36000;
+	// 0.0005 * 100 = 0.05s
+	TIM_TimeBaseStructure.TIM_Period = (int) ((float)LOCATION_PERIOD / (float)TICK_IN_PERIOD / 0.0005); // 0.05s
+	DEBUG2(("%f %f %f\r\n", (float)LOCATION_PERIOD ,(float)TICK_IN_PERIOD, (float)LOCATION_PERIOD / (float)TICK_IN_PERIOD));
+	DEBUG2(("定位TICK周期: %f\r\n", ((float)LOCATION_PERIOD / (float)TICK_IN_PERIOD / 0.0005)));
+	TIM_TimeBaseStructure.TIM_Prescaler = 36000; // 1 / 72MHz * 36k = 0.0005/period
 	TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
 	TIM_TimeBaseInit(TIM2, &TIM_TimeBaseStructure);
@@ -52,8 +56,7 @@ void TIM2_init(void) {
 	TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
 	TIM_Cmd(TIM2, ENABLE);
 
-	DEBUG2(("定位周期配置\t\t完成\r\n"));
-
+	DEBUG2(("定位TICK周期: %d\r\n", TIM_TimeBaseStructure.TIM_Period));
 }
 
 /*
