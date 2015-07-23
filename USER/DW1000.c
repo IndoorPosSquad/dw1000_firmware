@@ -175,7 +175,7 @@ void Location_polling(void) {
 	case 2:
 	case 3:
 		// when count == 1/2/3, perform polling
-		break;
+		return;
 	case 4:
 		//when count == 4, upload results
 		upload_location_info();
