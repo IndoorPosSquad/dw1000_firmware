@@ -12,7 +12,8 @@ extern u8 usart_status;
 // extern u8 ars_max;
 extern u8 time_offset;
 extern u8 speed_offset;
-extern double distance[3];
+extern float distance[3];
+extern float raw_distance[3];
 
 int debug_lvl = DEBUG_LVL;
 
@@ -154,7 +155,7 @@ void upload_location_info(void) {
 #endif
 }
 /*
-        命令		命令字			参数1															参数2
+	命令		命令字			参数1															参数2
 设置定位周期	0x01		定位周期（单位ms；两字节，低位在前，默认3000ms）
 设置自动重发	0x02	自动重发等待时间（单位us；两字节，低位在前；默认1000us)				重发次数（默认1）
 设置时间偏移    0x03    时间差的偏移（从硬件获得数据中减去；4字节，低位在前；默认0）
@@ -168,52 +169,52 @@ tmp=0;
 //配置定位周期单位（ms）
 if((usart_buffer[0]==0x01)&&(usart_index==3))
 {
-        tmp=usart_buffer[1]+(usart_buffer[2]<<8);
-        TIM_ITConfig(TIM2,TIM_IT_Update,DISABLE);
-        TIM_TimeBaseStructure.TIM_Period=2*tmp;
-        TIM_TimeBaseStructure.TIM_Prescaler=36000;
-        TIM_TimeBaseStructure.TIM_ClockDivision=TIM_CKD_DIV1;
-        TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up;
-        TIM_TimeBaseInit(TIM2, &TIM_TimeBaseStructure);
-        TIM_ClearFlag(TIM2, TIM_FLAG_Update);
-        TIM_ITConfig(TIM2,TIM_IT_Update,ENABLE);
-        printf("\r\n*定位周期设置成功*\r\n");
-        printf("[定位周期设置为%ums]\r\n",tmp);
+	tmp=usart_buffer[1]+(usart_buffer[2]<<8);
+	TIM_ITConfig(TIM2,TIM_IT_Update,DISABLE);
+	TIM_TimeBaseStructure.TIM_Period=2*tmp;
+	TIM_TimeBaseStructure.TIM_Prescaler=36000;
+	TIM_TimeBaseStructure.TIM_ClockDivision=TIM_CKD_DIV1;
+	TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up;
+	TIM_TimeBaseInit(TIM2, &TIM_TimeBaseStructure);
+	TIM_ClearFlag(TIM2, TIM_FLAG_Update);
+	TIM_ITConfig(TIM2,TIM_IT_Update,ENABLE);
+	printf("\r\n*定位周期设置成功*\r\n");
+	printf("[定位周期设置为%ums]\r\n",tmp);
 }
 else if	(((usart_buffer[0]==0x02)&&(usart_index==4)))
 {
-        // ars_max=usart_buffer[3];
-        printf("\r\n*Disabled*\r\n");
-        // printf("[最大重发次数为%u次]\r\n",ars_max);
+	// ars_max=usart_buffer[3];
+	printf("\r\n*Disabled*\r\n");
+	// printf("[最大重发次数为%u次]\r\n",ars_max);
 }
 else if	(((usart_buffer[0]==0x03)&&(usart_index==5)))
 {
-        time_offset= usart_buffer[1]+(usart_buffer[2]<<8)+(usart_buffer[3]<<16)+(usart_buffer[4]<<24);
-        printf("\r\n*电磁波飞行时间偏移设置成功*\r\n");
-        printf("[电磁波飞行时间偏移为0x%x%x%x%x]\r\n",usart_buffer[4],usart_buffer[3],usart_buffer[2],usart_buffer[1]);
+	time_offset= usart_buffer[1]+(usart_buffer[2]<<8)+(usart_buffer[3]<<16)+(usart_buffer[4]<<24);
+	printf("\r\n*电磁波飞行时间偏移设置成功*\r\n");
+	printf("[电磁波飞行时间偏移为0x%x%x%x%x]\r\n",usart_buffer[4],usart_buffer[3],usart_buffer[2],usart_buffer[1]);
 }
 else if	(((usart_buffer[0]==0x04)&&(usart_index==2)))
 {
-        speed_offset= usart_buffer[1];
-        printf("\r\n*电磁波速度偏移百分比设置成功*\r\n");
-        printf("[电磁波速度偏移百分比为%u%%]\r\n",speed_offset);
+	speed_offset= usart_buffer[1];
+	printf("\r\n*电磁波速度偏移百分比设置成功*\r\n");
+	printf("[电磁波速度偏移百分比为%u%%]\r\n",speed_offset);
 }
 else if	(((usart_buffer[0]==0x05)&&(usart_index==6)))
 {
-        tmp=(usart_buffer[4]+(usart_buffer[5]<<8));
-        Read_DW1000(usart_buffer[1],(usart_buffer[2]+(usart_buffer[3]<<8)),tmpp,tmp);
-        printf("*访问地址 0x%02x:0x%02x 访问长度 %d *\r\n[返回数据 0x",usart_buffer[1],(usart_buffer[2]+(usart_buffer[3]<<8)),tmp);
-        for(i=0;i<tmp;i++)
-        {
-                printf("%02x",*(tmpp+tmp-i-1));
-        }
-        printf("]\r\n");
+	tmp=(usart_buffer[4]+(usart_buffer[5]<<8));
+	Read_DW1000(usart_buffer[1],(usart_buffer[2]+(usart_buffer[3]<<8)),tmpp,tmp);
+	printf("*访问地址 0x%02x:0x%02x 访问长度 %d *\r\n[返回数据 0x",usart_buffer[1],(usart_buffer[2]+(usart_buffer[3]<<8)),tmp);
+	for(i=0;i<tmp;i++)
+	{
+		printf("%02x",*(tmpp+tmp-i-1));
+	}
+	printf("]\r\n");
 }
 else
 {
-        printf("Your Input: ");
-        for (i = 0; i < usart_index; i++) {
-                printf("%02x", usart_buffer[i]);
-        }
+	printf("Your Input: ");
+	for (i = 0; i < usart_index; i++) {
+		printf("%02x", usart_buffer[i]);
+	}
 }
 */

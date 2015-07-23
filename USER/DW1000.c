@@ -36,7 +36,8 @@ extern u8 distance_flag;
 
 u32 time_offset = 0; //电磁波传播时间调整
 u8 speed_offset = 0; //电磁波传播速度调整
-double distance[3];
+float raw_distance[3];
+float distance[3];
 
 u16 std_noise;
 u16 fp_ampl1;
@@ -51,6 +52,8 @@ extern int debug_lvl;
 
 u8 status_flag = IDLE;
 u8 distance_flag = IDLE;
+
+int polling_counter = 0;
 
 /*
 DW1000初始化
@@ -163,7 +166,31 @@ void Location_polling(void) {
 	u16 tmp;
 	// Tx_Buff[0]=0b10000010; // only DST PANID
 	// Tx_Buff[1]=0b00110111;
-	static int count;
+	static u8 count = 0;
+
+	// Polling interval handling
+	count += 1;
+	switch (count) {
+	case 1:
+	case 2:
+	case 3:
+		// when count == 1/2/3, perform polling
+		break;
+	case 4:
+		//when count == 4, upload results
+		upload_location_info();
+		return;
+	case TICK_IN_PERIOD:
+		// when count exceeds TICK_IN_PERIOD, zero it
+		count = 0;
+		DEBUG2(("\r\n"));
+		return;
+	default:
+		// otherwise, do nothing
+		DEBUG2(("."));
+		return;
+	}
+
 	Tx_Buff[0] = 0x82;
 	Tx_Buff[1] = 0x37;
 	Tx_Buff[2] = Sequence_Number++;
@@ -178,9 +205,8 @@ void Location_polling(void) {
 	Tx_Buff[10] = broadcast_addr[4];
 	Tx_Buff[11] = broadcast_addr[5];
 	Tx_Buff[12] = broadcast_addr[6];
-	Tx_Buff[13] = 0xF0 | (count % 3 + 1);
+	Tx_Buff[13] = 0xF0 | count; // count could only be 1/2/3
 	// Tx_Buff[13]=broadcast_addr[7];
-	count++;
 	//DST MAC end
 	Tx_Buff[14] = mac[0];
 	Tx_Buff[15] = mac[1];
@@ -206,6 +232,7 @@ void Location_polling(void) {
 void distance_measurement(int n) {
 	u32 double_diff;
 	u32 rxtx_antenna_delay;
+	int net_time_of_flight;
 
 	rxtx_antenna_delay = ((u32) (ANTENNA_DELAY) + (u32) (LS_DELAY[n]));
 
@@ -224,14 +251,18 @@ void distance_measurement(int n) {
 	DEBUG3(("LS_DATA[n] : %d\r\n", LS_DATA[n]));
 	DEBUG3(("double_diff: %d\r\n", double_diff));
 
-	double_diff = double_diff - 2 * rxtx_antenna_delay - LS_DATA[n];
+	if (debug_lvl > 0) {
 
-	DEBUG3(("after_diff : %d\r\n", double_diff));
+	}
+
+	net_time_of_flight = double_diff - 2 * rxtx_antenna_delay - LS_DATA[n];
+	DEBUG3(("after_diff : %d\r\n", net_time_of_flight));
+	net_time_of_flight = (net_time_of_flight > 0) ? net_time_of_flight : 0;
 
 	// distance[n] = 1.0*_WAVE_SPEED * (1.0*Tx_diff - 1.0*LS_DATA[n]) / (128.0 * 499.2 * 1000000.0);
-	distance[n] = 15.65 / 1000000000000 * (double) (double_diff) / 2 * _WAVE_SPEED;
-	// 4.6917519677e-3 * double_diff / 2
 
+	distance[n] = 15.65 / 1000000000000 * (float) (net_time_of_flight) / 2 * _WAVE_SPEED;
+	// 4.6917519677e-3 * net_time_of_flight / 2
 
 #ifdef RX4
 	data[0] = (u32)(100 * distance[0]);
@@ -549,6 +580,60 @@ void parse_rx(u8 *rx_buff, u16 size, u8 **src, u8 **dst, u8 **payload, u16 *pl_s
 	*pl_size = (u16)(size - n);
 }
 
+void Read_VotTmp(u8 * voltage, u8 * temperature) {
+	u8 tmp;
+	tmp = 0x80;
+	Write_DW1000(0x28, 0x11, &tmp, 1);
+	tmp = 0x0a;
+	Write_DW1000(0x28, 0x12, &tmp, 1);
+	tmp = 0x0F;
+	Write_DW1000(0x28, 0x12, &tmp, 1);
+	tmp = 0x01;
+	Write_DW1000(0x2A, 0x00, &tmp, 1);
+	Delay();
+	tmp = 0x00;
+	Write_DW1000(0x2A, 0x00, &tmp, 1);
+
+	Read_DW1000(0x2A, 0x03, voltage, 1);
+	Read_DW1000(0x2A, 0x04, temperature, 1);
+}
+
+void Read_Tmp(u8 * temperature) {
+	u8 tmp;
+	tmp = 0x80;
+	Write_DW1000(0x28, 0x11, &tmp, 1);
+	tmp = 0x0A;
+	Write_DW1000(0x28, 0x12, &tmp, 1);
+	tmp = 0x0F;
+	Write_DW1000(0x28, 0x12, &tmp, 1);
+
+	// SAR
+	tmp = 0x00;
+	Write_DW1000(0x2A, 0x00, &tmp, 1);
+	tmp = 0x01;
+	Write_DW1000(0x2A, 0x00, &tmp, 1);
+
+	Read_DW1000(0x2A, 0x04, temperature, 1);
+
+	tmp = 0x00;
+	Write_DW1000(0x2A, 0x00, &tmp, 1);
+}
+
+void Init_VotTmp(u8 * voltage, u8 * temperature) {
+	u8 tmp;
+	tmp = 0x80;
+	Write_DW1000(0x28, 0x11, &tmp, 1);
+	tmp = 0x0a;
+	Write_DW1000(0x28, 0x12, &tmp, 1);
+	tmp = 0x0F;
+	Write_DW1000(0x28, 0x12, &tmp, 1);
+	tmp = 0x01;
+	Write_DW1000(0x2A, 0x00, &tmp, 1);
+	Delay();
+	tmp = 0x00;
+	Write_DW1000(0x2A, 0x00, &tmp, 1);
+}
+
 void handle_event(void) {
 	u32 status;
 	u8 tmp;
@@ -560,15 +645,20 @@ void handle_event(void) {
 	int i;
 	int for_me = 1;
 
-	static int count = 0;
-
 	EXTI_ClearITPendingBit(EXTI_Line1);
 	// enter interrupt
 	while(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1) == 0) {
 		// printf("Int Triggered.\r\n");
 		read_status(&status);
 		DEBUG2(("status: %08X\r\n", status));
-		if((status & 0x00040000) == 0x00040000) { // LDE Err
+
+		if ((status & 0x00000400) == 0x00000400) { // LDE Success
+			DEBUG2(("LDE Success.\r\n"));
+			if((distance_flag == CONFIRM_SENT_LS_REQ) || (distance_flag == SENT_LS_REQ)) {
+				Read_DW1000(0x15, 0x00, (u8 *)(&Rx_stp_L), 4);
+				Read_DW1000(0x15, 0x04, &Rx_stp_H, 1);
+			}
+		} else if ((status & 0x00040000) == 0x00040000) { // LDE Err
 			to_IDLE();
 			tmp = 0x04;
 			// Clear Flag
@@ -576,13 +666,6 @@ void handle_event(void) {
 			DEBUG2(("LDE err.\r\n"));
 			load_LDE();
 			RX_mode_enable();
-		}
-		if((status & 0x00000400) == 0x00000400) { // LDE Success
-			DEBUG2(("LDE Success.\r\n"));
-			if((distance_flag == CONFIRM_SENT_LS_REQ) || (distance_flag == SENT_LS_REQ)) {
-				Read_DW1000(0x15, 0x00, (u8 *)(&Rx_stp_L), 4);
-				Read_DW1000(0x15, 0x04, &Rx_stp_H, 1);
-			}
 		}
 
 		if((status & 0x0000C000) == 0x00008000) { // CRC err
@@ -592,6 +675,7 @@ void handle_event(void) {
 			RX_mode_enable();
 			DEBUG2(("CRC Failed.\r\n"));
 		}
+
 		if((status & 0x00006000) == 0x00002000) {
 			tmp = 0x20;
 			Write_DW1000(0x0F, 0x01, &tmp, 1);
@@ -761,14 +845,6 @@ void handle_event(void) {
 							// sent_LS_RETURN(mac, src);
 							to_IDLE();
 							RX_mode_enable();
-							if (count++ % 3 == 0) {
-								for(i = 0; i < 100; i++)
-									Delay();
-								distance_forward();
-								distance_flag = IDLE;
-								upload_location_info();
-
-							}
 							PCout(13) = 0;
 							#endif
 						} else if(payload[0] == 0x03) { // GOT LS RETURN
@@ -791,58 +867,4 @@ void handle_event(void) {
 			RX_mode_enable();
 		}
 	}
-}
-
-void Read_VotTmp(u8 * voltage, u8 * temperature) {
-	u8 tmp;
-	tmp = 0x80;
-	Write_DW1000(0x28, 0x11, &tmp, 1);
-	tmp = 0x0a;
-	Write_DW1000(0x28, 0x12, &tmp, 1);
-	tmp = 0x0F;
-	Write_DW1000(0x28, 0x12, &tmp, 1);
-	tmp = 0x01;
-	Write_DW1000(0x2A, 0x00, &tmp, 1);
-	Delay();
-	tmp = 0x00;
-	Write_DW1000(0x2A, 0x00, &tmp, 1);
-
-	Read_DW1000(0x2A, 0x03, voltage, 1);
-	Read_DW1000(0x2A, 0x04, temperature, 1);
-}
-
-void Read_Tmp(u8 * temperature) {
-	u8 tmp;
-	tmp = 0x80;
-	Write_DW1000(0x28, 0x11, &tmp, 1);
-	tmp = 0x0A;
-	Write_DW1000(0x28, 0x12, &tmp, 1);
-	tmp = 0x0F;
-	Write_DW1000(0x28, 0x12, &tmp, 1);
-
-	// SAR
-	tmp = 0x00;
-	Write_DW1000(0x2A, 0x00, &tmp, 1);
-	tmp = 0x01;
-	Write_DW1000(0x2A, 0x00, &tmp, 1);
-
-	Read_DW1000(0x2A, 0x04, temperature, 1);
-
-	tmp = 0x00;
-	Write_DW1000(0x2A, 0x00, &tmp, 1);
-}
-
-void Init_VotTmp(u8 * voltage, u8 * temperature) {
-	u8 tmp;
-	tmp = 0x80;
-	Write_DW1000(0x28, 0x11, &tmp, 1);
-	tmp = 0x0a;
-	Write_DW1000(0x28, 0x12, &tmp, 1);
-	tmp = 0x0F;
-	Write_DW1000(0x28, 0x12, &tmp, 1);
-	tmp = 0x01;
-	Write_DW1000(0x2A, 0x00, &tmp, 1);
-	Delay();
-	tmp = 0x00;
-	Write_DW1000(0x2A, 0x00, &tmp, 1);
 }

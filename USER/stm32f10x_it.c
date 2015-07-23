@@ -40,39 +40,12 @@
 
 // Common
 volatile u8 time_up = 0;
-extern u8 Rx_Buff[128];
-extern u8 Tx_Buff[128];
-extern u8 Sequence_Number;
-extern u8 mac[8];
 u8 usart_buffer[64];
 u8 usart_index;
 u8 usart_status;
 
-extern u32 Tx_stp_L;
-extern u8 Tx_stp_H;
-extern u32 Rx_stp_L;
-extern u8 Rx_stp_H;
-
-extern u32 Tx_stp_LT[3];
-extern u8 Tx_stp_HT[3];
-extern u32 Rx_stp_LT[3];
-extern u8 Rx_stp_HT[3];
-extern u32 LS_DATA[3];
-extern u32 LS_DELAY[3];
-
-extern u16 std_noise;
-extern	u16 fp_ampl1;
-extern	u16 fp_ampl2;
-extern	u16 fp_ampl3;
-extern	u16 cir_mxg;
-extern	u16 rxpacc;
-extern	double fppl;
-extern	double rxl;
-extern const u8 broadcast_addr[8];
-
-extern u32 data[16];
-
 extern int debug_lvl;
+
 // extern void Fifoput(u8* data, int len);
 /*
 0:已完成处理
@@ -196,10 +169,8 @@ void EXTI1_IRQHandler(void) {
 }
 
 void TIM2_IRQHandler(void) {
-	DEBUG2(("TIM IRQ\r\n"));
 	if(TIM_GetITStatus(TIM2 , TIM_IT_Update) != RESET) {
 		TIM_ClearITPendingBit(TIM2 , TIM_FLAG_Update);
-		DEBUG2(("Performing Location_polling()...\r\n"));
 		Location_polling();
 	}
 }
@@ -226,7 +197,6 @@ void TIM4_IRQHandler(void) {
 		TIM_Cmd(TIM4, DISABLE);
 
 		usart_handle();
-
 	}
 }
 

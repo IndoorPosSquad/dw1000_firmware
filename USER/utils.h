@@ -2,6 +2,9 @@
 #define __UTILS_H
 #include <stm32f10x.h>
 
+// type definations
+#define u64 unsigned long long
+
 // IO macros
 #define BITBAND(addr, bitnum) ((addr & 0xF0000000)+0x2000000+((addr &0xFFFFF)<<5)+(bitnum<<2))
 #define MEM_ADDR(addr)  *((volatile unsigned long  *)(addr))
