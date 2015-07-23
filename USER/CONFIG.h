@@ -22,7 +22,9 @@
 // debug level
 /*
  */
-#define DEBUG_LVL 3
+#define DEBUG_LVL 0
+
+#define FAKE_SERIAL
 
 // 定位周期配置
 #define LOCATION_PERIOD (1)
