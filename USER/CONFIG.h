@@ -22,9 +22,14 @@
 // debug level
 /*
  */
-#define DEBUG_LVL 0
+#define DEBUG_LVL 2
 
-#define FAKE_SERIAL
+/*
+  如果需要调试上位机，反注释 FAKE_SERIAL
+  如果需要位置信息，反注释 SOLVE_LOCATION
+ */
+//#define FAKE_SERIAL
+#define SOLVE_LOCATION
 
 // 定位周期配置
 #define LOCATION_PERIOD (1)
@@ -44,15 +49,15 @@
 #endif
 
 #ifdef RX1
-#define ANTENNA_DELAY 16965
+#define ANTENNA_DELAY 17157
 #endif
 
 #ifdef RX2
-#define ANTENNA_DELAY 16752
+#define ANTENNA_DELAY 16922
 #endif
 
 #ifdef RX3
-#define ANTENNA_DELAY 11189
+#define ANTENNA_DELAY 11477
 #endif
 
 // 若RAW_OUTPUT为0，则输出解算后的结果
