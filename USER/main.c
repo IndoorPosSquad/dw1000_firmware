@@ -1,4 +1,3 @@
-
 /******************** (C) COPYRIGHT 2012 WildFire Team **************************
  * 文件名  ：main.c
  * 描述    ：LED流水灯，频率可调……
@@ -177,7 +176,7 @@ int main(void) {
 	EXTI_init();
 	RX_mode_enable();
 	GPIO_Configuration();
-	DEBUG0(("========Init Done=======\r\n"));
+	DEBUG1(("========Init Done=======\r\n"));
 
 	while(1) {
 		;

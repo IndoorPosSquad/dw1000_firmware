@@ -7,7 +7,7 @@
 #include "math.h"
 #include "utils.h"
 #include "delay.h"
-
+#include "solve.h"
 
 extern u8 usart_buffer[64];
 extern u8 usart_index;
@@ -137,17 +137,6 @@ void usart_handle(void) {
 }
 
 void upload_location_info(void) {
-	#ifdef FAKE_SERIAL
-	static int count = 0;
-	static int step = 1;
-	if (count >= 32) {
-		step = -1;
-	} else if (count <= -32) {
-		step = 1;
-	} 
-	count += step;
-	#endif
-	
 #ifdef USE_MPU6050
 	MPU6050 mpu6050_buf;
 #endif
@@ -156,11 +145,39 @@ void upload_location_info(void) {
 	u8 temperature;
 #endif
 
+#ifdef SOLVE_LOCATION
+	xyz location;
+	xyz anchors[] = {
+		{5.0, 5.0, 3.000000}
+		,
+		{0.0, 0.0, 3.000000}
+		,
+		{0.0, 5.0, 3.000000}
+	};
+
+#endif
+
+	#ifdef FAKE_SERIAL
+	static int count = 0;
+	static int step = 1;
+	if (count >= 32) {
+		step = -1;
+	} else if (count <= -32) {
+		step = 1;
+	}
+	count += step;
+	#endif
+
+
 	#ifdef FAKE_SERIAL
 	PCout(13) = 1;
 	delay(0x3ffff);
 	printf("Loc: %.2lf %.2lf %.2lf\n", (float) sin((float)count / 16 * 3.14), (float) cos((float) count / 16 * 3.14), 0.1 + 0.01 * cos((float)count));
 	PCout(13) = 0;
+	#elif defined(SOLVE_LOCATION)
+	location = solve_3d(anchors, distance);
+	DEBUG1(("Dist: %.2lf %.2lf %.2lf\r\n", distance[0], distance[1], distance[2]));
+	printf("Loc: %.2lf %.2lf %.2lf\r\n", location.x, location.y, location.z);
 	#else
 	printf("Dist: %.2lf %.2lf %.2lf\r\n", distance[0], distance[1], distance[2]);
 	#endif
