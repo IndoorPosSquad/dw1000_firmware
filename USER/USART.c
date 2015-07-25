@@ -18,7 +18,10 @@ extern u8 speed_offset;
 extern float distance[3];
 extern float raw_distance[3];
 
+extern xyz anchors[3];
+
 int debug_lvl = DEBUG_LVL;
+float calib[3] = {0};
 
 // macro for parsing command from host
 #define TYPE(buf) (((buf[0]) >> 6) & 0x03)
@@ -91,41 +94,45 @@ void usart_handle(void) {
 	if(usart_status == 2) {
 		switch(TYPE(usart_buffer)) {
 		case 0x00: //0x00
-			DEBUG0(("reserved type\n"));
+			DEBUG1(("reserved type\n"));
 			break;
 		case 0x01: //0x40
-			DEBUG0(("message type\n"));
+			DEBUG1(("message type\n"));
 
 			break;
 		case 0x02: //0x80
-			DEBUG0(("location info \n"));
+			DEBUG1(("location info \n"));
 			// TIM2 开关
 			switch(CMD(usart_buffer)) {
 			case 0x00: // 0x80 开
-				DEBUG0(("Open\n"));
+				DEBUG1(("Open\n"));
 				TIM_Cmd(TIM2, ENABLE);
 				break;
 			case 0x01: // 0x90 关
-				DEBUG0(("Close\n"));
+				DEBUG1(("Close\n"));
 				TIM_Cmd(TIM2, DISABLE);
+				break;
+			case 0x02: // 0xA0 校准
+				DEBUG1(("Calibration\n"));
+				calibration(0, 0, 0);
 				break;
 			}
 			break;
 		case 0x03: //0xC0
-			DEBUG0(("command type\n"));
+			DEBUG1(("command type\n"));
 			switch(CMD(usart_buffer)) {
 			case 0x00: //0xC0
-				DEBUG0(("Reboot cmd\n"));
+				DEBUG1(("Reboot cmd\n"));
 				break;
 			case 0x01: //0xD0
-				DEBUG0(("write reg cmd\n"));
+				DEBUG1(("write reg cmd\n"));
 				break;
 			case 0x02: //0xE0
-				DEBUG0(("read reg cmd\n"));
+				DEBUG1(("read reg cmd\n"));
 				break;
 			case 0x03: //0xF0
-				debug_lvl = DATA1(usart_buffer);
-				DEBUG0(("set log level to %d\n", debug_lvl));
+				debug_lvl = (int) DATA1(usart_buffer);
+				DEBUG1(("set log level to %d\n", debug_lvl));
 				break;
 			}
 			break;
@@ -147,14 +154,6 @@ void upload_location_info(void) {
 
 #ifdef SOLVE_LOCATION
 	xyz location;
-	xyz anchors[] = {
-		{5.0, 5.0, 3.000000}
-		,
-		{0.0, 0.0, 3.000000}
-		,
-		{0.0, 5.0, 3.000000}
-	};
-
 #endif
 
 	#ifdef FAKE_SERIAL
@@ -177,7 +176,9 @@ void upload_location_info(void) {
 	#elif defined(SOLVE_LOCATION)
 	location = solve_3d(anchors, distance);
 	DEBUG1(("Dist: %.2lf %.2lf %.2lf\r\n", distance[0], distance[1], distance[2]));
-	printf("Loc: %.2lf %.2lf %.2lf\r\n", location.x, location.y, location.z);
+	DEBUG1(("Cali: %.2lf %.2lf %.2lf\r\n", calib[0], calib[1], calib[2]));
+	printf("Loc: %.2lf %.2lf %.2lf\n", location.x, location.y, location.z);
+	DEBUG1(("\r\n"));
 	#else
 	printf("Dist: %.2lf %.2lf %.2lf\r\n", distance[0], distance[1], distance[2]);
 	#endif

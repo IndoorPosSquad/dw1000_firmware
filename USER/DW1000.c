@@ -683,7 +683,7 @@ void handle_event(void) {
 		if((status & 0x00006000) == 0x00002000) {
 			tmp = 0x20;
 			Write_DW1000(0x0F, 0x01, &tmp, 1);
-			DEBUG0(("We got a weird status: 0x%08X\r\n", status));
+			DEBUG1(("We got a weird status: 0x%08X\r\n", status));
 			// to_IDLE();
 			// RX_mode_enable();
 		}
