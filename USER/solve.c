@@ -4,11 +4,21 @@
 #include "USART.h"
 
 extern int debug_lvl;
+extern float distance[3];
 
 #define DIM 3
 #define S(n) ((n) * (n))
 #define LEN3D(a, b, c, d, e, f) sqrt(S(a - d) + S(b - e) + S(c - f))
 
+extern float calib[];
+
+xyz anchors[] = {
+	{-1.41, 2.57, 1.80}
+	,
+	{-1.41, -0.85, 1.80}
+	,
+	{1.80, 1.80, 2.05}
+};
 
 float sgn(float x) {
 	return x >= 0 ? 1.0 : -1.0;
@@ -48,6 +58,7 @@ xyz solve_3d(xyz pl_xyz[], float pranges[]) {
 	int i, j;
 	xyz result = {0, 0, 0};
 	xyz txyz[3];
+	float ranges[3];
 	float h_BA, h_CA;
 	float _AB, _AC, _BC, _cos_BAC;
 	float _trans[3][3] = {0};
@@ -68,6 +79,11 @@ xyz solve_3d(xyz pl_xyz[], float pranges[]) {
 	float res[3];
 	float target_xyz[3];
 	float ans[3];
+
+	ranges[0] = pranges[0] + calib[0];
+	ranges[1] = pranges[1] + calib[1];
+	ranges[2] = pranges[2] + calib[2];
+
 	// 概述
 	// 1. 求原坐标系中三个卫星构成的平面，
 	//    旋转成平面(即纵坐标相同的平面)的变换矩阵，
@@ -253,9 +269,9 @@ xyz solve_3d(xyz pl_xyz[], float pranges[]) {
 	_n = BC;
 	_q = AC;
 	_p = AB;
-	_r = pranges[0];
-	_m = pranges[1];
-	_l = pranges[2];
+	_r = ranges[0];
+	_m = ranges[1];
+	_l = ranges[2];
 
 	/* float _eular_det[3][3] = */
 	/*	{{S(_p), (S(_p)+S(_q)-S(_n))/2, (S(_p)+S(_r)-S(_m))/2}, */
@@ -291,9 +307,9 @@ xyz solve_3d(xyz pl_xyz[], float pranges[]) {
 	h = _V / _S * 3.0;
 
 	// 由高度得未知点的横纵坐标
-	d1 = sqrt(pow(pranges[0], 2) - pow(h, 2));
-	d2 = sqrt(pow(pranges[1], 2) - pow(h, 2));
-	d3 = sqrt(pow(pranges[2], 2) - pow(h, 2));
+	d1 = sqrt(pow(ranges[0], 2) - pow(h, 2));
+	d2 = sqrt(pow(ranges[1], 2) - pow(h, 2));
+	d3 = sqrt(pow(ranges[2], 2) - pow(h, 2));
 	COS = (d1 * d1 + AB * AB - d2 * d2) / (2 * d1 * AB);
 	X = d1 * COS;
 	Y = sqrt(pow(d1, 2) - pow(X, 2));
@@ -351,6 +367,15 @@ xyz solve_3d(xyz pl_xyz[], float pranges[]) {
 	result.z = ans[2] + pl_xyz[0].z;
 
 	return result;
+}
+
+void calibration(float x, float y, float z) {
+	calib[0] = LEN3D(anchors[0].x, anchors[0].y, anchors[0].z,
+			 x, y, z) - distance[0];
+	calib[1] = LEN3D(anchors[1].x, anchors[1].y, anchors[1].z,
+			 x, y, z) - distance[1];
+	calib[2] = LEN3D(anchors[2].x, anchors[2].y, anchors[2].z,
+			 x, y, z) - distance[2];
 }
 
 void solve_2d(float reciever[2][2], float pseudolites[2][2], float pranges1, float pranges2) {

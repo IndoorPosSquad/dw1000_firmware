@@ -154,6 +154,12 @@ void GPIO_Configuration(void) {
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
 	GPIO_Init(GPIOC, &GPIO_InitStructure);
+	
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
 }
 
 int main(void) {
@@ -171,11 +177,13 @@ int main(void) {
 #ifdef TX
 	TIM2_init(); // LS Poll Cycle
 #endif
-	DW1000_init();
 	TIM3_init();
 	EXTI_init();
-	RX_mode_enable();
 	GPIO_Configuration();
+	
+	DW1000_init();
+	
+	RX_mode_enable();
 	DEBUG1(("========Init Done=======\r\n"));
 
 	while(1) {

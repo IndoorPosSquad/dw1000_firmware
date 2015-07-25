@@ -22,7 +22,7 @@
 // debug level
 /*
  */
-#define DEBUG_LVL 2
+#define DEBUG_LVL 0
 
 /*
   如果需要调试上位机，反注释 FAKE_SERIAL
@@ -49,15 +49,15 @@
 #endif
 
 #ifdef RX1
-#define ANTENNA_DELAY 17157
+#define ANTENNA_DELAY 17137
 #endif
 
 #ifdef RX2
-#define ANTENNA_DELAY 16922
+#define ANTENNA_DELAY 16952
 #endif
 
 #ifdef RX3
-#define ANTENNA_DELAY 11477
+#define ANTENNA_DELAY 11439
 #endif
 
 // 若RAW_OUTPUT为0，则输出解算后的结果
