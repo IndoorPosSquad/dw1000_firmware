@@ -10,11 +10,11 @@
   //#define RX3
   //#define RX4
  */
-#define TX
+//#define TX
 
-//#define RX
+#define RX
 //#define RX1
-//#define RX2
+#define RX2
 //#define RX3
 //#define RX4
 
@@ -22,7 +22,11 @@
 // debug level
 /*
  */
+#ifdef TX
 #define DEBUG_LVL 0
+#else
+#define DEBUG_LVL 2
+#endif
 
 /*
   如果需要调试上位机，反注释 FAKE_SERIAL

@@ -176,6 +176,7 @@ void upload_location_info(void) {
 	#elif defined(SOLVE_LOCATION)
 	location = solve_3d(anchors, distance);
 	DEBUG1(("Dist: %.2lf %.2lf %.2lf\r\n", distance[0], distance[1], distance[2]));
+	DEBUG1(("Raw:  %.2lf %.2lf %.2lf\r\n", raw_distance[0], raw_distance[1], raw_distance[2]));
 	DEBUG1(("Cali: %.2lf %.2lf %.2lf\r\n", calib[0], calib[1], calib[2]));
 	printf("Loc: %.2lf %.2lf %.2lf\n", location.x, location.y, location.z);
 	DEBUG1(("\r\n"));
