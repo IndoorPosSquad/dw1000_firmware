@@ -164,16 +164,18 @@ void PendSV_Handler(void) {
 	* @retval None
 */
 
-void EXTI1_IRQHandler(void) {
+void EXTI0_IRQHandler(void) {
 	handle_event();
 }
 
+#ifdef TX
 void TIM2_IRQHandler(void) {
 	if(TIM_GetITStatus(TIM2 , TIM_IT_Update) != RESET) {
 		TIM_ClearITPendingBit(TIM2 , TIM_FLAG_Update);
 		Location_polling();
 	}
 }
+#endif
 
 void TIM3_IRQHandler(void) {
 	if (TIM_GetITStatus(TIM3 , TIM_IT_Update) != RESET) {

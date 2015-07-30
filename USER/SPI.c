@@ -1,8 +1,8 @@
 #include "stm32f10x.h"
 #include "DW1000.h"
 #include "USART.h"
-#define SPI1_CS_High GPIO_SetBits(GPIOA, GPIO_Pin_3)
-#define SPI1_CS_Low GPIO_ResetBits(GPIOA, GPIO_Pin_3)
+#define SPI1_CS_High GPIO_SetBits(GPIOC, GPIO_Pin_4)
+#define SPI1_CS_Low GPIO_ResetBits(GPIOC, GPIO_Pin_4)
 
 extern int debug_lvl;
 
@@ -11,7 +11,7 @@ void SPI1_init(void) {
 	SPI_InitTypeDef SPI1_conf;
 	GPIO_InitTypeDef GPIO_conf;
 
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1 | RCC_APB2Periph_GPIOA | RCC_APB2Periph_AFIO, ENABLE); // GPIOA,SPI1,IO复用时钟打开
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1 | RCC_APB2Periph_GPIOA | RCC_APB2Periph_AFIO | RCC_APB2Periph_GPIOC, ENABLE); // GPIOA,SPI1,IO复用时钟打开
 
 	GPIO_conf.GPIO_Pin = GPIO_Pin_5; //MISO,MOSI,SCK为复用推挽输出
 	GPIO_conf.GPIO_Speed = GPIO_Speed_50MHz;
@@ -24,9 +24,9 @@ void SPI1_init(void) {
 	GPIO_conf.GPIO_Pin = GPIO_Pin_7; //MISO,MOSI,SCK为复用推挽输出
 	GPIO_Init(GPIOA, &GPIO_conf);
 
-	GPIO_conf.GPIO_Pin = GPIO_Pin_3; //NSS为IO推挽输出
+	GPIO_conf.GPIO_Pin = GPIO_Pin_4; //NSS为IO推挽输出
 	GPIO_conf.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_Init(GPIOA, &GPIO_conf);
+	GPIO_Init(GPIOC, &GPIO_conf);
 
 
 	///////////////////////设置///////////////////////////////////

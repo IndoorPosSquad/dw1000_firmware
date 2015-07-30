@@ -61,9 +61,14 @@ DW1000初始化
 
 void DW1000_init(void) {
 	u32 tmp;
+	u32 status;
 	int i;
-	for(i = 0; i < 10; i++)
-		Delay();
+	
+	GPIO_ResetBits(GPIOC, GPIO_Pin_5);
+  delay(0xFFFF);
+	GPIO_SetBits(GPIOC, GPIO_Pin_5);
+	delay(0xFFFF);
+	
 	////////////////////工作模式配置////////////////////////
 	//lucus
 	//Channel Control PCODE 4 CHAN 5
@@ -156,12 +161,14 @@ void DW1000_init(void) {
 	load_LDE();
 	load_LDE();
 	load_LDE();
-	DEBUG2(("DW1K Setup\t\tFinished!\r\n"));
+	read_status(&status);
+	DEBUG2(("DW1K Setup\t\tFinished, with Status: 0x%08X\r\n", status));
 }
 
 /*
 申请定位
 */
+#ifdef TX
 void Location_polling(void) {
 	u16 tmp;
 	// Tx_Buff[0]=0b10000010; // only DST PANID
@@ -229,10 +236,11 @@ void Location_polling(void) {
 	raw_write(Tx_Buff, &tmp);
 	distance_flag = SENT_LS_REQ;
 }
+#endif
+
 /*
 计算距离信息(单位：cm)
 */
-
 void distance_measurement(int n) {
 	u32 double_diff;
 	u32 rxtx_antenna_delay;
@@ -649,9 +657,9 @@ void handle_event(void) {
 	int i;
 	int for_me = 1;
 
-	EXTI_ClearITPendingBit(EXTI_Line1);
+	EXTI_ClearITPendingBit(EXTI_Line0);
 	// enter interrupt
-	while(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1) == 0) {
+	while(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_0) == 0) {
 		// printf("Int Triggered.\r\n");
 		read_status(&status);
 		DEBUG2(("status: %08X\r\n", status));
