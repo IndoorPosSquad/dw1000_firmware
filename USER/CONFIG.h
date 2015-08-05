@@ -2,22 +2,8 @@
 #define __CONFIG_H__
 
 // 结点类型配置
-/*
-  NOTE: 如果配置为RX1/2/3/4，均需要同时反注释RX, 如要想配置为RX2，则：
-  #define RX
-  //#define RX1
-  #define RX2
-  //#define RX3
-  //#define RX4
- */
 #define TX
-
 //#define RX
-//#define RX1
-//#define RX2
-//#define RX3
-//#define RX4
-
 
 // debug level
 /*
@@ -28,11 +14,7 @@
 #define DEBUG_LVL 2
 #endif
 
-/*
-  如果需要调试上位机，反注释 FAKE_SERIAL
-  如果需要位置信息，反注释 SOLVE_LOCATION
- */
-//#define FAKE_SERIAL
+// 如果不定义SOLVE_LOCATION，则输出三个测距结果
 #define SOLVE_LOCATION
 
 // 定位周期配置
@@ -55,13 +37,16 @@
 #define RX3_ANTENNA_DELAY 11439
 
 
-// 若RAW_OUTPUT为0，则输出解算后的结果
-#define RAW_OUTPUT 1
-
 // 若用MPU6050, 则反注释下一行
 // #define USE_MPU6050
 
 // 若输出温度电压值则反注释下一行
 // #define USE_TEMP_VOLT_SENSOR
+
+/*
+  如果需要调试上位机，反注释 FAKE_SERIAL
+  如果需要位置信息，反注释 SOLVE_LOCATION
+ */
+//#define FAKE_SERIAL
 
 #endif
