@@ -274,11 +274,11 @@ void distance_measurement(int n) {
 	distance[n] = 15.65 / 1000000000000 * (float) (net_time_of_flight) / 2 * _WAVE_SPEED;
 	// 4.6917519677e-3 * net_time_of_flight / 2
 
-#ifdef RX4
+	#ifdef RX4
 	data[0] = (u32)(100 * distance[0]);
 	data[1] = (u32)(100 * distance[1]);
 	data[2] = (u32)(100 * distance[2]);
-#endif
+	#endif
 }
 
 //void location_info_upload(void) {

@@ -3,7 +3,7 @@
 ## 简介
 基于UWB室内定位的下位机驱动。
 定位精度：20cm
-定位频率：每秒10~30次
+定位频率：每秒1~30次
 使用频率：6.5GHz
 使用带宽：500MHz
 使用功率：<-35dBm/MHz
@@ -21,16 +21,11 @@ DWM1000 <===> STM32 <===> Host(PC/Android/MCU)
 主要的Config均位于 CONFIG.h 文件中
 
 ### 结点类型的配置
-配置结点类型需要通过反注释以下几个#define，需要注意的是，当配置为任何
-一个RX结点时，除了反注释RX*以外还需要同时反注释RX，例如以下：
+配置结点类型需要通过反注释以下几个#define
 ~~~
 //#define TX
 
 #define RX
-//#define RX1
-#define RX2
-//#define RX3
-//#define RX4
 ~~~
 
 ### 天线延时的设置
@@ -43,22 +38,32 @@ DWM1000 <===> STM32 <===> Host(PC/Android/MCU)
 RX与TX的Antenna Delay之和为两者测距时的稳态误差。
 例如，TX与RX1的测距稳态误差为158米，则两者天线延时之和为：
 158 / 4.691e-3 = 33675
+
+计算出相应的延时后，将延时写到如下位置：
 ~~~
-#ifdef TX
-#define ANTENNA_DELAY 16838
-#endif
+#define TX_ANTENNA_DELAY 16838
 
-#ifdef RX1
-#define ANTENNA_DELAY 16965
-#endif
+#define RX1_ANTENNA_DELAY 17137
+#define RX2_ANTENNA_DELAY 16952
+#define RX3_ANTENNA_DELAY 11439
+~~~
 
-#ifdef RX2
-#define ANTENNA_DELAY 16752
-#endif
-
-#ifdef RX3
-#define ANTENNA_DELAY 11189
-#endif
+NOTE:
+在增加新的RX结点时，如RX4等等，需要在DW1000.c中的 `get_antenna_delay` 函数中增加相应的分支判断。
+~~~
+// DW1000.c
+int get_antenna_delay(u8 n) {
+    switch (n & 0x0F) {
+    case 0x01:
+        return RX1_ANTENNA_DELAY;
+    case 0x02:
+        return RX2_ANTENNA_DELAY;
+    case 0x03:
+        return RX3_ANTENNA_DELAY;
+    default:
+        return -30000;
+    }
+}
 ~~~
 
 ### 输出内容的设置
