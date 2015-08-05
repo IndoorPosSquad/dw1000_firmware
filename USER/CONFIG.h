@@ -1,5 +1,5 @@
-#ifndef __CONFIG_H
-#define __CONFIG_H
+#ifndef __CONFIG_H__
+#define __CONFIG_H__
 
 // 结点类型配置
 /*
@@ -10,11 +10,11 @@
   //#define RX3
   //#define RX4
  */
-//#define TX
+#define TX
 
-#define RX
+//#define RX
 //#define RX1
-#define RX2
+//#define RX2
 //#define RX3
 //#define RX4
 
@@ -23,7 +23,7 @@
 /*
  */
 #ifdef TX
-#define DEBUG_LVL 0
+#define DEBUG_LVL 2
 #else
 #define DEBUG_LVL 2
 #endif
@@ -48,21 +48,12 @@
   例如，TX与RX1的测距稳态误差为158米，则两者天线延时之和为：
   158 / 4.691e-3 = 33675
  */
-#ifdef TX
-#define ANTENNA_DELAY 16838
-#endif
+#define TX_ANTENNA_DELAY 16838
 
-#ifdef RX1
-#define ANTENNA_DELAY 17137
-#endif
+#define RX1_ANTENNA_DELAY 17137
+#define RX2_ANTENNA_DELAY 16952
+#define RX3_ANTENNA_DELAY 11439
 
-#ifdef RX2
-#define ANTENNA_DELAY 16952
-#endif
-
-#ifdef RX3
-#define ANTENNA_DELAY 11439
-#endif
 
 // 若RAW_OUTPUT为0，则输出解算后的结果
 #define RAW_OUTPUT 1

@@ -55,6 +55,9 @@ u8 distance_flag = IDLE;
 
 int polling_counter = 0;
 
+// 存储由get_antenna_delay(dip_value)得出的antenna_delay
+int antenna_delay;
+
 /*
 DW1000初始化
 */
@@ -63,12 +66,19 @@ void DW1000_init(void) {
 	u32 tmp;
 	u32 status;
 	int i;
-	
-	GPIO_ResetBits(GPIOC, GPIO_Pin_5);
-  delay(0xFFFF);
-	GPIO_SetBits(GPIOC, GPIO_Pin_5);
-	delay(0xFFFF);
-	
+
+	u8 dip_value;
+
+	dip_value = Read_DIP_Configuration();
+	#ifdef TX
+	antenna_delay = TX_ANTENNA_DELAY;
+	#endif
+	#ifdef RX
+	antenna_delay = get_antenna_delay(dip_value);
+	#endif
+
+	DW1000_trigger_reset();
+
 	////////////////////工作模式配置////////////////////////
 	//lucus
 	//Channel Control PCODE 4 CHAN 5
@@ -117,27 +127,15 @@ void DW1000_init(void) {
 	mac[4] = 0xff;
 	mac[5] = 0xff;
 	mac[6] = 0xff;
-#ifdef TX
-	mac[7] = 0xf0;
-#endif
-#ifdef RX1
-	mac[7] = 0xf1;
-#endif
-#ifdef RX2
-	mac[7] = 0xf2;
-#endif
-#ifdef RX3
-	mac[7] = 0xf3;
-#endif
-#ifdef RX4
-	mac[7] = 0xf4;
-#endif
-#ifdef RX5
-	mac[7] = 0xf5;
-#endif
-#ifdef RX6
-	mac[7] = 0xf6;
-#endif
+
+	#ifdef TX
+	mac[7] = 0x00;
+	#endif
+
+	#ifdef RX
+	mac[7] = 0xf0 | (0x0f & dip_value);
+	#endif
+
 	set_MAC(mac);
 	//no auto ack Frame Filter
 	tmp = 0x200011FC;
@@ -162,7 +160,7 @@ void DW1000_init(void) {
 	load_LDE();
 	load_LDE();
 	read_status(&status);
-	DEBUG2(("DW1K Setup\t\tFinished, with Status: 0x%08X\r\n", status));
+	DEBUG2(("DW1K Setup\t\tFinished, with Status: 0x%08X, Mac: 0x%02X.\r\n", status, mac[7]));
 }
 
 /*
@@ -246,9 +244,9 @@ void distance_measurement(int n) {
 	u32 rxtx_antenna_delay;
 	int net_time_of_flight;
 
-	rxtx_antenna_delay = ((u32) (ANTENNA_DELAY) + (u32) (LS_DELAY[n]));
+	rxtx_antenna_delay = ((u32) (antenna_delay) + (u32) (LS_DELAY[n]));
 
-	DEBUG3(("ANTENNA_DELAY_THIS: %d\r\n", ANTENNA_DELAY));
+	DEBUG3(("ANTENNA_DELAY_THIS: %d", antenna_delay));
 	DEBUG3(("ANTENNA_DELAY_THAT[%d]: %d\r\n", n, LS_DELAY[n]));
 
 	if (Tx_stp_H == Rx_stp_HT[n]) {
@@ -264,7 +262,7 @@ void distance_measurement(int n) {
 	DEBUG3(("double_diff: %d\r\n", double_diff));
 
 	if (debug_lvl > 0) {
-
+		raw_distance[n] = 15.65 / 1000000000000 * (float) (double_diff - LS_DATA[n]) / 2 * _WAVE_SPEED;
 	}
 
 	net_time_of_flight = double_diff - 2 * rxtx_antenna_delay - LS_DATA[n];
@@ -388,6 +386,14 @@ void quality_measurement(void) {
 	}
 }
 
+
+
+void DW1000_trigger_reset(void) {
+	GPIO_ResetBits(GPIOC, GPIO_Pin_5);
+	delay(0xFFFF);
+	GPIO_SetBits(GPIOC, GPIO_Pin_5);
+	delay(0xFFFF);
+}
 
 /*
 打开接收模式
@@ -557,10 +563,10 @@ void send_LS_DATA(u8 *src, u8 *dst) {
 	Tx_Buff[27] = 0x01;
 
 	// antenna delay
-	Tx_Buff[28] = (u8)(ANTENNA_DELAY >> 0);
-	Tx_Buff[29] = (u8)(ANTENNA_DELAY >> 8);
-	Tx_Buff[30] = (u8)(ANTENNA_DELAY >> 16);
-	Tx_Buff[31] = (u8)(ANTENNA_DELAY >> 24);
+	Tx_Buff[28] = (u8)(antenna_delay >> 0);
+	Tx_Buff[29] = (u8)(antenna_delay >> 8);
+	Tx_Buff[30] = (u8)(antenna_delay >> 16);
+	Tx_Buff[31] = (u8)(antenna_delay >> 24);
 	Tx_Buff[32] = 0x01;
 
 	tmp = 32;
@@ -590,6 +596,19 @@ void parse_rx(u8 *rx_buff, u16 size, u8 **src, u8 **dst, u8 **payload, u16 *pl_s
 	*dst = &(rx_buff[n - 16]);
 	*payload = &(rx_buff[n]);
 	*pl_size = (u16)(size - n);
+}
+
+int get_antenna_delay(u8 n) {
+	switch (n & 0x0F) {
+	case 0x01:
+		return RX1_ANTENNA_DELAY;
+	case 0x02:
+		return RX2_ANTENNA_DELAY;
+	case 0x03:
+		return RX3_ANTENNA_DELAY;
+	default:
+		return -30000;
+	}
 }
 
 void Read_VotTmp(u8 * voltage, u8 * temperature) {
@@ -644,6 +663,46 @@ void Init_VotTmp(u8 * voltage, u8 * temperature) {
 	Delay();
 	tmp = 0x00;
 	Write_DW1000(0x2A, 0x00, &tmp, 1);
+}
+
+u8 Read_DIP_Configuration(void) {
+	GPIO_InitTypeDef GPIO_InitStructure;
+	u8 dip_value = 0x00;
+
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOC, ENABLE);
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+
+	// PC1-2-3, PA0-1-2-3-4 for DIP switch input
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+	dip_value |= !GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_1) << 7;
+	dip_value |= !GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_2) << 6;
+	dip_value |= !GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_3) << 5;
+	dip_value |= !GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0) << 4;
+	dip_value |= !GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1) << 3;
+	dip_value |= !GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_2) << 2;
+	dip_value |= !GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_3) << 1;
+	dip_value |= !GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_4);
+
+	printf("Read DIP switch done, with input: %02X.\r\n", dip_value);
+
+	return dip_value;
 }
 
 void handle_event(void) {
@@ -714,7 +773,7 @@ void handle_event(void) {
 				status_flag = IDLE;
 				to_IDLE();
 				RX_mode_enable();
-				PCout(13) = 0;
+				PC13_UP;
 			}
 			// currently to avoid err, cannot work as an anchor and a client at the same time
 			else if(distance_flag == SENT_LS_REQ) {
@@ -727,9 +786,6 @@ void handle_event(void) {
 				DEBUG2(("0x%2x\r\n", Tx_stp_H));
 				to_IDLE();
 				RX_mode_enable();
-				#ifdef TX
-				PCout(13) = 1;
-				#endif
 			} else if(distance_flag == GOT_LS_DATA) {
 				// TODO
 				// Successfully Sent LS RETURN
@@ -807,7 +863,7 @@ void handle_event(void) {
 							send_LS_ACK(mac, src);
 							status_flag = SENT_LS_ACK;
 							DEBUG2(("\r\n===========Got LS Req===========\r\n"));
-							PCout(13) = 1;
+							PC13_DOWN;
 						} else if((payload[0] == 0x01)) // GOT LS ACK
 							//&&((distance_flag == CONFIRM_SENT_LS_REQ)||(distance_flag == SENT_LS_REQ))
 						{
@@ -844,6 +900,7 @@ void handle_event(void) {
 							// Read_DW1000(0x10,0x02,(u8 *)(&rxpacc),2);
 							to_IDLE();
 							RX_mode_enable();
+							PC13_UP;
 						} else if(payload[0] == 0x02) { // GOT LS DATA
 							#ifdef TX
 							DEBUG2(("\r\n===========Got LS DATA===========\r\n"));
@@ -857,7 +914,7 @@ void handle_event(void) {
 							// sent_LS_RETURN(mac, src);
 							to_IDLE();
 							RX_mode_enable();
-							PCout(13) = 0;
+							PC13_DOWN;
 							#endif
 						} else if(payload[0] == 0x03) { // GOT LS RETURN
 							// TODO

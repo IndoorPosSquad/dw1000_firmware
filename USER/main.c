@@ -154,14 +154,17 @@ void GPIO_Configuration(void) {
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
 	GPIO_Init(GPIOC, &GPIO_InitStructure);
-	
+
+	GPIO_ResetBits(GPIOC, GPIO_Pin_13);
+
+	// DWM1000 Reset
 	//RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;
 	GPIO_Init(GPIOC, &GPIO_InitStructure);
-	
-	//GPIO_SetBits(GPIOA, GPIO_Pin_2);
+
+	GPIO_SetBits(GPIOC, GPIO_Pin_13);
 }
 
 int main(void) {
@@ -182,9 +185,9 @@ int main(void) {
 	TIM3_init();
 	EXTI_init();
 	GPIO_Configuration();
-	
+
 	DW1000_init();
-	
+
 	RX_mode_enable();
 	DEBUG1(("========Init Done=======\r\n"));
 
