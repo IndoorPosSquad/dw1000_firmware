@@ -13,6 +13,9 @@
 
 #define _WAVE_SPEED 299792458
 
+#define PC13_UP GPIO_ResetBits(GPIOC, GPIO_Pin_13)
+#define PC13_DOWN GPIO_SetBits(GPIOC, GPIO_Pin_13)
+
 void Location_polling(void);
 void distance_measurement(int n);
 void distance_forward(void);
@@ -20,6 +23,8 @@ void handle_distance_forward(u8 * payload);
 void quality_measurement(void);
 
 void DW1000_init(void);
+
+void DW1000_trigger_reset(void);
 void RX_mode_enable(void);
 void to_IDLE(void);
 void set_MAC(u8* mac);
@@ -34,8 +39,10 @@ void sent_and_wait(void);
 
 void handle_event(void);
 
+u8 Read_DIP_Configuration(void);
 void Read_VotTmp(u8 * vot, u8 * tmp);
 void Init_VotTmp(u8 * voltage, u8 * temperature);
 void Read_Tmp(u8 * temperature);
+int get_antenna_delay(u8 n);
 
 #endif
