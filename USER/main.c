@@ -168,28 +168,37 @@ void GPIO_Configuration(void) {
 }
 
 int main(void) {
+	u8 dip_config;
 	SystemInit();
+
+	// Init USB for Master Nodes
+	#if defined(RX4) || defined(RX5) || defined(RX6)
 	Set_System();
-#if defined(RX4) || defined(RX5) || defined(RX6)
 	Set_USBClock();
 	USB_Interrupts_Config();
 	USB_Init();
-#endif
-	USART1_init(); // USART1初始化,波特率115200，单次8比特，无奇偶校验，1停止位：用于上位机下发命令
-	TIM4_init(); // 串口监听
+	#endif
+
+	dip_config = Read_DIP_Configuration();
+
+	// USART1初始化,波特率115200，单次8比特，无奇偶校验，1停止位：用于上位机下发命令
+	USART1_init(dip_config);
+	// 串口监听
+	TIM4_init();
 	//InitMPU6050();
 	SPI1_init();
-#ifdef TX
-	TIM2_init(); // LS Poll Cycle
-#endif
 	TIM3_init();
-	EXTI_init();
 	GPIO_Configuration();
 
-	DW1000_init();
+	DW1000_init(dip_config);
+	EXTI_init();
+
+	#ifdef TX
+	TIM2_init(); // LS Poll Cycle
+	#endif
 
 	RX_mode_enable();
-	DEBUG1(("========Init Done=======\r\n"));
+	DEBUG1(("=====Init Done, with DIP config: %02X=====\r\n", dip_config));
 
 	while(1) {
 		;

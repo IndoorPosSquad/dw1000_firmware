@@ -2,23 +2,23 @@
 #include "math.h"
 #include "utils.h"
 #include "USART.h"
+#include "CONFIG.h"
 
 extern int debug_lvl;
 extern float distance[3];
 
 #define DIM 3
 #define S(n) ((n) * (n))
-#define LEN3D(a, b, c, d, e, f) sqrt(S(a - d) + S(b - e) + S(c - f))
+#define LEN3D(a, b, c, d, e, f) (sqrt(S(a - d) + S(b - e) + S(c - f)))
 
 extern float calib[];
 
 xyz anchors[] = {
-	{-1.41, 2.57, 1.80}
-	,
-	{-1.41, -0.85, 1.80}
-	,
-	{1.80, 1.80, 2.05}
+	{A1_X, A1_Y, A1_Z}, // 距(0,0,0) 3.61
+	{A2_X, A2_Y, A2_Z}, // 距(0,0,0) 2.51
+	{A3_X, A3_Y, A3_Z}  // 距(0,0,0) 3.40
 };
+// 158.03 157.22 157.98
 
 float sgn(float x) {
 	return x >= 0 ? 1.0 : -1.0;
@@ -84,6 +84,8 @@ xyz solve_3d(xyz pl_xyz[], float pranges[]) {
 	ranges[1] = pranges[1] + calib[1];
 	ranges[2] = pranges[2] + calib[2];
 
+	DEBUG1(("Range: %.2lf %.2lf %.2lf\r\n", ranges[0], ranges[1], ranges[2]));
+
 	// 概述
 	// 1. 求原坐标系中三个卫星构成的平面，
 	//    旋转成平面(即纵坐标相同的平面)的变换矩阵，
@@ -119,12 +121,12 @@ xyz solve_3d(xyz pl_xyz[], float pranges[]) {
 	txyz[1].z = pl_xyz[0].z;
 	txyz[2].z = pl_xyz[0].z;
 
-	DEBUG3(("txyz:\n"));
+	//DEBUG3(("txyz:\n"));
 	for (i = 0; i < 3; i++) {
-		DEBUG3(("%d\n", i));
-		DEBUG3(("x %f, y %f, z %f\n",
-			txyz[i].x, txyz[i].y, txyz[i].z));
-		DEBUG3(("\n"));
+		//DEBUG3(("%d\n", i));
+		//DEBUG3(("x %f, y %f, z %f\n",
+		//	txyz[i].x, txyz[i].y, txyz[i].z));
+		//DEBUG3(("\n"));
 	}
 
 	// 计算投影面上的三边长与夹角
@@ -140,10 +142,10 @@ xyz solve_3d(xyz pl_xyz[], float pranges[]) {
 	_cos_BAC = (pow(_AC, 2) + pow(_AB, 2) - pow(_BC, 2)) /
 		(2 * _AC * _AB);
 
-	DEBUG3(("_AB: %f\n", _AB));
-	DEBUG3(("_AC: %f\n", _AC));
-	DEBUG3(("_BC: %f\n", _BC));
-	DEBUG3(("_cos_BAC: %f\n", _cos_BAC));
+	//DEBUG3(("_AB: %f\n", _AB));
+	//DEBUG3(("_AC: %f\n", _AC));
+	//DEBUG3(("_BC: %f\n", _BC));
+	//DEBUG3(("_cos_BAC: %f\n", _cos_BAC));
 
 	// 计算变换矩阵1
 	// X
@@ -151,19 +153,19 @@ xyz solve_3d(xyz pl_xyz[], float pranges[]) {
 	_trans[0][1] = (txyz[1].y - txyz[0].y) / _AB;
 	_trans[0][2] = (txyz[1].z - txyz[0].z) / _AB;
 
-	DEBUG3(("_trans:\n"));
+	//DEBUG3(("_trans:\n"));
 	for (i = 0; i < 3; i++) {
 	       for (j = 0; j < 3; j++) {
-		       DEBUG3(("%f ", _trans[i][j]));
+		       //DEBUG3(("%f ", _trans[i][j]));
 	       }
-	       DEBUG3(("\n"));
+	       //DEBUG3(("\n"));
 	}
 
 	_d = _AC * _cos_BAC;
 	_H = sqrt(pow(_AC, 2) - pow(_d, 2));
 
-	DEBUG3(("_d %f\n", _d));
-	DEBUG3(("_H %f\n", _H));
+	//DEBUG3(("_d %f\n", _d));
+	//DEBUG3(("_H %f\n", _H));
 
 	D[0] = txyz[0].x + _d * _trans[0][0];
 	D[1] = txyz[0].y + _d * _trans[0][1];
@@ -177,12 +179,12 @@ xyz solve_3d(xyz pl_xyz[], float pranges[]) {
 	_trans[2][1] = 0;
 	_trans[2][2] = 1;
 
-	DEBUG3(("_trans:\n"));
+	//DEBUG3(("_trans:\n"));
 	for (i = 0; i < 3; i++) {
 	       for (j = 0; j < 3; j++) {
-		       DEBUG3(("%f ", _trans[i][j]));
+		       //DEBUG3(("%f ", _trans[i][j]));
 	       }
-	       DEBUG3(("\n"));
+	       //DEBUG3(("\n"));
 	}
 
 	// 求原坐标系中三卫星构成的三角的边长与夹角
@@ -198,16 +200,16 @@ xyz solve_3d(xyz pl_xyz[], float pranges[]) {
 	cos_BAC = (pow(AC, 2) + pow(AB, 2) - pow(BC, 2)) /
 		(2 * AC * AB);
 
-	DEBUG3(("AB: %f\n", AB));
-	DEBUG3(("AC: %f\n", AC));
-	DEBUG3(("BC: %f\n", BC));
-	DEBUG3(("cos_BAC: %f\n", cos_BAC));
+	//DEBUG3(("AB: %f\n", AB));
+	//DEBUG3(("AC: %f\n", AC));
+	//DEBUG3(("BC: %f\n", BC));
+	//DEBUG3(("cos_BAC: %f\n", cos_BAC));
 
 	d = AC * cos_BAC;
 	H = sqrt(pow(AC, 2) - pow(d, 2));
 
-	DEBUG3(("d: %f\n", d));
-	DEBUG3(("H: %f\n", H));
+	//DEBUG3(("d: %f\n", d));
+	//DEBUG3(("H: %f\n", H));
 
 	// 计算变换矩阵2
 	// X
@@ -219,12 +221,12 @@ xyz solve_3d(xyz pl_xyz[], float pranges[]) {
 	trans[1][1] = _H / H;
 	trans[1][2] = (h_CA - (h_BA * d / AB)) / H;
 
-	DEBUG3(("trans:\n"));
+	//DEBUG3(("trans:\n"));
 	for (i = 0; i < 3; i++) {
 	       for (j = 0; j < 3; j++) {
-		       DEBUG3(("%f ", trans[i][j]));
+		       //DEBUG3(("%f ", trans[i][j]));
 	       }
-	       DEBUG3(("\n"));
+	       //DEBUG3(("\n"));
 	}
 
 	// 求余子式
@@ -245,12 +247,12 @@ xyz solve_3d(xyz pl_xyz[], float pranges[]) {
 	trans[2][2] /= temp;
 	// 求余子式结束
 
-	DEBUG3(("trans:\n"));
+	//DEBUG3(("trans:\n"));
 	for (i = 0; i < 3; i++) {
 	       for (j = 0; j < 3; j++) {
-		       DEBUG3(("%f ", trans[i][j]));
+		       //DEBUG3(("%f ", trans[i][j]));
 	       }
-	       DEBUG3(("\n"));
+	       //DEBUG3(("\n"));
 	}
 
 	h = 0.0;
@@ -263,7 +265,7 @@ xyz solve_3d(xyz pl_xyz[], float pranges[]) {
 	_P = (BC + AB + AC) / 2;
 	_S = sqrt(_P * (_P - BC) * (_P - AC) * (_P - AB));
 
-	DEBUG3(("_P: %f\n", _P));
+	//DEBUG3(("_P: %f\n", _P));
 
 	// 欧拉四面体公式求体积
 	_n = BC;
@@ -288,20 +290,20 @@ xyz solve_3d(xyz pl_xyz[], float pranges[]) {
 	_eular_det[2][2] = S(_r);
 
 
-	DEBUG3(("_eular_det:\n"));
+	//DEBUG3(("_eular_det:\n"));
 	for (i = 0; i < 3; i++) {
 	       for (j = 0; j < 3; j++) {
-		       DEBUG3(("%f ", _eular_det[i][j]));
+		       //DEBUG3(("%f ", _eular_det[i][j]));
 	       }
-	       DEBUG3(("\n"));
+	       //DEBUG3(("\n"));
 	}
 
 
 	_V2 = Det(_eular_det, 3);
 	_V = sqrt(_V2/36.0);
 
-	DEBUG3(("_V2: %f\n", _V2));
-	DEBUG3(("_V: %f\n", _V));
+	//DEBUG3(("_V2: %f\n", _V2));
+	//DEBUG3(("_V: %f\n", _V));
 
 	// 求未知点到三卫星平面的高度
 	h = _V / _S * 3.0;
@@ -329,7 +331,7 @@ xyz solve_3d(xyz pl_xyz[], float pranges[]) {
 	#ifndef GROUND_ANCHOR
 	// 放在下方
 	res[2] = -h;
-	#elif
+	#else
 	res[2] = h;
 	#endif
 
@@ -341,11 +343,11 @@ xyz solve_3d(xyz pl_xyz[], float pranges[]) {
 			target_xyz[i] += res[j] * trans[j][i];
 	}
 
-	DEBUG3(("target_xyz:\n"));
+	//DEBUG3(("target_xyz:\n"));
 	for (i = 0; i < 3; i++) {
-		DEBUG3(("%f \n", target_xyz[i]));
+		//DEBUG3(("%f \n", target_xyz[i]));
 	}
-	DEBUG3(("\n"));
+	//DEBUG3(("\n"));
 
 	// 矩阵乘 ans = target_xyz * _trans
 	for (i = 0; i < 3; i++) {
@@ -354,11 +356,11 @@ xyz solve_3d(xyz pl_xyz[], float pranges[]) {
 			ans[i] += target_xyz[j] * _trans[j][i];
 	}
 
-	DEBUG3(("ans:\n"));
+	//DEBUG3(("ans:\n"));
 	for (i = 0; i < 3; i++) {
-		DEBUG3(("%f \n", ans[i]));
+		//DEBUG3(("%f \n", ans[i]));
 	}
-	DEBUG3(("\n"));
+	//DEBUG3(("\n"));
 
 	// 变换坐标系是以0卫星的坐标作为原点
 	// 因此将卫星0的坐标加上去
@@ -376,6 +378,9 @@ void calibration(float x, float y, float z) {
 			 x, y, z) - distance[1];
 	calib[2] = LEN3D(anchors[2].x, anchors[2].y, anchors[2].z,
 			 x, y, z) - distance[2];
+	DEBUG1(("calibration at %f %f %f done.\r\n", x, y, z));
+	DEBUG1(("with calib[n]: %f %f %f.\r\n", calib[0], calib[1], calib[2]));
+	DEBUG1(("after calib, range: %f %f %f.\r\n", distance[0] + calib[0], distance[1] + calib[1], distance[2] + calib[2]));
 }
 
 void solve_2d(float reciever[2][2], float pseudolites[2][2], float pranges1, float pranges2) {
@@ -389,8 +394,8 @@ void solve_2d(float reciever[2][2], float pseudolites[2][2], float pranges1, flo
 	float invrotation[2][2];
 	float pranges[2];
 
-	DEBUG3(("\nPseudolites\n%f %f %f %f\n", pseudolites[0][0], pseudolites[0][1], pseudolites[1][0], pseudolites[1][1]));
-	DEBUG3(("\npr1 %f pr2 %f\n", pranges1, pranges2));
+	//DEBUG3(("\nPseudolites\n%f %f %f %f\n", pseudolites[0][0], pseudolites[0][1], pseudolites[1][0], pseudolites[1][1]));
+	//DEBUG3(("\npr1 %f pr2 %f\n", pranges1, pranges2));
 
 	pranges[0] = pranges1;
 	pranges[1] = pranges2;

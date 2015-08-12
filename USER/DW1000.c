@@ -36,8 +36,8 @@ extern xyz anchors[3];
 
 extern u8 distance_flag;
 
-u32 time_offset = 0; //电磁波传播时间调整
-u8 speed_offset = 0; //电磁波传播速度调整
+u32 time_offset = 0; //鐢电����娉����紶鎾����椂闂磋皟鏁�
+u8 speed_offset = 0; //鐢电����娉����紶鎾�����熷害璋冩暣
 
 float raw_distance[3];
 float calib[3];
@@ -61,56 +61,52 @@ u8 distance_flag = IDLE;
 
 int polling_counter = 0;
 
-// 存储由get_antenna_delay(dip_value)得出的antenna_delay
+// 瀛樺偍鐢眊et_antenna_delay(dip_config)寰楀嚭鐨刟ntenna_delay
 int antenna_delay;
 
 /*
-DW1000初始化
+DW1000鍒濆����鍖�
 */
 
-void DW1000_init(void) {
+void DW1000_init(u8 dip_config) {
 	u32 tmp;
 	u32 status;
 	int i;
 
-	u8 dip_value;
-
 	__disable_irq();
-
-	dip_value = Read_DIP_Configuration();
 	#ifdef TX
 	antenna_delay = TX_ANTENNA_DELAY;
 	#endif
 	#ifdef RX
-	antenna_delay = get_antenna_delay(dip_value);
+	antenna_delay = get_antenna_delay(dip_config);
 	#endif
 
 	DW1000_trigger_reset();
 
-	////////////////////工作模式配置////////////////////////
+	////////////////////宸ヤ綔妯″紡閰嶇疆////////////////////////
 	//lucus
 	//Channel Control PCODE 4 CHAN 5
 	tmp = 0x21040055;
 	Write_DW1000(0x1F, 0x00, (u8 *)(&tmp), 4);
-	//AGC_TUNE1 ：设置为16 MHz PRF
+	//AGC_TUNE1 锛氳����缃����负16 MHz PRF
 	tmp = 0x00008870;
 	Write_DW1000(0x23, 0x04, (u8 *)(&tmp), 2);
-	//AGC_TUNE2 ：不知道干啥用，技术手册明确规定要写0x2502A907
+	//AGC_TUNE2 锛氫笉鐭ラ亾骞插暐鐢����紝鎶�鏈����墜鍐屾槑纭��������瀹氳����鍐�0x2502A907
 	tmp = 0x2502A907;
 	Write_DW1000(0x23, 0x0C, (u8 *)(&tmp), 4);
-	//DRX_TUNE2：配置为PAC size 8，16 MHz PRF
+	//DRX_TUNE2锛氶厤缃����负PAC size 8锛�16 MHz PRF
 	tmp = 0x311A002D;
 	Write_DW1000(0x27, 0x08, (u8 *)(&tmp), 4);
-	//NSTDEV ：LDE多径干扰消除算法的相关配置
+	//NSTDEV 锛歀DE澶氬緞骞叉壈娑堥櫎绠楁硶鐨勭浉鍏抽厤缃�
 	tmp = 0x0000006C;
 	Write_DW1000(0x2E, 0x0806, (u8 *)(&tmp), 1);
-	//LDE_CFG2 ：将LDE算法配置为适应16MHz PRF环境
+	//LDE_CFG2 锛氬皢LDE绠楁硶閰嶇疆涓洪�傚簲16MHz PRF鐜��������
 	tmp = 0x00001607;
 	Write_DW1000(0x2E, 0x1806, (u8 *)(&tmp), 2);
-	//TX_POWER ：将发送功率配置为16 MHz,智能功率调整模式
+	//TX_POWER 锛氬皢鍙戦�佸姛鐜囬厤缃����负16 MHz,鏅鸿兘鍔熺巼璋冩暣妯″紡
 	tmp = 0x0E082848;
 	Write_DW1000(0x1E, 0x00, (u8 *)(&tmp), 4);
-	//RF_TXCTRL ：选择发送通道5
+	//RF_TXCTRL 锛氶�夋嫨鍙戦�侀�氶亾5
 	tmp = 0x001E3FE0;
 	Write_DW1000(0x28, 0x0C, (u8 *)(&tmp), 4);
 	//lucus
@@ -121,10 +117,10 @@ void DW1000_init(void) {
 	//LDE_REPC PCODE 4
 	tmp = 0x0000428E;
 	Write_DW1000(0x2E, 0x2804, (u8 *)(&tmp), 2);
-	//TC_PGDELAY ：脉冲产生延时设置为适应频道5
+	//TC_PGDELAY 锛氳剦鍐蹭骇鐢熷欢鏃惰����缃����负閫傚簲棰戦亾5
 	tmp = 0x000000C0;
 	Write_DW1000(0x2A, 0x0B, (u8 *)(&tmp), 1);
-	//FS_PLLTUNE ：PPL设置为适应频道5
+	//FS_PLLTUNE 锛歅PL璁剧疆涓洪�傚簲棰戦亾5
 	tmp = 0x000000A6;
 	Write_DW1000(0x2B, 0x0B, (u8 *)(&tmp), 1);
 	load_LDE();
@@ -141,7 +137,7 @@ void DW1000_init(void) {
 	#endif
 
 	#ifdef RX
-	mac[7] = 0xf0 | (0x0f & dip_value);
+	mac[7] = 0xf0 | (0x0f & dip_config);
 	#endif
 
 	set_MAC(mac);
@@ -149,15 +145,15 @@ void DW1000_init(void) {
 	tmp = 0x200011FC;
 	// 0010 0000 0000 0001 0000 0111 1101
 	Write_DW1000(0x04, 0x00, (u8 *)(&tmp), 4);
-	// test pin SYNC：用于测试的LED灯引脚初始化，SYNC引脚禁用
+	// test pin SYNC锛氱敤浜庢祴璇曠殑LED鐏����紩鑴氬垵濮嬪寲锛孲YNC寮曡剼绂佺敤
 	tmp = 0x00101540;
 	Write_DW1000(0x26, 0x00, (u8 *)(&tmp), 2);
 	tmp = 0x01;
 	Write_DW1000(0x36, 0x28, (u8 *)(&tmp), 1);
-	// interrupt   ：中断功能选择（只开启收发成功中断）
+	// interrupt   锛氫腑鏂����姛鑳介�夋嫨锛堝彧寮�鍚����敹鍙戞垚鍔熶腑鏂����級
 	tmp = 0x00002080;
 	Write_DW1000(0x0E, 0x00, (u8 *)(&tmp), 2);
-	// ack等待
+	// ack绛夊緟
 	tmp = 3;
 	Write_DW1000(0x1A, 0x03, (u8 *)(&tmp), 1);
 	for(i = 0; i < 10; i++)
@@ -174,7 +170,7 @@ void DW1000_init(void) {
 }
 
 /*
-申请定位
+鐢宠����瀹氫綅
 */
 #ifdef TX
 void Location_polling(void) {
@@ -251,7 +247,7 @@ void Location_polling(void) {
 #endif
 
 /*
-计算距离信息(单位：cm)
+璁＄畻璺濈����淇℃伅(鍗曚綅锛歝m)
 */
 void distance_measurement(int n) {
 	u32 double_diff;
@@ -408,24 +404,24 @@ void handle_distance_forward(u8* payload) {
 }
 
 /*
-无线质量数据
+鏃犵嚎璐ㄩ噺鏁版嵁
 */
 void quality_measurement(void) {
 	rxpacc >>= 4;
 
-	//抗噪声品质判定
+	//鎶楀櫔澹板搧璐ㄥ垽瀹�
 	if((fp_ampl2 / std_noise) >= 2) {
-		//printf("抗噪声品质\t\t良好\r\n");
+		//printf("鎶楀櫔澹板搧璐╘t\t鑹����ソ\r\n");
 	} else {
-		//printf("抗噪声品质\t\t异常\r\n");
+		//printf("鎶楀櫔澹板搧璐╘t\t寮傚父\r\n");
 	}
-	//LOS判定
+	//LOS鍒ゅ畾
 	fppl = 10.0 * log((fp_ampl1 ^ 2 + fp_ampl2 ^ 2 + fp_ampl3 ^ 2) / (rxpacc ^ 2)) - 115.72;
 	rxl = 10.0 * log(cir_mxg * (2 ^ 17) / (rxpacc ^ 2)) - 115.72;
 	if((fppl - rxl) >= 10.0 * log(0.25)) {
-		//printf("LOS判定\t\t\tLOS\r\n");
+		//printf("LOS鍒ゅ畾\t\t\tLOS\r\n");
 	} else {
-		//printf("LOS判定\t\t\tNLOS\r\n");
+		//printf("LOS鍒ゅ畾\t\t\tNLOS\r\n");
 	}
 }
 
@@ -439,7 +435,7 @@ void DW1000_trigger_reset(void) {
 }
 
 /*
-打开接收模式
+鎵撳紑鎺ユ敹妯″紡
 */
 void RX_mode_enable(void) {
 	u8 tmp;
@@ -448,7 +444,7 @@ void RX_mode_enable(void) {
 	Write_DW1000(0x0D, 0x01, &tmp, 1);
 }
 /*
-返回IDLE状态
+杩斿洖IDLE鐘舵��
 */
 void to_IDLE(void) {
 	u8 tmp;
@@ -710,7 +706,7 @@ void Init_VotTmp(u8 * voltage, u8 * temperature) {
 
 u8 Read_DIP_Configuration(void) {
 	GPIO_InitTypeDef GPIO_InitStructure;
-	u8 dip_value = 0x00;
+	u8 dip_config = 0x00;
 
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOC, ENABLE);
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
@@ -734,18 +730,16 @@ u8 Read_DIP_Configuration(void) {
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-	dip_value |= !GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_1) << 7;
-	dip_value |= !GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_2) << 6;
-	dip_value |= !GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_3) << 5;
-	dip_value |= !GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0) << 4;
-	dip_value |= !GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1) << 3;
-	dip_value |= !GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_2) << 2;
-	dip_value |= !GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_3) << 1;
-	dip_value |= !GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_4);
+	dip_config |= !GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_1) << 7;
+	dip_config |= !GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_2) << 6;
+	dip_config |= !GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_3) << 5;
+	dip_config |= !GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0) << 4;
+	dip_config |= !GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1) << 3;
+	dip_config |= !GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_2) << 2;
+	dip_config |= !GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_3) << 1;
+	dip_config |= !GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_4);
 
-	printf("Read DIP switch done, with input: %02X.\r\n", dip_value);
-
-	return dip_value;
+	return dip_config;
 }
 
 void handle_event(void) {
@@ -816,7 +810,7 @@ void handle_event(void) {
 				status_flag = IDLE;
 				to_IDLE();
 				RX_mode_enable();
-				PC13_UP;
+				PC13_DOWN;
 			}
 			// currently to avoid err, cannot work as an anchor and a client at the same time
 			else if(distance_flag == SENT_LS_REQ) {
@@ -906,7 +900,7 @@ void handle_event(void) {
 							send_LS_ACK(mac, src);
 							status_flag = SENT_LS_ACK;
 							DEBUG2(("\r\n===========Got LS Req===========\r\n"));
-							PC13_DOWN;
+							PC13_UP;
 						} else if((payload[0] == 0x01)) // GOT LS ACK
 							//&&((distance_flag == CONFIRM_SENT_LS_REQ)||(distance_flag == SENT_LS_REQ))
 						{
