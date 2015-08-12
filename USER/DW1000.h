@@ -22,7 +22,7 @@ void distance_forward(void);
 void handle_distance_forward(u8 * payload);
 void quality_measurement(void);
 
-void DW1000_init(void);
+void DW1000_init(u8 dip_config);
 
 void DW1000_trigger_reset(void);
 void RX_mode_enable(void);

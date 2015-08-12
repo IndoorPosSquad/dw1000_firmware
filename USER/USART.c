@@ -35,10 +35,12 @@ float calib[3] = {0};
 /*
  USART1初始化,波特率115200，单次8比特，无奇偶校验，1停止位
  */
-void USART1_init(void) {
+void USART1_init(u8 dip_config) {
 	GPIO_InitTypeDef GPIO_InitStructure;
 	USART_InitTypeDef USART_InitStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;
+
+	debug_lvl = (int) ((dip_config & 0x30) >> 4);
 
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 
@@ -74,13 +76,12 @@ void USART1_init(void) {
 
 	USART_Cmd(USART1, ENABLE);
 
-	DEBUG2(("USART初始化\t\t完成\r\n"));
+	DEBUG2(("USART初始化\t\t完成, with debug_lvl: %d\r\n", debug_lvl));
 }
 /*
 fputc重定向
 */
 int fputc(int ch, FILE *f) {
-
 	USART_SendData(USART1, (unsigned char) ch);
 	while(USART_GetFlagStatus(USART1, USART_FLAG_TC) != SET);
 	return (ch);
@@ -114,7 +115,7 @@ void usart_handle(void) {
 				break;
 			case 0x02: // 0xA0 校准
 				DEBUG1(("Calibration\n"));
-				calibration(0, 0, 0);
+				calibration(CALI_POS_X, CALI_POS_Y, CALI_POS_Z);
 				break;
 			}
 			break;
@@ -176,11 +177,12 @@ void upload_location_info(void) {
 	#elif defined(SOLVE_LOCATION)
 	location = solve_3d(anchors, distance);
 	DEBUG1(("Dist: %.2lf %.2lf %.2lf\r\n", distance[0], distance[1], distance[2]));
-	DEBUG1(("Raw:  %.2lf %.2lf %.2lf\r\n", raw_distance[0], raw_distance[1], raw_distance[2]));
 	DEBUG1(("Cali: %.2lf %.2lf %.2lf\r\n", calib[0], calib[1], calib[2]));
+	DEBUG1(("Raw:  %.2lf %.2lf %.2lf\r\n", raw_distance[0], raw_distance[1], raw_distance[2]));
 	printf("Loc: %.2lf %.2lf %.2lf\n", location.x, location.y, location.z);
 	DEBUG1(("\r\n"));
 	#else
+	DEBUG1(("Raw:  %.2lf %.2lf %.2lf\r\n", raw_distance[0], raw_distance[1], raw_distance[2]));
 	printf("Dist: %.2lf %.2lf %.2lf\r\n", distance[0], distance[1], distance[2]);
 	#endif
 
