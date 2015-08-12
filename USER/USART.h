@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include "CONFIG.h"
-void USART1_init(void);
+void USART1_init(u8 dip_config);
 int fputc(int ch, FILE *f);
 void usart_handle(void);
 
@@ -16,12 +16,12 @@ void USART1_send(u8 *data, u16 length);
 #endif
 
 #define	DEBUG0(msg) \
-        do { if (debug_lvl >= 0) { printf("%c", 0x02); printf msg; } } while (0)
+	do { if (debug_lvl >= 0) { printf("%c", 0x02); printf msg; } } while (0)
 #define	DEBUG1(msg) \
-        do { if (debug_lvl >= 1) { printf("%c", 0x02); printf msg; } } while (0)
+	do { if (debug_lvl >= 1) { printf("%c", 0x02); printf msg; } } while (0)
 #define	DEBUG2(msg) \
-        do { if (debug_lvl >= 2) { printf("%c", 0x02); printf msg; } } while (0)
+	do { if (debug_lvl >= 2) { printf("%c", 0x02); printf msg; } } while (0)
 #define	DEBUG3(msg) \
-        do { if (debug_lvl >= 3) { printf("%c", 0x02); printf msg; } } while (0)
+	do { if (debug_lvl >= 3) { printf("%c", 0x02); printf msg; } } while (0)
 
 #endif

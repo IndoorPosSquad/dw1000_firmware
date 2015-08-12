@@ -55,26 +55,23 @@ u8 distance_flag = IDLE;
 
 int polling_counter = 0;
 
-// 存储由get_antenna_delay(dip_value)得出的antenna_delay
+// 存储由get_antenna_delay(dip_config)得出的antenna_delay
 int antenna_delay;
 
 /*
 DW1000初始化
 */
 
-void DW1000_init(void) {
+void DW1000_init(u8 dip_config) {
 	u32 tmp;
 	u32 status;
 	int i;
 
-	u8 dip_value;
-
-	dip_value = Read_DIP_Configuration();
 	#ifdef TX
 	antenna_delay = TX_ANTENNA_DELAY;
 	#endif
 	#ifdef RX
-	antenna_delay = get_antenna_delay(dip_value);
+	antenna_delay = get_antenna_delay(dip_config);
 	#endif
 
 	DW1000_trigger_reset();
@@ -133,7 +130,7 @@ void DW1000_init(void) {
 	#endif
 
 	#ifdef RX
-	mac[7] = 0xf0 | (0x0f & dip_value);
+	mac[7] = 0xf0 | (0x0f & dip_config);
 	#endif
 
 	set_MAC(mac);
@@ -667,7 +664,7 @@ void Init_VotTmp(u8 * voltage, u8 * temperature) {
 
 u8 Read_DIP_Configuration(void) {
 	GPIO_InitTypeDef GPIO_InitStructure;
-	u8 dip_value = 0x00;
+	u8 dip_config = 0x00;
 
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOC, ENABLE);
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
@@ -691,18 +688,16 @@ u8 Read_DIP_Configuration(void) {
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-	dip_value |= !GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_1) << 7;
-	dip_value |= !GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_2) << 6;
-	dip_value |= !GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_3) << 5;
-	dip_value |= !GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0) << 4;
-	dip_value |= !GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1) << 3;
-	dip_value |= !GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_2) << 2;
-	dip_value |= !GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_3) << 1;
-	dip_value |= !GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_4);
+	dip_config |= !GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_1) << 7;
+	dip_config |= !GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_2) << 6;
+	dip_config |= !GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_3) << 5;
+	dip_config |= !GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0) << 4;
+	dip_config |= !GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1) << 3;
+	dip_config |= !GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_2) << 2;
+	dip_config |= !GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_3) << 1;
+	dip_config |= !GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_4);
 
-	printf("Read DIP switch done, with input: %02X.\r\n", dip_value);
-
-	return dip_value;
+	return dip_config;
 }
 
 void handle_event(void) {
@@ -773,7 +768,7 @@ void handle_event(void) {
 				status_flag = IDLE;
 				to_IDLE();
 				RX_mode_enable();
-				PC13_UP;
+				PC13_DOWN;
 			}
 			// currently to avoid err, cannot work as an anchor and a client at the same time
 			else if(distance_flag == SENT_LS_REQ) {
@@ -863,7 +858,7 @@ void handle_event(void) {
 							send_LS_ACK(mac, src);
 							status_flag = SENT_LS_ACK;
 							DEBUG2(("\r\n===========Got LS Req===========\r\n"));
-							PC13_DOWN;
+							PC13_UP;
 						} else if((payload[0] == 0x01)) // GOT LS ACK
 							//&&((distance_flag == CONFIRM_SENT_LS_REQ)||(distance_flag == SENT_LS_REQ))
 						{
