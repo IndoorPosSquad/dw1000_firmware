@@ -5,6 +5,7 @@
 #include "math.h"
 #include "delay.h"
 #include "utils.h"
+#include "solve.h"
 
 #include "CONFIG.h"
 
@@ -31,13 +32,18 @@ u8 Rx_Buff[128];
 u32 LS_DATA[3];
 u32 LS_DELAY[3];
 u32 u32_diff;
+extern xyz anchors[3];
 
 extern u8 distance_flag;
 
 u32 time_offset = 0; //电磁波传播时间调整
 u8 speed_offset = 0; //电磁波传播速度调整
+
 float raw_distance[3];
+float calib[3];
 float distance[3];
+xyz location;
+extern float calib[3];
 
 u16 std_noise;
 u16 fp_ampl1;
@@ -68,6 +74,8 @@ void DW1000_init(void) {
 	int i;
 
 	u8 dip_value;
+
+	__disable_irq();
 
 	dip_value = Read_DIP_Configuration();
 	#ifdef TX
@@ -161,6 +169,8 @@ void DW1000_init(void) {
 	load_LDE();
 	read_status(&status);
 	DEBUG2(("DW1K Setup\t\tFinished, with Status: 0x%08X, Mac: 0x%02X.\r\n", status, mac[7]));
+
+	__enable_irq();
 }
 
 /*
@@ -187,7 +197,11 @@ void Location_polling(void) {
 		#endif
 	case 4:
 		//when count == 4, upload results
+		#ifdef SOLVE_LOCATION
+		location = solve_3d(anchors, distance);
+		#endif
 		upload_location_info();
+		status_forward();
 		return;
 	case TICK_IN_PERIOD:
 		// when count exceeds TICK_IN_PERIOD, zero it
@@ -305,7 +319,7 @@ void distance_measurement(int n) {
 //        printf("|#\n");
 //}
 
-void distance_forward(void) {
+void status_forward(void) {
 	u16 tmp;
 	// Tx_Buff[0]=0b10000010; // only DST PANID
 	// Tx_Buff[1]=0b00110111;
@@ -323,7 +337,7 @@ void distance_forward(void) {
 	Tx_Buff[10] = broadcast_addr[4];
 	Tx_Buff[11] = broadcast_addr[5];
 	Tx_Buff[12] = broadcast_addr[6];
-	Tx_Buff[13] = 0xF4; // for RX4
+	Tx_Buff[13] = 0xF0; // for RX0
 
 	// Tx_Buff[13]=broadcast_addr[7];
 	//DST MAC end
@@ -338,23 +352,30 @@ void distance_forward(void) {
 	//SRC MAC end
 	//NO AUX
 	//Payload begin
-	Tx_Buff[22] = 0x04; // 0x04 = distance forward
+	Tx_Buff[22] = 0x04;
 
-	Tx_Buff[23] = (data[0] >> 24) | 0x00;
-	Tx_Buff[24] = (data[0] >> 16) | 0x00;
-	Tx_Buff[25] = (data[0] >> 8)  | 0x00;
-	Tx_Buff[26] = (data[0])       | 0x00;
-	Tx_Buff[27] = (data[1] >> 24) | 0x00;
-	Tx_Buff[28] = (data[1] >> 16) | 0x00;
-	Tx_Buff[29] = (data[1] >> 8)  | 0x00;
-	Tx_Buff[30] = (data[1])       | 0x00;
-	Tx_Buff[31] = (data[2] >> 24) | 0x00;
-	Tx_Buff[32] = (data[2] >> 16) | 0x00;
-	Tx_Buff[33] = (data[2] >> 8)  | 0x00;
-	Tx_Buff[34] = (data[2])       | 0x00;
+	float_to_bytes(&(Tx_Buff[23]), location.x);
+	float_to_bytes(&(Tx_Buff[27]), location.y);
+	float_to_bytes(&(Tx_Buff[31]), location.z);
 
-	Tx_Buff[35] = 0xFF;
-	tmp = 35;
+	float_to_bytes(&(Tx_Buff[35]), raw_distance[0]);
+	float_to_bytes(&(Tx_Buff[39]), raw_distance[1]);
+	float_to_bytes(&(Tx_Buff[43]), raw_distance[2]);
+
+	float_to_bytes(&(Tx_Buff[47]), distance[0]);
+	float_to_bytes(&(Tx_Buff[51]), distance[1]);
+	float_to_bytes(&(Tx_Buff[55]), distance[2]);
+
+	float_to_bytes(&(Tx_Buff[59]), calib[0]);
+	float_to_bytes(&(Tx_Buff[63]), calib[1]);
+	float_to_bytes(&(Tx_Buff[67]), calib[2]);
+
+	u32_to_bytes(&(Tx_Buff[71]), LS_DATA[0]);
+	u32_to_bytes(&(Tx_Buff[75]), LS_DATA[1]);
+	u32_to_bytes(&(Tx_Buff[79]), LS_DATA[2]);
+
+	Tx_Buff[80] = 0xFF;
+	tmp = 80;
 	raw_write(Tx_Buff, &tmp);
 }
 
@@ -362,6 +383,28 @@ void handle_distance_forward(u8* payload) {
 	data[0] = (payload[1] << 24) + (payload[2] << 16) + (payload[3] << 8) + (payload[4]);
 	data[1] = (payload[5] << 24) + (payload[6] << 16) + (payload[7] << 8) + (payload[8]);
 	data[2] = (payload[9] << 24) + (payload[10] << 16) + (payload[11] << 8) + (payload[12]);
+
+	location.x = bytes_to_float(&(payload[1]));
+	location.y = bytes_to_float(&(payload[5]));
+	location.z = bytes_to_float(&(payload[9]));
+
+	raw_distance[0] = bytes_to_float(&(payload[13]));
+	raw_distance[1] = bytes_to_float(&(payload[17]));
+	raw_distance[2] = bytes_to_float(&(payload[21]));
+
+	distance[0] = bytes_to_float(&(payload[25]));
+	distance[1] = bytes_to_float(&(payload[29]));
+	distance[2] = bytes_to_float(&(payload[33]));
+
+	calib[0] = bytes_to_float(&(payload[37]));
+	calib[1] = bytes_to_float(&(payload[41]));
+	calib[2] = bytes_to_float(&(payload[45]));
+
+	LS_DATA[0] = bytes_to_u32(&(payload[49]));
+	LS_DATA[1] = bytes_to_u32(&(payload[53]));
+	LS_DATA[2] = bytes_to_u32(&(payload[57]));
+
+	upload_location_info();
 }
 
 /*

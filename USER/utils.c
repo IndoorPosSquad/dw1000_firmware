@@ -88,3 +88,46 @@ void Fifoput(u8* data, int len) {
 	SetEPTxValid(ENDP2);
 }
 // end of FIFO functions
+
+
+void float_to_bytes(uint8_t * bytes, float flt) {
+	float_bytes fb;
+
+	fb.f = flt;
+	bytes[0] = fb.s[0];
+	bytes[1] = fb.s[1];
+	bytes[2] = fb.s[2];
+	bytes[3] = fb.s[3];
+}
+
+float bytes_to_float(uint8_t * bytes) {
+	float_bytes fb;
+
+	fb.s[0] = bytes[0];
+	fb.s[1] = bytes[1];
+	fb.s[2] = bytes[2];
+	fb.s[3] = bytes[3];
+
+	return fb.f;
+}
+
+void u32_to_bytes(uint8_t * bytes, u32 uint) {
+	uint_bytes uib;
+
+	uib.ui = uint;
+	bytes[0] = uib.s[0];
+	bytes[1] = uib.s[1];
+	bytes[2] = uib.s[2];
+	bytes[3] = uib.s[3];
+}
+
+u32 bytes_to_u32(uint8_t * bytes) {
+	uint_bytes uib;
+
+	uib.s[0] = bytes[0];
+	uib.s[1] = bytes[1];
+	uib.s[2] = bytes[2];
+	uib.s[3] = bytes[3];
+
+	return uib.ui;
+}
