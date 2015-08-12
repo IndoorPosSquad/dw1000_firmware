@@ -14,12 +14,28 @@
 #define DEBUG_LVL 2
 #endif
 
+// 定位周期配置
+#define LOCATION_PERIOD (0.25f)
+#define TICK_IN_PERIOD (50) // 5 <= TICK_IN_PERIOD <= 255
+
 // 如果不定义SOLVE_LOCATION，则输出三个测距结果
 #define SOLVE_LOCATION
+// #define GROUND_ANCHOR
+#define A1_X -1.45
+#define A1_Y 2.74
+#define A1_Z 1.82
 
-// 定位周期配置
-#define LOCATION_PERIOD (1)
-#define TICK_IN_PERIOD (15) // 5 <= TICK_IN_PERIOD <= 255
+#define A2_X -1.45
+#define A2_Y -0.90
+#define A2_Z 1.82
+
+#define A3_X 1.92
+#define A3_Y 1.92
+#define A3_Z 2.02
+
+#define CALI_POS_X 0.00
+#define CALI_POS_Y 0.90
+#define CALI_POS_Z 0.33
 
 // antenna delay
 /*
@@ -32,9 +48,12 @@
  */
 #define TX_ANTENNA_DELAY 16838
 
-#define RX1_ANTENNA_DELAY 17137
-#define RX2_ANTENNA_DELAY 16952
-#define RX3_ANTENNA_DELAY 11439
+/* 154.44
+   154.62
+   154.82 */
+#define RX1_ANTENNA_DELAY 16085
+#define RX2_ANTENNA_DELAY 16123
+#define RX3_ANTENNA_DELAY 16166
 
 
 // 若用MPU6050, 则反注释下一行

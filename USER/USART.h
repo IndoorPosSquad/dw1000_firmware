@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include "CONFIG.h"
-void USART1_init(void);
+void USART1_init(u8 dip_config);
 int fputc(int ch, FILE *f);
 void usart_handle(void);
 void upload_location_info(void);
