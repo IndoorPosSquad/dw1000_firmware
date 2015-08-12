@@ -18,7 +18,7 @@
 
 void Location_polling(void);
 void distance_measurement(int n);
-void distance_forward(void);
+void status_forward(void);
 void handle_distance_forward(u8 * payload);
 void quality_measurement(void);
 

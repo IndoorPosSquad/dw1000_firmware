@@ -52,4 +52,20 @@ void Fifoput(u8* data, int len);
 void Push(u8* data);
 void Pop(u8* data);
 
+typedef union {
+	float f;
+	char s[4];
+} float_bytes;
+
+typedef union {
+	uint32_t ui;
+	char s[4];
+} uint_bytes;
+
+void  float_to_bytes(uint8_t * byte, float f);
+float bytes_to_float(uint8_t * byte);
+
+void u32_to_bytes(uint8_t * bytes, u32 uint);
+u32  bytes_to_u32(uint8_t * bytes);
+
 #endif

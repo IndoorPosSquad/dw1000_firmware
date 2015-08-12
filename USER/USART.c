@@ -15,13 +15,14 @@ extern u8 usart_status;
 // extern u8 ars_max;
 extern u8 time_offset;
 extern u8 speed_offset;
+extern u32 LS_DATA[3];
 extern float distance[3];
 extern float raw_distance[3];
+extern xyz location;
 
-extern xyz anchors[3];
 
 int debug_lvl = DEBUG_LVL;
-float calib[3] = {0};
+extern float calib[3];
 
 // macro for parsing command from host
 #define TYPE(buf) (((buf[0]) >> 6) & 0x03)
@@ -87,9 +88,9 @@ int fputc(int ch, FILE *f) {
 }
 
 void usart_handle(void) {
-	u16 i;
-	u32 tmp = 0;
-	u8 tmpp[128];
+	//u16 i;
+	//u32 tmp = 0;
+	//u8 tmpp[128];
 	//TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
 	if(usart_status == 2) {
 		switch(TYPE(usart_buffer)) {
@@ -144,17 +145,13 @@ void usart_handle(void) {
 }
 
 void upload_location_info(void) {
-#ifdef USE_MPU6050
+	#ifdef USE_MPU6050
 	MPU6050 mpu6050_buf;
-#endif
+	#endif
 
-#ifdef USE_TEMP_VOLT_SENSOR
+	#ifdef USE_TEMP_VOLT_SENSOR
 	u8 temperature;
-#endif
-
-#ifdef SOLVE_LOCATION
-	xyz location;
-#endif
+	#endif
 
 	#ifdef FAKE_SERIAL
 	static int count = 0;
@@ -167,19 +164,19 @@ void upload_location_info(void) {
 	count += step;
 	#endif
 
-
 	#ifdef FAKE_SERIAL
 	PCout(13) = 1;
 	delay(0x3ffff);
 	printf("Loc: %.2lf %.2lf %.2lf\n", (float) sin((float)count / 16 * 3.14), (float) cos((float) count / 16 * 3.14), 0.1 + 0.01 * cos((float)count));
 	PCout(13) = 0;
 	#elif defined(SOLVE_LOCATION)
-	location = solve_3d(anchors, distance);
-	DEBUG1(("Dist: %.2lf %.2lf %.2lf\r\n", distance[0], distance[1], distance[2]));
-	DEBUG1(("Raw:  %.2lf %.2lf %.2lf\r\n", raw_distance[0], raw_distance[1], raw_distance[2]));
-	DEBUG1(("Cali: %.2lf %.2lf %.2lf\r\n", calib[0], calib[1], calib[2]));
-	printf("Loc: %.2lf %.2lf %.2lf\n", location.x, location.y, location.z);
+	DEBUG1(("LS_DT: %d %d %d", LS_DATA[0], LS_DATA[1], LS_DATA[2]));
+	DEBUG1(("Dist:  %.2lf %.2lf %.2lf\r\n", distance[0], distance[1], distance[2]));
+	DEBUG1(("Raw:   %.2lf %.2lf %.2lf\r\n", raw_distance[0], raw_distance[1], raw_distance[2]));
+	DEBUG1(("Cali:  %.2lf %.2lf %.2lf\r\n", calib[0], calib[1], calib[2]));
+	DEBUG1("Loc: %.2lf %.2lf %.2lf\n", location.x, location.y, location.z);
 	DEBUG1(("\r\n"));
+	printf("-1");
 	#else
 	printf("Dist: %.2lf %.2lf %.2lf\r\n", distance[0], distance[1], distance[2]);
 	#endif
