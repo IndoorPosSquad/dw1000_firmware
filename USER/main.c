@@ -164,7 +164,14 @@ void GPIO_Configuration(void) {
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;
 	GPIO_Init(GPIOC, &GPIO_InitStructure);
 
-	GPIO_SetBits(GPIOC, GPIO_Pin_13);
+	GPIO_SetBits(GPIOC, GPIO_Pin_5);
+
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
+
+	GPIO_ResetBits(GPIOC, GPIO_Pin_0);
 }
 
 int main(void) {

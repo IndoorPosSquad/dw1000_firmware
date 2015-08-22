@@ -33,7 +33,7 @@ extern float calib[3];
 #define DATA1(buf) (buf[2])
 
 /*
- USART1鍒濆����鍖�,娉㈢壒鐜�115200锛屽崟娆�8姣旂壒锛屾棤濂囧伓鏍￠獙锛�1鍋滄����浣�
+  USART1 Init, 115200baudrate 8 bit/1 stop/no check
  */
 void USART1_init(u8 dip_config) {
 	GPIO_InitTypeDef GPIO_InitStructure;
@@ -76,10 +76,10 @@ void USART1_init(u8 dip_config) {
 
 	USART_Cmd(USART1, ENABLE);
 
-	DEBUG2(("USART鍒濆����鍖朶t\t瀹屾垚, with debug_lvl: %d\r\n", debug_lvl));
+	DEBUG2(("USART init do \t, with debug_lvl: %d\r\n", debug_lvl));
 }
 /*
-fputc閲嶅畾鍚�
+fputc redirect
 */
 int fputc(int ch, FILE *f) {
 	USART_SendData(USART1, (unsigned char) ch);
@@ -103,17 +103,17 @@ void usart_handle(void) {
 			break;
 		case 0x02: //0x80
 			DEBUG1(("location info \n"));
-			// TIM2 寮�鍏�
+			// TIM2
 			switch(CMD(usart_buffer)) {
-			case 0x00: // 0x80 寮�
+			case 0x00: // 0x80
 				DEBUG1(("Open\n"));
 				TIM_Cmd(TIM2, ENABLE);
 				break;
-			case 0x01: // 0x90 鍏�
+			case 0x01: // 0x90
 				DEBUG1(("Close\n"));
 				TIM_Cmd(TIM2, DISABLE);
 				break;
-			case 0x02: // 0xA0 鏍″噯
+			case 0x02: // 0xA0 calib
 				DEBUG1(("Calibration\n"));
 				calibration(CALI_POS_X, CALI_POS_Y, CALI_POS_Z);
 				break;
@@ -170,13 +170,18 @@ void upload_location_info(void) {
 	printf("Loc: %.2lf %.2lf %.2lf\n", (float) sin((float)count / 16 * 3.14), (float) cos((float) count / 16 * 3.14), 0.1 + 0.01 * cos((float)count));
 	PCout(13) = 0;
 	#elif defined(SOLVE_LOCATION)
-	DEBUG1(("LS_DT: %d %d %d", LS_DATA[0], LS_DATA[1], LS_DATA[2]));
+	DEBUG1(("LS_DT: %d %d %d\r\n", LS_DATA[0], LS_DATA[1], LS_DATA[2]));
 	DEBUG1(("Dist:  %.2lf %.2lf %.2lf\r\n", distance[0], distance[1], distance[2]));
 	DEBUG1(("Raw:   %.2lf %.2lf %.2lf\r\n", raw_distance[0], raw_distance[1], raw_distance[2]));
 	DEBUG1(("Cali:  %.2lf %.2lf %.2lf\r\n", calib[0], calib[1], calib[2]));
-	DEBUG1("Loc: %.2lf %.2lf %.2lf\n", location.x, location.y, location.z);
+	DEBUG1(("Loc: %.2lf %.2lf %.2lf\n", location.x, location.y, location.z));
 	DEBUG1(("\r\n"));
-	printf("-1");
+	printf(" -1 ");
+	printf(" %d ", (int)(location.x * 100));
+	printf(" %d ", (int)(location.y * 100));
+	printf(" %d ", (int)(location.z * 100));
+	printf(" -1 ");
+	DEBUG1(("\r\n"));
 	#else
 	DEBUG1(("Raw:  %.2lf %.2lf %.2lf\r\n", raw_distance[0], raw_distance[1], raw_distance[2]));
 	printf("Dist: %.2lf %.2lf %.2lf\r\n", distance[0], distance[1], distance[2]);
@@ -192,67 +197,3 @@ void upload_location_info(void) {
 	printf("Temp: %d\r\n", temperature);
 #endif
 }
-/*
-	鍛戒护		鍛戒护瀛�			鍙傛暟1															鍙傛暟2
-璁剧疆瀹氫綅鍛ㄦ湡	0x01		瀹氫綅鍛ㄦ湡锛堝崟浣峬s锛涗袱瀛楄妭锛屼綆浣嶅湪鍓嶏紝榛樿����3000ms锛�
-璁剧疆鑷����姩閲嶅彂	0x02	鑷����姩閲嶅彂绛夊緟鏃堕棿锛堝崟浣島s锛涗袱瀛楄妭锛屼綆浣嶅湪鍓嶏紱榛樿����1000us)				閲嶅彂娆℃暟锛堥粯璁�1锛�
-璁剧疆鏃堕棿鍋忕Щ    0x03    鏃堕棿宸����殑鍋忕Щ锛堜粠纭����欢鑾峰緱鏁版嵁涓����噺鍘伙紱4瀛楄妭锛屼綆浣嶅湪鍓嶏紱榛樿����0锛�
-璁剧疆鍏夐�熷亸绉�    0x04    鍏夐�熺殑鐧惧垎姣斿亸绉伙紙鍗曚綅锛�1%锛涗粠鐪熺┖鍏夐�熶腑浠ョ櫨鍒嗘瘮褰㈠紡鍑忓幓锛涢粯璁�0锛�
-璇诲彇DW1000瀵勫瓨鍣� 0x05     鍦板潃锛堜竴瀛楄妭锛� 鍋忕Щ鍦板潃锛堜袱瀛楄妭锛屼綆浣嶅湪鍓嶏級 璇诲彇瀛楄妭闀垮害锛堜袱瀛楄妭锛屼綆浣嶅湪鍓�,鏈�澶�128锛�
-
-*/
-
-/*
-tmp=0;
-//閰嶇疆瀹氫綅鍛ㄦ湡鍗曚綅锛坢s锛�
-if((usart_buffer[0]==0x01)&&(usart_index==3))
-{
-	tmp=usart_buffer[1]+(usart_buffer[2]<<8);
-	TIM_ITConfig(TIM2,TIM_IT_Update,DISABLE);
-	TIM_TimeBaseStructure.TIM_Period=2*tmp;
-	TIM_TimeBaseStructure.TIM_Prescaler=36000;
-	TIM_TimeBaseStructure.TIM_ClockDivision=TIM_CKD_DIV1;
-	TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up;
-	TIM_TimeBaseInit(TIM2, &TIM_TimeBaseStructure);
-	TIM_ClearFlag(TIM2, TIM_FLAG_Update);
-	TIM_ITConfig(TIM2,TIM_IT_Update,ENABLE);
-	printf("\r\n*瀹氫綅鍛ㄦ湡璁剧疆鎴愬姛*\r\n");
-	printf("[瀹氫綅鍛ㄦ湡璁剧疆涓�%ums]\r\n",tmp);
-}
-else if	(((usart_buffer[0]==0x02)&&(usart_index==4)))
-{
-	// ars_max=usart_buffer[3];
-	printf("\r\n*Disabled*\r\n");
-	// printf("[鏈�澶ч噸鍙戞����鏁颁负%u娆����\r\n",ars_max);
-}
-else if	(((usart_buffer[0]==0x03)&&(usart_index==5)))
-{
-	time_offset= usart_buffer[1]+(usart_buffer[2]<<8)+(usart_buffer[3]<<16)+(usart_buffer[4]<<24);
-	printf("\r\n*鐢电����娉㈤����琛屾椂闂村亸绉昏����缃����垚鍔�*\r\n");
-	printf("[鐢电����娉㈤����琛屾椂闂村亸绉讳负0x%x%x%x%x]\r\n",usart_buffer[4],usart_buffer[3],usart_buffer[2],usart_buffer[1]);
-}
-else if	(((usart_buffer[0]==0x04)&&(usart_index==2)))
-{
-	speed_offset= usart_buffer[1];
-	printf("\r\n*鐢电����娉㈤�熷害鍋忕Щ鐧惧垎姣旇����缃����垚鍔�*\r\n");
-	printf("[鐢电����娉㈤�熷害鍋忕Щ鐧惧垎姣斾负%u%%]\r\n",speed_offset);
-}
-else if	(((usart_buffer[0]==0x05)&&(usart_index==6)))
-{
-	tmp=(usart_buffer[4]+(usart_buffer[5]<<8));
-	Read_DW1000(usart_buffer[1],(usart_buffer[2]+(usart_buffer[3]<<8)),tmpp,tmp);
-	printf("*璁块棶鍦板潃 0x%02x:0x%02x 璁块棶闀垮害 %d *\r\n[杩斿洖鏁版嵁 0x",usart_buffer[1],(usart_buffer[2]+(usart_buffer[3]<<8)),tmp);
-	for(i=0;i<tmp;i++)
-	{
-		printf("%02x",*(tmpp+tmp-i-1));
-	}
-	printf("]\r\n");
-}
-else
-{
-	printf("Your Input: ");
-	for (i = 0; i < usart_index; i++) {
-		printf("%02x", usart_buffer[i]);
-	}
-}
-*/

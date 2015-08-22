@@ -36,8 +36,9 @@ extern xyz anchors[3];
 
 extern u8 distance_flag;
 
-u32 time_offset = 0; //鐢电����娉����紶鎾����椂闂磋皟鏁�
-u8 speed_offset = 0; //鐢电����娉����紶鎾�����熷害璋冩暣
+// light speed justification
+u32 time_offset = 0; // light speed
+u8 speed_offset = 0; // light speed
 
 float raw_distance[3];
 float calib[3];
@@ -61,11 +62,11 @@ u8 distance_flag = IDLE;
 
 int polling_counter = 0;
 
-// 瀛樺偍鐢眊et_antenna_delay(dip_config)寰楀嚭鐨刟ntenna_delay
+//use get_antenna_delay(dip_config) to get tenna_delay
 int antenna_delay;
 
 /*
-DW1000鍒濆����鍖�
+  DW1000 init
 */
 
 void DW1000_init(u8 dip_config) {
@@ -83,30 +84,29 @@ void DW1000_init(u8 dip_config) {
 
 	DW1000_trigger_reset();
 
-	////////////////////宸ヤ綔妯″紡閰嶇疆////////////////////////
 	//lucus
 	//Channel Control PCODE 4 CHAN 5
 	tmp = 0x21040055;
 	Write_DW1000(0x1F, 0x00, (u8 *)(&tmp), 4);
-	//AGC_TUNE1 锛氳����缃����负16 MHz PRF
+	//AGC_TUNE1 16 MHz PRF
 	tmp = 0x00008870;
 	Write_DW1000(0x23, 0x04, (u8 *)(&tmp), 2);
-	//AGC_TUNE2 锛氫笉鐭ラ亾骞插暐鐢����紝鎶�鏈����墜鍐屾槑纭��������瀹氳����鍐�0x2502A907
+	//AGC_TUNE2
 	tmp = 0x2502A907;
 	Write_DW1000(0x23, 0x0C, (u8 *)(&tmp), 4);
-	//DRX_TUNE2锛氶厤缃����负PAC size 8锛�16 MHz PRF
+	//DRX_TUNE2 16 MHz PRF
 	tmp = 0x311A002D;
 	Write_DW1000(0x27, 0x08, (u8 *)(&tmp), 4);
-	//NSTDEV 锛歀DE澶氬緞骞叉壈娑堥櫎绠楁硶鐨勭浉鍏抽厤缃�
+	//NSTDEV
 	tmp = 0x0000006C;
 	Write_DW1000(0x2E, 0x0806, (u8 *)(&tmp), 1);
-	//LDE_CFG2 锛氬皢LDE绠楁硶閰嶇疆涓洪�傚簲16MHz PRF鐜��������
+	//LDE_CFG2
 	tmp = 0x00001607;
 	Write_DW1000(0x2E, 0x1806, (u8 *)(&tmp), 2);
-	//TX_POWER 锛氬皢鍙戦�佸姛鐜囬厤缃����负16 MHz,鏅鸿兘鍔熺巼璋冩暣妯″紡
+	//TX_POWER
 	tmp = 0x0E082848;
 	Write_DW1000(0x1E, 0x00, (u8 *)(&tmp), 4);
-	//RF_TXCTRL 锛氶�夋嫨鍙戦�侀�氶亾5
+	//RF_TXCTRL
 	tmp = 0x001E3FE0;
 	Write_DW1000(0x28, 0x0C, (u8 *)(&tmp), 4);
 	//lucus
@@ -117,10 +117,10 @@ void DW1000_init(u8 dip_config) {
 	//LDE_REPC PCODE 4
 	tmp = 0x0000428E;
 	Write_DW1000(0x2E, 0x2804, (u8 *)(&tmp), 2);
-	//TC_PGDELAY 锛氳剦鍐蹭骇鐢熷欢鏃惰����缃����负閫傚簲棰戦亾5
+	//TC_PGDELAY
 	tmp = 0x000000C0;
 	Write_DW1000(0x2A, 0x0B, (u8 *)(&tmp), 1);
-	//FS_PLLTUNE 锛歅PL璁剧疆涓洪�傚簲棰戦亾5
+	//FS_PLLTUNE
 	tmp = 0x000000A6;
 	Write_DW1000(0x2B, 0x0B, (u8 *)(&tmp), 1);
 	load_LDE();
@@ -145,15 +145,15 @@ void DW1000_init(u8 dip_config) {
 	tmp = 0x200011FC;
 	// 0010 0000 0000 0001 0000 0111 1101
 	Write_DW1000(0x04, 0x00, (u8 *)(&tmp), 4);
-	// test pin SYNC锛氱敤浜庢祴璇曠殑LED鐏����紩鑴氬垵濮嬪寲锛孲YNC寮曡剼绂佺敤
+	// test pin SYNC
 	tmp = 0x00101540;
 	Write_DW1000(0x26, 0x00, (u8 *)(&tmp), 2);
 	tmp = 0x01;
 	Write_DW1000(0x36, 0x28, (u8 *)(&tmp), 1);
-	// interrupt   锛氫腑鏂����姛鑳介�夋嫨锛堝彧寮�鍚����敹鍙戞垚鍔熶腑鏂����級
+	// interrupt
 	tmp = 0x00002080;
 	Write_DW1000(0x0E, 0x00, (u8 *)(&tmp), 2);
-	// ack绛夊緟
+	// ack
 	tmp = 3;
 	Write_DW1000(0x1A, 0x03, (u8 *)(&tmp), 1);
 	for(i = 0; i < 10; i++)
@@ -170,7 +170,6 @@ void DW1000_init(u8 dip_config) {
 }
 
 /*
-鐢宠����瀹氫綅
 */
 #ifdef TX
 void Location_polling(void) {
@@ -246,9 +245,6 @@ void Location_polling(void) {
 }
 #endif
 
-/*
-璁＄畻璺濈����淇℃伅(鍗曚綅锛歝m)
-*/
 void distance_measurement(int n) {
 	u32 double_diff;
 	u32 rxtx_antenna_delay;
@@ -373,9 +369,10 @@ void status_forward(void) {
 	Tx_Buff[80] = 0xFF;
 	tmp = 80;
 	raw_write(Tx_Buff, &tmp);
+	DEBUG1(("status forward sent.\r\n"));
 }
 
-void handle_distance_forward(u8* payload) {
+void handle_status_forward(u8* payload) {
 	data[0] = (payload[1] << 24) + (payload[2] << 16) + (payload[3] << 8) + (payload[4]);
 	data[1] = (payload[5] << 24) + (payload[6] << 16) + (payload[7] << 8) + (payload[8]);
 	data[2] = (payload[9] << 24) + (payload[10] << 16) + (payload[11] << 8) + (payload[12]);
@@ -404,24 +401,20 @@ void handle_distance_forward(u8* payload) {
 }
 
 /*
-鏃犵嚎璐ㄩ噺鏁版嵁
 */
 void quality_measurement(void) {
 	rxpacc >>= 4;
 
-	//鎶楀櫔澹板搧璐ㄥ垽瀹�
 	if((fp_ampl2 / std_noise) >= 2) {
-		//printf("鎶楀櫔澹板搧璐╘t\t鑹����ソ\r\n");
 	} else {
-		//printf("鎶楀櫔澹板搧璐╘t\t寮傚父\r\n");
 	}
-	//LOS鍒ゅ畾
+	//LOS
 	fppl = 10.0 * log((fp_ampl1 ^ 2 + fp_ampl2 ^ 2 + fp_ampl3 ^ 2) / (rxpacc ^ 2)) - 115.72;
 	rxl = 10.0 * log(cir_mxg * (2 ^ 17) / (rxpacc ^ 2)) - 115.72;
 	if((fppl - rxl) >= 10.0 * log(0.25)) {
-		//printf("LOS鍒ゅ畾\t\t\tLOS\r\n");
+		//printf("LOS: seems to be\t\tLOS\r\n");
 	} else {
-		//printf("LOS鍒ゅ畾\t\t\tNLOS\r\n");
+		//printf("LOS: seems to be\t\tNLOS\r\n");
 	}
 }
 
@@ -435,7 +428,6 @@ void DW1000_trigger_reset(void) {
 }
 
 /*
-鎵撳紑鎺ユ敹妯″紡
 */
 void RX_mode_enable(void) {
 	u8 tmp;
@@ -443,8 +435,8 @@ void RX_mode_enable(void) {
 	tmp = 0x01;
 	Write_DW1000(0x0D, 0x01, &tmp, 1);
 }
+
 /*
-杩斿洖IDLE鐘舵��
 */
 void to_IDLE(void) {
 	u8 tmp;
@@ -957,7 +949,7 @@ void handle_event(void) {
 							// TODO
 							status_flag = IDLE;
 						} else if(payload[0] == 0x04) { // distance forward
-							handle_distance_forward(payload);
+							handle_status_forward(payload);
 						} else {
 							to_IDLE();
 							RX_mode_enable();
