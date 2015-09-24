@@ -20,22 +20,31 @@
 
 // 如果不定义SOLVE_LOCATION，则输出三个测距结果
 #define SOLVE_LOCATION
-// #define GROUND_ANCHOR
-#define A1_X -1.45
-#define A1_Y 2.74
-#define A1_Z 1.82
+#define GROUND_ANCHOR
+//#define A1_X -1.45
+//#define A1_Y 2.74
+//#define A1_Z 1.82
+#define A1_X 0.0
+#define A1_Y 0.0
+#define A1_Z 0.10
 
-#define A2_X -1.45
-#define A2_Y -0.90
-#define A2_Z 1.82
+//#define A2_X -1.45
+//#define A2_Y -0.90
+//#define A2_Z 1.82
+#define A2_X 4.80
+#define A2_Y 1.82
+#define A2_Z 0.10
 
-#define A3_X 1.92
-#define A3_Y 1.92
-#define A3_Z 2.02
+//#define A3_X 1.92
+//#define A3_Y 1.92
+//#define A3_Z 2.02
+#define A3_X 0.0
+#define A3_Y 4.55
+#define A3_Z 0.10
 
-#define CALI_POS_X 0.00
-#define CALI_POS_Y 0.90
-#define CALI_POS_Z 0.33
+#define CALI_POS_X 1.50
+#define CALI_POS_Y 0.0
+#define CALI_POS_Z 0.40
 
 // antenna delay
 /*
@@ -46,15 +55,14 @@
   例如，TX与RX1的测距稳态误差为158米，则两者天线延时之和为：
   158 / 4.691e-3 = 33675
  */
-#define TX_ANTENNA_DELAY 16838
+#define TX_ANTENNA_DELAY (16838 - 25)
 
 /* 154.44
    154.62
-   154.82 */
+   154.50 */
 #define RX1_ANTENNA_DELAY 16085
 #define RX2_ANTENNA_DELAY 16123
-#define RX3_ANTENNA_DELAY 16166
-
+#define RX3_ANTENNA_DELAY 16103
 
 // 若用MPU6050, 则反注释下一行
 // #define USE_MPU6050

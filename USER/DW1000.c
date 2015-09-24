@@ -61,6 +61,7 @@ u8 status_flag = IDLE;
 u8 distance_flag = IDLE;
 
 int polling_counter = 0;
+int status_counter[3] = {0};
 
 //use get_antenna_delay(dip_config) to get tenna_delay
 int antenna_delay;
@@ -267,9 +268,7 @@ void distance_measurement(int n) {
 	DEBUG3(("LS_DATA[n] : %d\r\n", LS_DATA[n]));
 	DEBUG3(("double_diff: %d\r\n", double_diff));
 
-	if (debug_lvl > 0) {
-		raw_distance[n] = 15.65 / 1000000000000 * (float) (double_diff - LS_DATA[n]) / 2 * _WAVE_SPEED;
-	}
+	raw_distance[n] = 15.65 / 1000000000000 * (float) (double_diff - LS_DATA[n]) / 2 * _WAVE_SPEED;
 
 	net_time_of_flight = double_diff - 2 * rxtx_antenna_delay - LS_DATA[n];
 	DEBUG3(("after_diff : %d\r\n", net_time_of_flight));
@@ -280,11 +279,15 @@ void distance_measurement(int n) {
 	distance[n] = 15.65 / 1000000000000 * (float) (net_time_of_flight) / 2 * _WAVE_SPEED;
 	// 4.6917519677e-3 * net_time_of_flight / 2
 
-	#ifdef RX4
-	data[0] = (u32)(100 * distance[0]);
-	data[1] = (u32)(100 * distance[1]);
-	data[2] = (u32)(100 * distance[2]);
-	#endif
+	// light up PC0 if something goes wrong
+	if (fabs(raw_distance[n]) == 0.00f || fabs(raw_distance[n]) > 300.0f) {
+		status_counter[n]++;
+	} else {
+		status_counter[n] -= (status_counter[n] > 0) ? 1 : 0;
+	}
+
+	if (status_counter[0] || status_counter[1] || status_counter[2]) {PC0_UP;} else {PC0_DOWN;}
+	DEBUG1(("status_counter[%d]: %d", n, status_counter[n]));
 }
 
 //void location_info_upload(void) {
