@@ -15,6 +15,8 @@
 
 #define PC13_UP GPIO_ResetBits(GPIOC, GPIO_Pin_13)
 #define PC13_DOWN GPIO_SetBits(GPIOC, GPIO_Pin_13)
+#define PC0_UP GPIO_ResetBits(GPIOC, GPIO_Pin_0)
+#define PC0_DOWN GPIO_SetBits(GPIOC, GPIO_Pin_0)
 
 void Location_polling(void);
 void distance_measurement(int n);

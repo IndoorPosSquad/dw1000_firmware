@@ -9,7 +9,7 @@
 #include "delay.h"
 #include "solve.h"
 
-extern u8 usart_buffer[64];
+extern u8 usart_buffer[USART_BUFFER_LEN];
 extern u8 usart_index;
 extern u8 usart_status;
 // extern u8 ars_max;
@@ -24,10 +24,10 @@ int debug_lvl = DEBUG_LVL;
 extern float calib[3];
 
 // macro for parsing command from host
-#define TYPE(buf) (((buf[0]) >> 6) & 0x03)
-#define CMD(buf)  (((buf[0]) >> 4) & 0x03)
-#define FRAG()
-#define PACKET_LENGTH(buf) (buf[1])
+//#define TYPE(buf) (((buf[0]) >> 6) & 0x03)
+//#define CMD(buf)  (((buf[0]) >> 4) & 0x03)
+//#define FRAG()
+//#define PACKET_LENGTH(buf) (buf[1])
 
 // get the first byte of payload
 #define DATA1(buf) (buf[2])
@@ -92,19 +92,18 @@ void usart_handle(void) {
 	//u32 tmp = 0;
 	//u8 tmpp[128];
 	//TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
-	if(usart_status == 2) {
-		switch(TYPE(usart_buffer)) {
+	if (usart_status == 2) {
+		switch (TYPE(usart_buffer)) {
 		case 0x00: //0x00
 			DEBUG1(("reserved type\n"));
 			break;
 		case 0x01: //0x40
 			DEBUG1(("message type\n"));
-
 			break;
 		case 0x02: //0x80
-			DEBUG1(("location info \n"));
+			DEBUG1(("location info\n"));
 			// TIM2
-			switch(CMD(usart_buffer)) {
+			switch (CMD(usart_buffer)) {
 			case 0x00: // 0x80
 				DEBUG1(("Open\n"));
 				TIM_Cmd(TIM2, ENABLE);
@@ -121,7 +120,7 @@ void usart_handle(void) {
 			break;
 		case 0x03: //0xC0
 			DEBUG1(("command type\n"));
-			switch(CMD(usart_buffer)) {
+			switch (CMD(usart_buffer)) {
 			case 0x00: //0xC0
 				DEBUG1(("Reboot cmd\n"));
 				break;

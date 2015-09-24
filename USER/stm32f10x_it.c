@@ -39,8 +39,11 @@
 // USB
 
 // Common
+#define USART_BUFFER_LEN 64
+
 volatile u8 time_up = 0;
-u8 usart_buffer[64];
+
+u8 usart_buffer[USART_BUFFER_LEN];
 u8 usart_index;
 u8 usart_status;
 
@@ -213,7 +216,7 @@ void USART1_IRQHandler(void) {
 			TIM_Cmd(TIM4, ENABLE);
 
 			usart_buffer[usart_index++] = USART1->DR;
-			if (usart_index == 64) {
+			if (usart_index == USART_BUFFER_LEN) {
 				usart_index = 0;
 			}
 		} else if (usart_status == 1) {
@@ -224,7 +227,7 @@ void USART1_IRQHandler(void) {
 			TIM_ITConfig(TIM4, TIM_IT_Update, ENABLE);
 
 			usart_buffer[usart_index++] = USART1->DR;
-			if (usart_index == 64) {
+			if (usart_index == USART_BUFFER_LEN) {
 				usart_index = 0;
 			}
 		}
