@@ -76,7 +76,7 @@ void TIM4_init(void) {
 
 	TIM_DeInit(TIM4);
 
-	TIM_TimeBaseStructure.TIM_Period = 10;
+	TIM_TimeBaseStructure.TIM_Period = 25;
 	TIM_TimeBaseStructure.TIM_Prescaler = 7200;
 	TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
