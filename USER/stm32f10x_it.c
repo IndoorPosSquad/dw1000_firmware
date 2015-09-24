@@ -39,7 +39,6 @@
 // USB
 
 // Common
-#define USART_BUFFER_LEN 64
 
 volatile u8 time_up = 0;
 
