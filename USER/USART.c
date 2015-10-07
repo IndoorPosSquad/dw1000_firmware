@@ -94,44 +94,44 @@ void usart_handle(void) {
 	//TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
 	if (usart_status == 2) {
 		switch (TYPE(usart_buffer)) {
-		case 0x00: //0x00
-			DEBUG1(("reserved type\n"));
-			break;
-		case 0x01: //0x40
+			//case 0x00: //0x00
+			//DEBUG1(("reserved type\n"));
+			//break;
+		case MESSAGE_TYPE:
 			DEBUG1(("message type\n"));
 			break;
-		case 0x02: //0x80
+		case LOCATION_TYPE:
 			DEBUG1(("location info\n"));
 			// TIM2
-			switch (CMD(usart_buffer)) {
-			case 0x00: // 0x80
+			switch (SUBTYPE(usart_buffer)) {
+			case LOC_ON:
 				DEBUG1(("Open\n"));
 				TIM_Cmd(TIM2, ENABLE);
 				break;
-			case 0x01: // 0x90
+			case LOC_OFF:
 				DEBUG1(("Close\n"));
 				TIM_Cmd(TIM2, DISABLE);
 				break;
-			case 0x02: // 0xA0 calib
+			case LOC_CALIB:
 				DEBUG1(("Calibration\n"));
 				calibration(CALI_POS_X, CALI_POS_Y, CALI_POS_Z);
 				break;
 			}
 			break;
-		case 0x03: //0xC0
+		case CMD_TYPE:
 			DEBUG1(("command type\n"));
-			switch (CMD(usart_buffer)) {
-			case 0x00: //0xC0
+			switch (SUBTYPE(usart_buffer)) {
+			case CMD_REBOOT:
 				DEBUG1(("Reboot cmd\n"));
 				break;
-			case 0x01: //0xD0
+			case CMD_WR: //0xD0
 				DEBUG1(("write reg cmd\n"));
 				break;
-			case 0x02: //0xE0
+			case CMD_RR: //0xE0
 				DEBUG1(("read reg cmd\n"));
 				break;
-			case 0x03: //0xF0
-				debug_lvl = (int) DATA1(usart_buffer);
+			case CMD_LOGLV: //0xF0
+				debug_lvl = (int) CMD_LOGLV_PARAM(usart_buffer);
 				DEBUG1(("set log level to %d\n", debug_lvl));
 				break;
 			}

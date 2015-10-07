@@ -59,7 +59,7 @@ void TIM2_init(void) {
 }
 
 /*
-TIM4时钟初始化:1ms溢出 （串口监听）
+TIM4时钟初始化:2.5ms溢出 （串口监听）
 */
 void TIM4_init(void) {
 	NVIC_InitTypeDef NVIC_InitStructure;
