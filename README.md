@@ -90,28 +90,27 @@ Baudrate 921600
 +-------+---------------+---------------+-------------+-------------+-------------+---------------+-----------------+
 | Bits  |               |               |             |             |  Variable   |               |                 |
 +-------+---------------+---------------+-------------+-------------+-------------+---------------+-----------------+
-|       |      TYPE     |    CMD/LEN    | Packet Seq  | Packet Seq  |  Payload 272| CRC16         |   CRC16         |
+|       |      TYPE     |  SUBTYPE/LEN  | Packet Seq  | Packet Seq  |  Payload 272| CRC16         |   CRC16         |
 +-------+---------------+---------------+-------------+-------------+-------------+---------------+-----------------+
 TOTAL LENGTH 278
  1. Frame Type
-        00 - RES
+        //00 - RES
         01 - Message
                 Host to Controller(H2C)
                         The payload carries the raw message to sent, see raw_write().
                 Controller to Host(C2H)
                         The payload carries the raw message received, see raw_read().
-        10 - Distance / Location poll
-                Trigger the Location Service.
+        10 - Distance / Location poll Trigger the Location Service.
+             On
+             Off
+             Calibration
+
         11 - Command
-                CMD - 00
-                        Reboot.
-                CMD - 01
-                        Write Reg.
-                CMD - 10
-                        H2C - Read Reg.
-                        C2H - Return the Read Reg Result.
-                CMD - 11
-                        Set log level?
+             Reboot.
+             Write Reg.
+             H2C - Read Reg.
+             C2H - Return the Read Reg Result.
+             Set log level?
  2. Packet Length
         Total length of all Payloads in a sequence in Unsigned 8 bits Integer.
  3. CRC
