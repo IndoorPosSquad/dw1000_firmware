@@ -3,5 +3,9 @@ Listing
 JLinkLog.txt
 TX.uvgui_Jack.bak
 TX_TX.dep
+TX.uvgui.Jack
+TX.uvopt
+TX_uvopt.bak
+
 
 cscope.*
