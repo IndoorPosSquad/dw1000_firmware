@@ -33,7 +33,7 @@ extern float calib[3];
 #define DATA1(buf) (buf[2])
 
 /*
-  USART1 Init, 115200baudrate 8 bit/1 stop/no check
+  USART1 Init, 921600baudrate 8 bit/1 stop/no check
  */
 void USART1_init(u8 dip_config) {
 	GPIO_InitTypeDef GPIO_InitStructure;
@@ -88,7 +88,7 @@ int fputc(int ch, FILE *f) {
 }
 
 void usart_handle(void) {
-	//u16 i;
+	int i;
 	//u32 tmp = 0;
 	//u8 tmpp[128];
 	//TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
@@ -98,44 +98,55 @@ void usart_handle(void) {
 			//DEBUG1(("reserved type\n"));
 			//break;
 		case MESSAGE_TYPE:
-			DEBUG1(("message type\n"));
+			DEBUG1(("message type\r\n"));
+			DEBUG1(("LEN: %d\r\n", PACKET_LEN(usart_buffer)));
+			DEBUG1(("SEQ: %d\r\n", PACKET_SEQ(usart_buffer)));
+			for (i = 0; i < PACKET_LEN(usart_buffer); i += 1) {
+				DEBUG1(("%02X\r\n", PACKET_PLD(usart_buffer)[i]));
+			}
 			break;
 		case LOCATION_TYPE:
-			DEBUG1(("location info\n"));
+			DEBUG1(("location info\r\n"));
 			// TIM2
 			switch (SUBTYPE(usart_buffer)) {
 			case LOC_ON:
-				DEBUG1(("Open\n"));
+				DEBUG1(("Open\r\n"));
 				TIM_Cmd(TIM2, ENABLE);
 				break;
 			case LOC_OFF:
-				DEBUG1(("Close\n"));
+				DEBUG1(("Close\r\n"));
 				TIM_Cmd(TIM2, DISABLE);
 				break;
 			case LOC_CALIB:
-				DEBUG1(("Calibration\n"));
+				DEBUG1(("Calibration\r\n"));
 				calibration(CALI_POS_X, CALI_POS_Y, CALI_POS_Z);
 				break;
 			}
 			break;
 		case CMD_TYPE:
-			DEBUG1(("command type\n"));
+			DEBUG1(("command type\r\n"));
 			switch (SUBTYPE(usart_buffer)) {
 			case CMD_REBOOT:
-				DEBUG1(("Reboot cmd\n"));
+				DEBUG1(("Reboot cmd\r\n"));
 				break;
 			case CMD_WR: //0xD0
-				DEBUG1(("write reg cmd\n"));
+				DEBUG1(("write reg cmd\r\n"));
 				break;
 			case CMD_RR: //0xE0
-				DEBUG1(("read reg cmd\n"));
+				DEBUG1(("read reg cmd\r\n"));
 				break;
 			case CMD_LOGLV: //0xF0
 				debug_lvl = (int) CMD_LOGLV_PARAM(usart_buffer);
-				DEBUG1(("set log level to %d\n", debug_lvl));
+				DEBUG1(("set log level to %d\r\n", debug_lvl));
 				break;
 			}
 			break;
+		default:
+			DEBUG1(("Unknown type"));
+			DEBUG1(("Total Len: %d", usart_index));
+			for (i = 0; i < usart_index; i += 1) {
+				DEBUG1(("%02X\r\n", usart_buffer[i]));
+			}
 		}
 
 		usart_status = 0;
@@ -173,13 +184,17 @@ void upload_location_info(void) {
 	DEBUG1(("Dist:  %.2lf %.2lf %.2lf\r\n", distance[0], distance[1], distance[2]));
 	DEBUG1(("Raw:   %.2lf %.2lf %.2lf\r\n", raw_distance[0], raw_distance[1], raw_distance[2]));
 	DEBUG1(("Cali:  %.2lf %.2lf %.2lf\r\n", calib[0], calib[1], calib[2]));
-	DEBUG1(("Loc: %.2lf %.2lf %.2lf\n", location.x, location.y, location.z));
+	DEBUG1(("Loc: %.2lf %.2lf %.2lf\r\n", location.x, location.y, location.z));
+	DEBUG1(("Loc: %d %d %d\r\n",
+		(int)(location.x * 100),
+		(int)(location.y * 100),
+		(int)(location.z * 100)));
 	DEBUG1(("\r\n"));
-	printf(" -1 ");
-	printf(" %d ", (int)(location.x * 100));
-	printf(" %d ", (int)(location.y * 100));
-	printf(" %d ", (int)(location.z * 100));
-	printf(" -1 ");
+	printf(("L"));
+	printf(("3"));
+	printf("%d ", (int)(location.x * 100));
+	printf("%d ", (int)(location.y * 100));
+	printf("%d ", (int)(location.z * 100));
 	DEBUG1(("\r\n"));
 	#else
 	DEBUG1(("Raw:  %.2lf %.2lf %.2lf\r\n", raw_distance[0], raw_distance[1], raw_distance[2]));
