@@ -43,7 +43,7 @@
 volatile u8 time_up = 0;
 
 u8 usart_buffer[USART_BUFFER_LEN];
-u8 usart_index;
+u16 usart_index;
 u8 usart_status;
 
 extern int debug_lvl;
