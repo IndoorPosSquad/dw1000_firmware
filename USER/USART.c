@@ -211,3 +211,23 @@ void upload_location_info(void) {
 	printf("Temp: %d\r\n", temperature);
 #endif
 }
+
+void message_to_host(u8 * src, u8 * dst, u8 * payload, u8 len) {
+	static int count;
+	int i;
+
+	DEBUG1(("Count: %d\r\n", count));
+	count += 1;
+
+	printf("M");
+	printf("%02X", len);
+	for (i = 0; i < 8; i++) {
+		printf("%02X", src[i]);
+	}
+	for (i = 0; i < 8; i++) {
+		printf("%02X", dst[i]);
+	}
+	for (i = 0; i < len; i++) {
+		printf("%02X", payload[i]);
+	}
+}

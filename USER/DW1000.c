@@ -244,6 +244,73 @@ void Location_polling(void) {
 	raw_write(Tx_Buff, &tmp);
 	distance_flag = SENT_LS_REQ;
 }
+
+
+void Distance_polling() {
+	u16 tmp;
+	// Tx_Buff[0]=0b10000010; // only DST PANID
+	// Tx_Buff[1]=0b00110111;
+	static u8 count = 0;
+
+	// Polling interval handling
+	count += 1;
+	switch (count) {
+	case 1:
+		break;
+	case 2:
+		//upload_location_info();
+		DEBUG1(("Dist: %f\r\n", distance[0]));
+		if (distance[0] >= 1.5 || distance[0] <= 0.1) {
+			DEBUG1(("Not in uploading range\r\n"));
+		} else {
+			send_package_message();
+		}
+		break;
+	case TICK_IN_PERIOD:
+		// when count exceeds TICK_IN_PERIOD, zero it
+		count = 0;
+		DEBUG2(("\r\n"));
+		return;
+	default:
+		// otherwise, do nothing
+		DEBUG2(("."));
+		return;
+	}
+
+	Tx_Buff[0] = 0x82;
+	Tx_Buff[1] = 0x37;
+	Tx_Buff[2] = Sequence_Number++;
+	//SN end
+	Tx_Buff[4] = 0xFF;
+	Tx_Buff[3] = 0xFF;
+	//DST PAN end
+	Tx_Buff[6] = broadcast_addr[0];
+	Tx_Buff[7] = broadcast_addr[1];
+	Tx_Buff[8] = broadcast_addr[2];
+	Tx_Buff[9] = broadcast_addr[3];
+	Tx_Buff[10] = broadcast_addr[4];
+	Tx_Buff[11] = broadcast_addr[5];
+	Tx_Buff[12] = broadcast_addr[6];
+	Tx_Buff[13] = 0xF0 | count; // count could only be 1/2/3
+	// Tx_Buff[13]=broadcast_addr[7];
+	//DST MAC end
+	Tx_Buff[14] = mac[0];
+	Tx_Buff[15] = mac[1];
+	Tx_Buff[16] = mac[2];
+	Tx_Buff[17] = mac[3];
+	Tx_Buff[18] = mac[4];
+	Tx_Buff[19] = mac[5];
+	Tx_Buff[20] = mac[6];
+	Tx_Buff[21] = mac[7];
+	//SRC MAC end
+	//NO AUX
+	//Payload begin
+	Tx_Buff[22] = 0x00; // 0x00 = LS Req
+	Tx_Buff[23] = 0xFF;
+	tmp = 23;
+	raw_write(Tx_Buff, &tmp);
+	distance_flag = SENT_LS_REQ;
+}
 #endif
 
 void distance_measurement(int n) {
@@ -287,7 +354,7 @@ void distance_measurement(int n) {
 	}
 
 	if (status_counter[0] || status_counter[1] || status_counter[2]) {PC0_UP;} else {PC0_DOWN;}
-	DEBUG1(("status_counter[%d]: %d", n, status_counter[n]));
+	DEBUG1(("status_counter[%d]: %d\r\n", n, status_counter[n]));
 }
 
 //void location_info_upload(void) {
@@ -332,7 +399,7 @@ void status_forward(void) {
 	Tx_Buff[10] = broadcast_addr[4];
 	Tx_Buff[11] = broadcast_addr[5];
 	Tx_Buff[12] = broadcast_addr[6];
-	Tx_Buff[13] = 0xF0; // for RX0
+	Tx_Buff[13] = 0xF1; // for RX0
 
 	// Tx_Buff[13]=broadcast_addr[7];
 	//DST MAC end
@@ -401,6 +468,57 @@ void handle_status_forward(u8* payload) {
 	LS_DATA[2] = bytes_to_u32(&(payload[57]));
 
 	upload_location_info();
+}
+
+void send_package_message(void) {
+	u16 tmp;
+	// Tx_Buff[0]=0b10000010; // only DST PANID
+	// Tx_Buff[1]=0b00110111;
+	Tx_Buff[0] = 0x82;
+	Tx_Buff[1] = 0x37;
+	Tx_Buff[2] = Sequence_Number; // HHHHHHHHHHHEAR remove ++
+	//SN end
+	Tx_Buff[4] = 0xFF;
+	Tx_Buff[3] = 0xFF;
+	//DST PAN end
+	Tx_Buff[6] = broadcast_addr[0];
+	Tx_Buff[7] = broadcast_addr[1];
+	Tx_Buff[8] = broadcast_addr[2];
+	Tx_Buff[9] = broadcast_addr[3];
+	Tx_Buff[10] = broadcast_addr[4];
+	Tx_Buff[11] = broadcast_addr[5];
+	Tx_Buff[12] = broadcast_addr[6];
+	Tx_Buff[13] = 0xF1; // for RX1
+
+	// Tx_Buff[13]=broadcast_addr[7];
+	//DST MAC end
+	Tx_Buff[14] = mac[0];
+	Tx_Buff[15] = mac[1];
+	Tx_Buff[16] = mac[2];
+	Tx_Buff[17] = mac[3];
+	Tx_Buff[18] = mac[4];
+	Tx_Buff[19] = mac[5];
+	Tx_Buff[20] = mac[6];
+	Tx_Buff[21] = mac[7];
+	//SRC MAC end
+	//NO AUX
+	//Payload begin
+	Tx_Buff[22] = 0x05;
+
+	Tx_Buff[23] = 0x55;
+	Tx_Buff[24] = 0x05;
+	Tx_Buff[25] = 0x15;
+	Tx_Buff[26] = 0x03;
+
+	Tx_Buff[27] = 0xFF;
+	tmp = 27;
+	raw_write(Tx_Buff, &tmp);
+	DEBUG1(("package message sent.\r\n"));
+}
+
+void handle_package_message(u8 * src, u8 * dst, u8 * payload, u8 len) {
+	message_to_host(src, dst, payload, len);
+	printf("\r\n");
 }
 
 /*
@@ -891,12 +1009,12 @@ void handle_event(void) {
 					if((u8)(Rx_Buff[0] & 0xE0) == 0x80) {
 						DEBUG2(("A LS Frame.\r\n"));
 						// GOT LS Req
-						if((payload[0] == 0x00) && (status_flag == IDLE)) {
+						if ((payload[0] == 0x00) && (status_flag == IDLE)) {
 							send_LS_ACK(mac, src);
 							status_flag = SENT_LS_ACK;
 							DEBUG2(("\r\n===========Got LS Req===========\r\n"));
 							PC13_UP;
-						} else if((payload[0] == 0x01)) // GOT LS ACK
+						} else if ((payload[0] == 0x01)) // GOT LS ACK
 							//&&((distance_flag == CONFIRM_SENT_LS_REQ)||(distance_flag == SENT_LS_REQ))
 						{
 							DEBUG2(("\r\n===========Got LS ACK===========\r\n"));
@@ -933,7 +1051,7 @@ void handle_event(void) {
 							to_IDLE();
 							RX_mode_enable();
 							PC13_UP;
-						} else if(payload[0] == 0x02) { // GOT LS DATA
+						} else if (payload[0] == 0x02) { // GOT LS DATA
 							#ifdef TX
 							DEBUG2(("\r\n===========Got LS DATA===========\r\n"));
 							distance_flag = GOT_LS_DATA;
@@ -948,11 +1066,15 @@ void handle_event(void) {
 							RX_mode_enable();
 							PC13_DOWN;
 							#endif
-						} else if(payload[0] == 0x03) { // GOT LS RETURN
+						} else if (payload[0] == 0x03) { // GOT LS RETURN
 							// TODO
 							status_flag = IDLE;
-						} else if(payload[0] == 0x04) { // distance forward
+						} else if (payload[0] == 0x04) { // distance forward
 							handle_status_forward(payload);
+						} else if (payload[0] == 0x05) {
+							PC0_UP;
+							handle_package_message(src, dst, payload, size);
+							PC0_DOWN;
 						} else {
 							to_IDLE();
 							RX_mode_enable();
