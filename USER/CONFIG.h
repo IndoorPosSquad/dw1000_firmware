@@ -5,6 +5,9 @@
 #define TX
 //#define RX
 
+//#define DO_LOCATION
+#define DO_DISTANCE
+
 // debug level
 /*
  */
@@ -15,8 +18,8 @@
 #endif
 
 // 定位周期配置
-#define LOCATION_PERIOD (0.25f)
-#define TICK_IN_PERIOD (50) // 5 <= TICK_IN_PERIOD <= 255
+#define LOCATION_PERIOD (1.0f) // should use 1.0f instead of 1f
+#define TICK_IN_PERIOD (20) // 5 <= TICK_IN_PERIOD <= 255
 
 // 如果不定义SOLVE_LOCATION，则输出三个测距结果
 #define SOLVE_LOCATION

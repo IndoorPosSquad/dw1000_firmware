@@ -7,6 +7,7 @@ void USART1_init(u8 dip_config);
 int fputc(int ch, FILE *f);
 void usart_handle(void);
 void upload_location_info(void);
+void message_to_host(u8 * src, u8 * dst, u8 * payload, u8 len);
 
 #ifdef RX
 void USART1_send(u8 *data, u16 length);

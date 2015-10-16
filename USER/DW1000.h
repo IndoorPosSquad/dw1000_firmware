@@ -19,9 +19,12 @@
 #define PC0_DOWN GPIO_SetBits(GPIOC, GPIO_Pin_0)
 
 void Location_polling(void);
+void Distance_polling(void);
 void distance_measurement(int n);
 void status_forward(void);
 void handle_distance_forward(u8 * payload);
+void send_package_message(void);
+void handle_package_message(u8 * src, u8 * dst, u8 * payload, u8 len);
 void quality_measurement(void);
 
 void DW1000_init(u8 dip_config);
