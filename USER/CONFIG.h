@@ -5,8 +5,9 @@
 #define TX
 //#define RX
 
-//#define DO_LOCATION
-#define DO_DISTANCE
+// 应用类型
+//#define LOCATION
+#define ETC
 
 // debug level
 /*
@@ -18,8 +19,16 @@
 #endif
 
 // 定位周期配置
+#ifdef LOCATION
 #define LOCATION_PERIOD (1.0f) // should use 1.0f instead of 1f
 #define TICK_IN_PERIOD (20) // 5 <= TICK_IN_PERIOD <= 255
+#endif
+
+#ifdef ETC
+#define LOCATION_PERIOD (0.3f) // should use 1.0f instead of 1f
+#define TICK_IN_PERIOD (3) // find node, range node, upload node
+#endif
+
 
 // 如果不定义SOLVE_LOCATION，则输出三个测距结果
 #define SOLVE_LOCATION

@@ -18,14 +18,31 @@
 #define PC0_UP GPIO_ResetBits(GPIOC, GPIO_Pin_0)
 #define PC0_DOWN GPIO_SetBits(GPIOC, GPIO_Pin_0)
 
+#ifdef TX
+#ifdef LOCATION
 void Location_polling(void);
-void Distance_polling(void);
+#endif
+#ifdef ETC
+void ETC_polling(void);
+void send_discover_msg(u8 seq);
+void handle_reply_discover_msg(u8 * src, u8 * dst, u8 * payload);
+#endif
+#endif
+
+#ifdef RX
+#ifdef ETC
+void reply_discover_msg(u8 * dst);
+#endif // ifdef ETC
+#endif // ifdef RX
+
 void distance_measurement(int n);
+
 void status_forward(void);
 void handle_distance_forward(u8 * payload);
-void send_package_message(void);
+
+void send_package_request(u8 seq);
+void send_package_message(u8 * dst);
 void handle_package_message(u8 * src, u8 * dst, u8 * payload, u8 len);
-void quality_measurement(void);
 
 void DW1000_init(u8 dip_config);
 
@@ -41,6 +58,7 @@ void send_LS_ACK(u8 *src, u8 *dst);
 void send_LS_DATA(u8 *src, u8 *dst);
 void read_status(u32 *status);
 void sent_and_wait(void);
+void quality_measurement(void);
 
 void handle_event(void);
 

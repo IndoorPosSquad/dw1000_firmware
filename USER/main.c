@@ -25,7 +25,7 @@
 extern int debug_lvl;
 
 /*
-TIM2时钟初始化:0.5s溢出（定位周期）
+TIM2时钟初始化:0.1s溢出（定位周期）
 */
 void TIM2_init(void) {
 	NVIC_InitTypeDef NVIC_InitStructure;

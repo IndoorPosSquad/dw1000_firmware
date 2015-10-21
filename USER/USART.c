@@ -219,6 +219,8 @@ void message_to_host(u8 * src, u8 * dst, u8 * payload, u8 len) {
 	DEBUG1(("Count: %d\r\n", count));
 	count += 1;
 
+	DEBUG1(("PAYLOAD: %02X %02X %02X %02X\r\n",
+		payload[0], payload[1], payload[2], payload[3]));
 	printf("M");
 	printf("%02X", len);
 	for (i = 0; i < 8; i++) {
