@@ -46,6 +46,10 @@ float distance[3];
 xyz location;
 extern float calib[3];
 
+#ifdef ETC
+int discover_record[3] = {0};
+#endif
+
 u16 std_noise;
 u16 fp_ampl1;
 u16 fp_ampl2;
@@ -173,8 +177,45 @@ void DW1000_init(u8 dip_config) {
 /*
 */
 #ifdef TX
-void Location_polling(void) {
+void send_LS_REQ(u8 seq) {
 	u16 tmp;
+	Tx_Buff[0] = 0x82;
+	Tx_Buff[1] = 0x37;
+	Tx_Buff[2] = Sequence_Number++;
+	//SN end
+	Tx_Buff[3] = 0xFF;
+	Tx_Buff[4] = 0xFF;
+	//DST PAN end
+	Tx_Buff[6] = broadcast_addr[0];
+	Tx_Buff[7] = broadcast_addr[1];
+	Tx_Buff[8] = broadcast_addr[2];
+	Tx_Buff[9] = broadcast_addr[3];
+	Tx_Buff[10] = broadcast_addr[4];
+	Tx_Buff[11] = broadcast_addr[5];
+	Tx_Buff[12] = broadcast_addr[6];
+	Tx_Buff[13] = 0xF0 | seq; // count could only be 1/2/3
+	// Tx_Buff[13]=broadcast_addr[7];
+	//DST MAC end
+	Tx_Buff[14] = mac[0];
+	Tx_Buff[15] = mac[1];
+	Tx_Buff[16] = mac[2];
+	Tx_Buff[17] = mac[3];
+	Tx_Buff[18] = mac[4];
+	Tx_Buff[19] = mac[5];
+	Tx_Buff[20] = mac[6];
+	Tx_Buff[21] = mac[7];
+	//SRC MAC end
+	//NO AUX
+	//Payload begin
+	Tx_Buff[22] = 0x00; // 0x00 = LS Req
+	Tx_Buff[23] = 0xFF;
+	tmp = 23;
+	raw_write(Tx_Buff, &tmp);
+	distance_flag = SENT_LS_REQ;
+}
+
+#ifdef LOCATION
+void Location_polling(void) {
 	// Tx_Buff[0]=0b10000010; // only DST PANID
 	// Tx_Buff[1]=0b00110111;
 	static u8 count = 0;
@@ -189,7 +230,8 @@ void Location_polling(void) {
 		#ifdef FAKE_SERIAL
 		return;
 		#else
-		break;
+		send_LS_REQ(count);
+		return;
 		#endif
 	case 4:
 		//when count == 4, upload results
@@ -209,45 +251,45 @@ void Location_polling(void) {
 		DEBUG2(("."));
 		return;
 	}
+	send_LS_REQ(count);
+}
+#endif //ifdef LOCATION
 
-	Tx_Buff[0] = 0x82;
-	Tx_Buff[1] = 0x37;
-	Tx_Buff[2] = Sequence_Number++;
+#ifdef ETC
+void send_discover_msg(u8 seq) {
+	u16 tmp;
+	// Tx_Buff[0]=0b10000010; // only DST PANID
+	// Tx_Buff[1]=0b00110111;
+	Tx_Buff[0] = 0x82; Tx_Buff[1] = 0x37;
+	Tx_Buff[2] = Sequence_Number; // HHHHHHHHHHHEAR remove ++
 	//SN end
-	Tx_Buff[4] = 0xFF;
-	Tx_Buff[3] = 0xFF;
+	Tx_Buff[4] = 0xFF; Tx_Buff[3] = 0xFF;
 	//DST PAN end
-	Tx_Buff[6] = broadcast_addr[0];
-	Tx_Buff[7] = broadcast_addr[1];
-	Tx_Buff[8] = broadcast_addr[2];
-	Tx_Buff[9] = broadcast_addr[3];
-	Tx_Buff[10] = broadcast_addr[4];
-	Tx_Buff[11] = broadcast_addr[5];
-	Tx_Buff[12] = broadcast_addr[6];
-	Tx_Buff[13] = 0xF0 | count; // count could only be 1/2/3
+	Tx_Buff[6] = broadcast_addr[0]; Tx_Buff[7] = broadcast_addr[1];
+	Tx_Buff[8] = broadcast_addr[2]; Tx_Buff[9] = broadcast_addr[3];
+	Tx_Buff[10] = broadcast_addr[4]; Tx_Buff[11] = broadcast_addr[5];
+	Tx_Buff[12] = broadcast_addr[6]; Tx_Buff[13] = 0xF0 | seq; // for RX1
+
 	// Tx_Buff[13]=broadcast_addr[7];
 	//DST MAC end
-	Tx_Buff[14] = mac[0];
-	Tx_Buff[15] = mac[1];
-	Tx_Buff[16] = mac[2];
-	Tx_Buff[17] = mac[3];
-	Tx_Buff[18] = mac[4];
-	Tx_Buff[19] = mac[5];
-	Tx_Buff[20] = mac[6];
-	Tx_Buff[21] = mac[7];
+
+	Tx_Buff[14] = mac[0]; Tx_Buff[15] = mac[1]; Tx_Buff[16] = mac[2]; Tx_Buff[17] = mac[3];
+	Tx_Buff[18] = mac[4]; Tx_Buff[19] = mac[5]; Tx_Buff[20] = mac[6]; Tx_Buff[21] = mac[7];
 	//SRC MAC end
 	//NO AUX
 	//Payload begin
-	Tx_Buff[22] = 0x00; // 0x00 = LS Req
-	Tx_Buff[23] = 0xFF;
-	tmp = 23;
+	Tx_Buff[22] = 0x06;
+	Tx_Buff[23] = 0x00; // DUMMYPAYLOAD
+	Tx_Buff[24] = 0xFF;
+	tmp = 24;
 	raw_write(Tx_Buff, &tmp);
-	distance_flag = SENT_LS_REQ;
+	DEBUG1(("discover message sent.\r\n"));
 }
 
-
-void Distance_polling() {
-	u16 tmp;
+void ETC_polling() {
+	u8 i, j;
+	u8 closest;
+	float closest_tmp = 300.0f;
 	// Tx_Buff[0]=0b10000010; // only DST PANID
 	// Tx_Buff[1]=0b00110111;
 	static u8 count = 0;
@@ -256,62 +298,100 @@ void Distance_polling() {
 	count += 1;
 	switch (count) {
 	case 1:
+		DEBUG1(("=============================\r\n"));
+		discover_record[0] = 0; discover_record[1] = 0; discover_record[2] = 0;
+		distance[0] = 0.0f; distance[1] = 0.0f; distance[2] = 0.0f;
+		DEBUG1(("---start DISCOVERING frame---\r\n"));
+		for (i = 1; i <= 3; i++) { /* i is u8 */
+			send_discover_msg(i);
+			for (j = 0; j < 200; j++) /* j is u8 */ Delay();
+		}
+		DEBUG1(("result: "));
+		for (i = 1; i <= 3; i++) {
+			DEBUG1((" %d ", discover_record[i - 1]));
+		}
+		DEBUG1(("\r\n"));
 		break;
 	case 2:
-		//upload_location_info();
-		DEBUG1(("Dist: %f\r\n", distance[0]));
-		if (distance[0] >= 1.5 || distance[0] <= 0.1) {
-			DEBUG1(("Not in uploading range\r\n"));
-		} else {
-			send_package_message();
+		DEBUG1(("---start RANGING frame---\r\n"));
+		for (i = 1; i <= 3; i++) {
+			if (discover_record[i - 1] != 0)
+			{
+				DEBUG1(("send LS REQ to: %u", i));
+				send_LS_REQ(i);
+			}
+			for (j = 0; j < 200; j++) /* j is u8 */ Delay();
 		}
+		DEBUG1(("\r\n"));
+		DEBUG1(("result: "));
+		for (i = 1; i <= 3; i++) {
+			DEBUG1((" %.2f ", distance[i - 1]));
+		}
+		DEBUG1(("\r\n"));
 		break;
-	case TICK_IN_PERIOD:
-		// when count exceeds TICK_IN_PERIOD, zero it
+	case 3:
 		count = 0;
-		DEBUG2(("\r\n"));
+		// when count exceeds TICK_IN_PERIOD, zero it
+		for (i = 1; i <= 3; i++) {
+			if (distance[i - 1] != 0.0f &&
+			    distance[i - 1] < closest_tmp &&
+			    distance[i - 1] < 1.0f) {
+				closest_tmp = distance[i - 1];
+				closest = i;
+			}
+		}
+		DEBUG1(("Closest: %u\r\n", closest));
+		if (closest != 0) {
+			send_package_request(closest);
+		}
+		DEBUG1(("---start UPLOADING frame---\r\n"));
 		return;
 	default:
-		// otherwise, do nothing
-		DEBUG2(("."));
 		return;
 	}
 
-	Tx_Buff[0] = 0x82;
-	Tx_Buff[1] = 0x37;
-	Tx_Buff[2] = Sequence_Number++;
+}
+
+void handle_reply_discover_msg(u8 * src, u8 * dst, u8 * payload) {
+	u8 seq;
+	seq = 0x0F & payload[1]; // 0x0F is for safty
+	discover_record[seq - 1] = 1;
+	DEBUG1(("DISCOVER: %u\r\n", seq));
+}
+#endif // ifdef ETC
+#endif
+
+#ifdef RX
+#ifdef ETC
+void reply_discover_msg(u8 * dst) {
+	u16 tmp;
+	// Tx_Buff[0]=0b10000010; // only DST PANID
+	// Tx_Buff[1]=0b00110111;
+	Tx_Buff[0] = 0x82; Tx_Buff[1] = 0x37;
+	Tx_Buff[2] = Sequence_Number; // HHHHHHHHHHHEAR remove ++
 	//SN end
-	Tx_Buff[4] = 0xFF;
-	Tx_Buff[3] = 0xFF;
+	Tx_Buff[4] = 0xFF; Tx_Buff[3] = 0xFF;
 	//DST PAN end
-	Tx_Buff[6] = broadcast_addr[0];
-	Tx_Buff[7] = broadcast_addr[1];
-	Tx_Buff[8] = broadcast_addr[2];
-	Tx_Buff[9] = broadcast_addr[3];
-	Tx_Buff[10] = broadcast_addr[4];
-	Tx_Buff[11] = broadcast_addr[5];
-	Tx_Buff[12] = broadcast_addr[6];
-	Tx_Buff[13] = 0xF0 | count; // count could only be 1/2/3
-	// Tx_Buff[13]=broadcast_addr[7];
+	Tx_Buff[6] = dst[0]; Tx_Buff[7] = dst[1];
+	Tx_Buff[8] = dst[2]; Tx_Buff[9] = dst[3];
+	Tx_Buff[10] = dst[4]; Tx_Buff[11] = dst[5];
+	Tx_Buff[12] = dst[6]; Tx_Buff[13] = dst[7];
+
 	//DST MAC end
-	Tx_Buff[14] = mac[0];
-	Tx_Buff[15] = mac[1];
-	Tx_Buff[16] = mac[2];
-	Tx_Buff[17] = mac[3];
-	Tx_Buff[18] = mac[4];
-	Tx_Buff[19] = mac[5];
-	Tx_Buff[20] = mac[6];
-	Tx_Buff[21] = mac[7];
+	Tx_Buff[14] = mac[0]; Tx_Buff[15] = mac[1]; Tx_Buff[16] = mac[2]; Tx_Buff[17] = mac[3];
+	Tx_Buff[18] = mac[4]; Tx_Buff[19] = mac[5]; Tx_Buff[20] = mac[6]; Tx_Buff[21] = mac[7];
 	//SRC MAC end
 	//NO AUX
 	//Payload begin
-	Tx_Buff[22] = 0x00; // 0x00 = LS Req
-	Tx_Buff[23] = 0xFF;
-	tmp = 23;
+	Tx_Buff[22] = 0x07;
+	Tx_Buff[23] = 0x0F & mac[7]; // self seq
+	Tx_Buff[24] = 0xFF;
+	tmp = 24;
 	raw_write(Tx_Buff, &tmp);
-	distance_flag = SENT_LS_REQ;
+	DEBUG1(("reply discover message sent.\r\n"));
 }
-#endif
+#endif // ifdef ETC
+#endif // ifdef RX
 
 void distance_measurement(int n) {
 	u32 double_diff;
@@ -341,8 +421,6 @@ void distance_measurement(int n) {
 	DEBUG3(("after_diff : %d\r\n", net_time_of_flight));
 	net_time_of_flight = (net_time_of_flight > 0) ? net_time_of_flight : 0;
 
-	// distance[n] = 1.0*_WAVE_SPEED * (1.0*Tx_diff - 1.0*LS_DATA[n]) / (128.0 * 499.2 * 1000000.0);
-
 	distance[n] = 15.65 / 1000000000000 * (float) (net_time_of_flight) / 2 * _WAVE_SPEED;
 	// 4.6917519677e-3 * net_time_of_flight / 2
 
@@ -354,7 +432,7 @@ void distance_measurement(int n) {
 	}
 
 	if (status_counter[0] || status_counter[1] || status_counter[2]) {PC0_UP;} else {PC0_DOWN;}
-	DEBUG1(("status_counter[%d]: %d\r\n", n, status_counter[n]));
+	DEBUG2(("status_counter[%d]: %d\r\n", n, status_counter[n]));
 }
 
 //void location_info_upload(void) {
@@ -470,7 +548,7 @@ void handle_status_forward(u8* payload) {
 	upload_location_info();
 }
 
-void send_package_message(void) {
+void send_package_request(u8 seq) {
 	u16 tmp;
 	// Tx_Buff[0]=0b10000010; // only DST PANID
 	// Tx_Buff[1]=0b00110111;
@@ -488,7 +566,7 @@ void send_package_message(void) {
 	Tx_Buff[10] = broadcast_addr[4];
 	Tx_Buff[11] = broadcast_addr[5];
 	Tx_Buff[12] = broadcast_addr[6];
-	Tx_Buff[13] = 0xF1; // for RX1
+	Tx_Buff[13] = 0xF0 | seq;
 
 	// Tx_Buff[13]=broadcast_addr[7];
 	//DST MAC end
@@ -503,15 +581,61 @@ void send_package_message(void) {
 	//SRC MAC end
 	//NO AUX
 	//Payload begin
-	Tx_Buff[22] = 0x05;
+	Tx_Buff[22] = 0x08;
 
 	Tx_Buff[23] = 0x55;
-	Tx_Buff[24] = 0x05;
-	Tx_Buff[25] = 0x15;
-	Tx_Buff[26] = 0x03;
+	Tx_Buff[24] = mac[7];
 
-	Tx_Buff[27] = 0xFF;
-	tmp = 27;
+	Tx_Buff[25] = 0xFF;
+	tmp = 25;
+	raw_write(Tx_Buff, &tmp);
+	DEBUG1(("package request sent to %u.\r\n", seq));
+}
+
+void send_package_message(u8 * dst) {
+	u16 tmp;
+	// Tx_Buff[0]=0b10000010; // only DST PANID
+	// Tx_Buff[1]=0b00110111;
+	Tx_Buff[0] = 0x82;
+	Tx_Buff[1] = 0x37;
+	Tx_Buff[2] = Sequence_Number; // HHHHHHHHHHHEAR remove ++
+	//SN end
+	Tx_Buff[4] = 0xFF;
+	Tx_Buff[3] = 0xFF;
+	//DST PAN end
+	Tx_Buff[6] = dst[0];
+	Tx_Buff[7] = dst[1];
+	Tx_Buff[8] = dst[2];
+	Tx_Buff[9] = dst[3];
+	Tx_Buff[10] = dst[4];
+	Tx_Buff[11] = dst[5];
+	Tx_Buff[12] = dst[6];
+	Tx_Buff[13] = dst[7];
+
+	// Tx_Buff[13]=dst[7];
+	//DST MAC end
+	Tx_Buff[14] = mac[0];
+	Tx_Buff[15] = mac[1];
+	Tx_Buff[16] = mac[2];
+	Tx_Buff[17] = mac[3];
+	Tx_Buff[18] = mac[4];
+	Tx_Buff[19] = mac[5];
+	Tx_Buff[20] = mac[6];
+	Tx_Buff[21] = mac[7];
+	//SRC MAC end
+	//NO AUX
+	//Payload begin
+	Tx_Buff[22] = 0x05;
+
+	Tx_Buff[23] = 0x04; // len
+
+	Tx_Buff[24] = 0x55;
+	Tx_Buff[25] = mac[7];
+	Tx_Buff[26] = 0x15;
+	Tx_Buff[27] = mac[7];
+
+	Tx_Buff[28] = 0xFF;
+	tmp = 28;
 	raw_write(Tx_Buff, &tmp);
 	DEBUG1(("package message sent.\r\n"));
 }
@@ -1069,12 +1193,36 @@ void handle_event(void) {
 						} else if (payload[0] == 0x03) { // GOT LS RETURN
 							// TODO
 							status_flag = IDLE;
-						} else if (payload[0] == 0x04) { // distance forward
+						} else if (payload[0] == 0x04) { // status forward
 							handle_status_forward(payload);
-						} else if (payload[0] == 0x05) {
+
+						} else if (payload[0] == 0x05) { // package
 							PC0_UP;
-							handle_package_message(src, dst, payload, size);
+							handle_package_message(src, dst, &(payload[1]), payload[0]);
 							PC0_DOWN;
+
+						#if defined(ETC) && defined(RX)
+						} else if (payload[0] == 0x06) { // discover
+							PC0_UP;
+							// reply to whoever send this message
+							reply_discover_msg(src);
+							PC0_DOWN;
+						#endif // if defined(ETC) && defined(RX)
+
+						#if defined(ETC) && defined(TX)
+						} else if (payload[0] == 0x07) { // discover_reply
+							PC0_UP;
+							handle_reply_discover_msg(src, dst, payload);
+							PC0_DOWN;
+						#endif // if defined(ETC) && defined(RX)
+
+						#if defined(ETC) && defined(RX)
+						} else if (payload[0] == 0x08) { // discover_reply
+							PC0_UP;
+							send_package_message(src);
+							PC0_DOWN;
+						#endif // if defined(ETC) && defined(RX)
+
 						} else {
 							to_IDLE();
 							RX_mode_enable();
