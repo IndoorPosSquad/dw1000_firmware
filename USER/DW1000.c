@@ -642,7 +642,8 @@ void send_package_message(u8 * dst) {
 
 void handle_package_message(u8 * src, u8 * dst, u8 * payload, u8 len) {
 	message_to_host(src, dst, payload, len);
-	printf("\r\n");
+	Delay();
+	DEBUG1(("\r\n"));
 }
 
 /*
