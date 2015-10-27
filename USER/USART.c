@@ -215,21 +215,26 @@ void upload_location_info(void) {
 void message_to_host(u8 * src, u8 * dst, u8 * payload, u8 len) {
 	static int count;
 	int i;
+	
+	char send_buff[278];
 
 	DEBUG1(("Count: %d\r\n", count));
 	count += 1;
 
 	DEBUG1(("PAYLOAD: %02X %02X %02X %02X\r\n",
 		payload[0], payload[1], payload[2], payload[3]));
-	printf("M");
-	printf("%02X", len);
+	sprintf(send_buff, "M%u", len);
+	
 	for (i = 0; i < 8; i++) {
-		printf("%02X", src[i]);
+		sprintf(send_buff + 3 + i, "%02X", src[i]);
 	}
 	for (i = 0; i < 8; i++) {
-		printf("%02X", dst[i]);
+		sprintf(send_buff + 11 + i, "%02X", dst[i]);
 	}
 	for (i = 0; i < len; i++) {
-		printf("%02X", payload[i]);
+		sprintf(send_buff + 19 + i, "%02X", payload[i]);
 	}
+	send_buff[19 + len] = 0;
+	
+	printf("%s", send_buff);
 }
