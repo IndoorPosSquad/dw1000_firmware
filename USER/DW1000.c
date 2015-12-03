@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "stm32f10x.h"
 #include "SPI.h"
 #include "DW1000.h"
@@ -358,6 +360,7 @@ void handle_reply_discover_msg(u8 * src, u8 * dst, u8 * payload) {
 	discover_record[seq - 1] = 1;
 	DEBUG1(("DISCOVER: %u\r\n", seq));
 }
+
 #endif // ifdef ETC
 #endif
 
@@ -390,8 +393,48 @@ void reply_discover_msg(u8 * dst) {
 	raw_write(Tx_Buff, &tmp);
 	DEBUG1(("reply discover message sent.\r\n"));
 }
+
 #endif // ifdef ETC
 #endif // ifdef RX
+
+void transfer_message(u8 * len, u8 * seq, u8 * src, u8 * dst, u8 * msg_payload, u8 * crc) {
+	u16 tmp;
+	// Tx_Buff[0]=0b10000010; // only DST PANID
+	// Tx_Buff[1]=0b00110111;
+	Tx_Buff[0] = 0x82; Tx_Buff[1] = 0x37;
+	Tx_Buff[2] = Sequence_Number; // HHHHHHHHHHHEAR remove ++
+	//SN end
+	Tx_Buff[4] = 0xFF; Tx_Buff[3] = 0xFF;
+	//DST PAN end
+	Tx_Buff[6] = dst[0]; Tx_Buff[7] = dst[1];
+	Tx_Buff[8] = dst[2]; Tx_Buff[9] = dst[3];
+	Tx_Buff[10] = dst[4]; Tx_Buff[11] = dst[5];
+	Tx_Buff[12] = dst[6]; Tx_Buff[13] = dst[7];
+
+	//DST MAC end
+	Tx_Buff[14] = src[0]; Tx_Buff[15] = src[1]; Tx_Buff[16] = src[2]; Tx_Buff[17] = src[3];
+	Tx_Buff[18] = src[4]; Tx_Buff[19] = src[5]; Tx_Buff[20] = src[6]; Tx_Buff[21] = src[7];
+	//SRC MAC end
+	//NO AUX
+	//Payload begin
+	Tx_Buff[22] = (u8)'M';
+	// 23(payload[1])
+	Tx_Buff[23] = *len;
+	// 24 25 26 27(payload[2])
+	memcpy(&(Tx_Buff[24]), seq, 4);
+	// 28 - 124 len96(payload[6])
+	memcpy(&(Tx_Buff[25]), msg_payload, 64);
+	//// 125 - 126 (payload[102])
+	memcpy(&(Tx_Buff[90]), crc, 2);
+	tmp = 92;
+	raw_write(Tx_Buff, &tmp);
+	DEBUG1(("transfer message sent.\r\n"));
+}
+
+void handle_transfer_message(u8 * src, u8 * dst, u8 * payload) {
+	transfer_message_to_host(src, dst, payload);
+	DEBUG1(("got transfer message message sent.\r\n"));
+}
 
 void distance_measurement(int n) {
 	u32 double_diff;
@@ -1030,7 +1073,7 @@ void handle_event(void) {
 			// RX_mode_enable();
 		}
 
-		if((status & 0x00000080) == 0x00000080) { // transmit done
+		if ((status & 0x00000080) == 0x00000080) { // transmit done
 			DEBUG2(("Transmit done.\r\n"));
 			tmp = 0x80;
 			Write_DW1000(0x0F, 0x00, &tmp, 1);
@@ -1218,11 +1261,20 @@ void handle_event(void) {
 						#endif // if defined(ETC) && defined(RX)
 
 						#if defined(ETC) && defined(RX)
-						} else if (payload[0] == 0x08) { // discover_reply
+						} else if (payload[0] == 0x08) { // got message request
 							PC0_UP;
-							send_package_message(src);
+							//send_package_message(src);
+							message_request_to_host(src);
 							PC0_DOWN;
 						#endif // if defined(ETC) && defined(RX)
+
+						#if defined(ETC) && defined(TX)
+						} else if (payload[0] == (u8)'M') { // discover_reply
+							PC0_UP;
+							handle_transfer_message(src, dst, &(payload[1]));
+							PC0_DOWN;
+						#endif // if defined(ETC) && defined(RX)
+
 
 						} else {
 							to_IDLE();

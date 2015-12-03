@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "stm32f10x.h"
 #include "DW1000.h"
 #include "MPU6050.h"
@@ -98,12 +100,18 @@ void usart_handle(void) {
 			//DEBUG1(("reserved type\n"));
 			//break;
 		case MESSAGE_TYPE:
-			DEBUG1(("message type\r\n"));
-			DEBUG1(("LEN: %d\r\n", PACKET_LEN(usart_buffer)));
-			DEBUG1(("SEQ: %d\r\n", PACKET_SEQ(usart_buffer)));
-			for (i = 0; i < PACKET_LEN(usart_buffer); i += 1) {
-				DEBUG1(("%02X\r\n", PACKET_PLD(usart_buffer)[i]));
-			}
+			DEBUG1(("message\r\n"));
+			//DEBUG1(("LEN: %d\r\n", PACKET_LEN(usart_buffer)));
+			//DEBUG1(("SEQ: %d\r\n", PACKET_SEQ(usart_buffer)));
+			//for (i = 0; i < PACKET_LEN(usart_buffer); i += 1) {
+			//	DEBUG1(("%02X\r\n", PACKET_PLD(usart_buffer)[i]));
+			//}
+			transfer_message(PACKET_LEN(usart_buffer),
+					 PACKET_SEQ(usart_buffer),
+					 PACKET_SRC(usart_buffer),
+					 PACKET_DST(usart_buffer),
+					 PACKET_PLD(usart_buffer),
+					 PACKET_CRC(usart_buffer));
 			break;
 		case LOCATION_TYPE:
 			DEBUG1(("location info\r\n"));
@@ -215,8 +223,8 @@ void upload_location_info(void) {
 void message_to_host(u8 * src, u8 * dst, u8 * payload, u8 len) {
 	static int count;
 	int i;
-	
-	char send_buff[278];
+
+	char send_buff[128];
 
 	DEBUG1(("Count: %d\r\n", count));
 	count += 1;
@@ -224,7 +232,7 @@ void message_to_host(u8 * src, u8 * dst, u8 * payload, u8 len) {
 	DEBUG1(("PAYLOAD: %02X %02X %02X %02X\r\n",
 		payload[0], payload[1], payload[2], payload[3]));
 	sprintf(send_buff, "M%u", len);
-	
+
 	for (i = 0; i < 8; i++) {
 		sprintf(send_buff + 3 + i, "%02X", src[i]);
 	}
@@ -235,6 +243,54 @@ void message_to_host(u8 * src, u8 * dst, u8 * payload, u8 len) {
 		sprintf(send_buff + 19 + i, "%02X", payload[i]);
 	}
 	send_buff[19 + len] = 0;
-	
+
 	printf("%s", send_buff);
+}
+
+void message_request_to_host(u8 * src) {
+	int i;
+	char send_buff[128];
+
+	send_buff[0] = CMD_TYPE;
+	send_buff[1] = CMD_SMSG;
+	memcpy(&(send_buff[2]), src, 8);
+	// 2 3 4 5 6 7 8 9
+
+	for (i = 0; i < 10; i++) {
+		USART_SendData(USART1, (unsigned char) send_buff[i]);
+		while(USART_GetFlagStatus(USART1, USART_FLAG_TC) != SET);
+	}
+}
+// payload without 'M'
+void transfer_message_to_host(u8 * src, u8 * dst, u8 * payload) {
+	static int count;
+	int i;
+
+	char send_buff[128];
+
+	DEBUG1(("Count: %d\r\n", count));
+	count += 1;
+
+	DEBUG1(("PAYLOAD: %02X %02X %02X %02X\r\n",
+		payload[0], payload[1], payload[2], payload[3]));
+	send_buff[0] = MESSAGE_TYPE;
+	// LEN
+	memcpy(PACKET_LEN(send_buff), &(payload[1]), 1);
+	// SEQ
+	memcpy(PACKET_SEQ(send_buff), &(payload[2]), 4);
+	// SRC ADDR
+	memcpy(PACKET_SRC(send_buff), src, 8);
+	// DST ADDR
+	memcpy(PACKET_DST(send_buff), dst, 8);
+	// Payload
+	memcpy(PACKET_PLD(send_buff), &(payload[6]), 64);
+	// CRC 87 88
+	memcpy(PACKET_CRC(send_buff), &(payload[70]), 2);
+
+	send_buff[88] = 0;
+
+	for (i = 0; i < 88; i++) {
+		USART_SendData(USART1, (unsigned char) send_buff[i]);
+		while(USART_GetFlagStatus(USART1, USART_FLAG_TC) != SET);
+	}
 }

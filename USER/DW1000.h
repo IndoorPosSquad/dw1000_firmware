@@ -35,6 +35,16 @@ void reply_discover_msg(u8 * dst);
 #endif // ifdef ETC
 #endif // ifdef RX
 
+void transfer_message(u8 * len,
+		      u8 * seq,
+		      u8 * src,
+		      u8 * dst,
+		      u8 * msg_payload, // message payload
+		      u8 * crc);
+void handle_transfer_message(u8 * src,
+			     u8 * dst,
+			     u8 * payload); // message payload
+
 void distance_measurement(int n);
 
 void status_forward(void);
