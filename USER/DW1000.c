@@ -419,20 +419,21 @@ void transfer_message(u8 * len, u8 * seq, u8 * src, u8 * dst, u8 * msg_payload, 
 	//Payload begin
 	Tx_Buff[22] = (u8)'M';
 	// 23(payload[1])
-	Tx_Buff[23] = *len;
+	Tx_Buff[23] = 'M';
+	Tx_Buff[24] = *len;
 	// 24 25 26 27(payload[2])
-	memcpy(&(Tx_Buff[24]), seq, 4);
-	// 28 - 124 len96(payload[6])
-	memcpy(&(Tx_Buff[25]), msg_payload, 64);
-	//// 125 - 126 (payload[102])
-	memcpy(&(Tx_Buff[90]), crc, 2);
-	tmp = 92;
+	memcpy(&(Tx_Buff[25]), seq, 4);
+	// 29 - 92 len64(payload[6])
+	memcpy(&(Tx_Buff[29]), msg_payload, 64);
+	//// 93 - 94 (payload[70])
+	memcpy(&(Tx_Buff[93]), crc, 2);
+	tmp = 94;
 	raw_write(Tx_Buff, &tmp);
 	DEBUG1(("transfer message sent.\r\n"));
 }
 
 void handle_transfer_message(u8 * src, u8 * dst, u8 * payload) {
-	transfer_message_to_host(src, dst, payload);
+	transfer_message_to_host(src, dst, payload);;
 	DEBUG1(("got transfer message message sent.\r\n"));
 }
 
