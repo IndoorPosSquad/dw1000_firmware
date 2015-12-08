@@ -112,6 +112,8 @@ void usart_handle(void) {
 					 PACKET_DST(usart_buffer),
 					 PACKET_PLD(usart_buffer),
 					 PACKET_CRC(usart_buffer));
+			DEBUG1(("CRC: %02X %02X\r\n",
+				*(PACKET_CRC(usart_buffer)), *(PACKET_CRC(usart_buffer) + 1)));
 			break;
 		case LOCATION_TYPE:
 			DEBUG1(("location info\r\n"));
@@ -267,6 +269,7 @@ void transfer_message_to_host(u8 * src, u8 * dst, u8 * payload) {
 	int i;
 
 	char send_buff[128];
+	memset(send_buff, 0, 128);
 
 	DEBUG1(("Count: %d\r\n", count));
 	count += 1;
@@ -274,17 +277,17 @@ void transfer_message_to_host(u8 * src, u8 * dst, u8 * payload) {
 	DEBUG1(("PAYLOAD: %02X %02X %02X %02X\r\n",
 		payload[0], payload[1], payload[2], payload[3]));
 	send_buff[0] = MESSAGE_TYPE;
-	// LEN
+	// LEN 1
 	memcpy(PACKET_LEN(send_buff), &(payload[1]), 1);
-	// SEQ
+	// SEQ 2 - 5
 	memcpy(PACKET_SEQ(send_buff), &(payload[2]), 4);
-	// SRC ADDR
+	// SRC ADDR 6 - 13
 	memcpy(PACKET_SRC(send_buff), src, 8);
-	// DST ADDR
+	// DST ADDR 14 - 21
 	memcpy(PACKET_DST(send_buff), dst, 8);
-	// Payload
+	// Payload 22 - 85
 	memcpy(PACKET_PLD(send_buff), &(payload[6]), 64);
-	// CRC 87 88
+	// CRC 86 87
 	memcpy(PACKET_CRC(send_buff), &(payload[70]), 2);
 
 	send_buff[88] = 0;
