@@ -2,8 +2,8 @@
 #define __CONFIG_H__
 
 // 结点类型配置
-//#define TX
-#define RX
+#define TX
+//#define RX
 
 // 应用类型
 //#define LOCATION
@@ -27,6 +27,7 @@
 #ifdef ETC
 #define LOCATION_PERIOD (3.0f) // should use 1.0f instead of 1f
 #define TICK_IN_PERIOD (3) // find node, range node, upload node
+#define UPLOAD_RANGE (100) // in cm
 #endif
 
 

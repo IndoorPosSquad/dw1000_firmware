@@ -25,6 +25,10 @@ extern xyz location;
 int debug_lvl = DEBUG_LVL;
 extern float calib[3];
 
+#ifdef ETC
+int upload_range = UPLOAD_RANGE;
+#endif
+
 // macro for parsing command from host
 //#define TYPE(buf) (((buf[0]) >> 6) & 0x03)
 //#define CMD(buf)  (((buf[0]) >> 4) & 0x03)
@@ -139,15 +143,19 @@ void usart_handle(void) {
 			case CMD_REBOOT:
 				DEBUG1(("Reboot cmd\r\n"));
 				break;
-			case CMD_WR: //0xD0
+			case CMD_WR:
 				DEBUG1(("write reg cmd\r\n"));
 				break;
-			case CMD_RR: //0xE0
+			case CMD_RR:
 				DEBUG1(("read reg cmd\r\n"));
 				break;
-			case CMD_LOGLV: //0xF0
+			case CMD_LOGLV:
 				debug_lvl = (int) CMD_LOGLV_PARAM(usart_buffer);
 				DEBUG1(("set log level to %d\r\n", debug_lvl));
+				break;
+			case CMD_UPLOADRANGE:
+				upload_range = bytes_to_u32(CMD_UPLOADRANGE_PARAM(usart_buffer));
+				DEBUG1(("set upload_range to %d\r\n", upload_range));
 				break;
 			}
 			break;
