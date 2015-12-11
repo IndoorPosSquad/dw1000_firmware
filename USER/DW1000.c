@@ -62,6 +62,7 @@ double fppl;
 double rxl;
 
 extern int debug_lvl;
+extern int upload_range;
 
 u8 status_flag = IDLE;
 u8 distance_flag = IDLE;
@@ -337,7 +338,7 @@ void ETC_polling() {
 		for (i = 1; i <= 3; i++) {
 			if (distance[i - 1] != 0.0f &&
 			    distance[i - 1] < closest_tmp &&
-			    distance[i - 1] < 1.0f) {
+			    distance[i - 1] < (upload_range / 100.0)) {
 				closest_tmp = distance[i - 1];
 				closest = i;
 			}
