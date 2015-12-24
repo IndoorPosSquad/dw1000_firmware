@@ -59,7 +59,7 @@ void TIM2_init(void) {
 }
 
 /*
-TIM4时钟初始化:2.5ms溢出 （串口监听）
+TIM4时钟初始化:3.0ms溢出 （串口监听）
 */
 void TIM4_init(void) {
 	NVIC_InitTypeDef NVIC_InitStructure;
@@ -76,8 +76,8 @@ void TIM4_init(void) {
 
 	TIM_DeInit(TIM4);
 
-	TIM_TimeBaseStructure.TIM_Period = 10;
-	TIM_TimeBaseStructure.TIM_Prescaler = 7200;
+	TIM_TimeBaseStructure.TIM_Period = 30;
+	TIM_TimeBaseStructure.TIM_Prescaler = 7200; // 72M / 7200 = 10k
 	TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
 	TIM_TimeBaseInit(TIM4, &TIM_TimeBaseStructure);

@@ -32,7 +32,7 @@
 
 
 // 如果不定义SOLVE_LOCATION，则输出三个测距结果
-#define SOLVE_LOCATION
+//#define SOLVE_LOCATION
 #define GROUND_ANCHOR
 //#define A1_X -1.45
 //#define A1_Y 2.74

@@ -167,6 +167,7 @@ void usart_handle(void) {
 			}
 		}
 
+		memset(usart_buffer, 0, USART_BUFFER_LEN);
 		usart_status = 0;
 		usart_index = 0;
 	}

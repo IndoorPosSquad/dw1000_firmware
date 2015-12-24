@@ -290,8 +290,12 @@ void send_discover_msg(u8 seq) {
 }
 
 void ETC_polling() {
-	u8 i, j;
+	u8 i;
+	u16 j;
 	u8 closest;
+
+	int lp;
+
 	float closest_tmp = 300.0f;
 	// Tx_Buff[0]=0b10000010; // only DST PANID
 	// Tx_Buff[1]=0b00110111;
@@ -307,7 +311,7 @@ void ETC_polling() {
 		DEBUG1(("---start DISCOVERING frame---\r\n"));
 		for (i = 1; i <= 3; i++) { /* i is u8 */
 			send_discover_msg(i);
-			for (j = 0; j < 200; j++) /* j is u8 */ Delay();
+			for (j = 0; j < 200; j++) /* j is u16 */ Delay();
 		}
 		DEBUG1(("result: "));
 		for (i = 1; i <= 3; i++) {
@@ -317,23 +321,30 @@ void ETC_polling() {
 		break;
 	case 2:
 		DEBUG1(("---start RANGING frame---\r\n"));
+		for (lp = 0; lp < 5000; lp++);
 		for (i = 1; i <= 3; i++) {
 			if (discover_record[i - 1] != 0)
 			{
 				DEBUG1(("send LS REQ to: %u", i));
 				send_LS_REQ(i);
 			}
-			for (j = 0; j < 200; j++) /* j is u8 */ Delay();
+			for (j = 0; j < 200; j++) /* j is u16 */ Delay();
 		}
 		DEBUG1(("\r\n"));
 		DEBUG1(("result: "));
+		//printf("result: ");
 		for (i = 1; i <= 3; i++) {
 			DEBUG1((" %.2f ", distance[i - 1]));
+			//printf(" %.2f ", distance[i - 1]);
 		}
 		DEBUG1(("\r\n"));
+		//printf("\r\n");
+		status_forward();
 		break;
 	case 3:
-		count = 0;
+		DEBUG1(("---start UPLOADING frame---\r\n"));
+		closest = 0;
+
 		// when count exceeds TICK_IN_PERIOD, zero it
 		for (i = 1; i <= 3; i++) {
 			if (distance[i - 1] != 0.0f &&
@@ -343,11 +354,17 @@ void ETC_polling() {
 				closest = i;
 			}
 		}
-		DEBUG1(("Closest: %u\r\n", closest));
+
 		if (closest != 0) {
 			send_package_request(closest);
+			DEBUG1(("Sent to closest %u\r\n", closest));
+		} else {
+			DEBUG1(("No upload request been sent\r\n"));
 		}
-		DEBUG1(("---start UPLOADING frame---\r\n"));
+
+		// reset timer loop
+		count = 0;
+		status_forward();
 		return;
 	default:
 		return;
@@ -428,7 +445,7 @@ void transfer_message(u8 * len, u8 * seq, u8 * src, u8 * dst, u8 * msg_payload, 
 	memcpy(&(Tx_Buff[29]), msg_payload, 64);
 	//// 93 - 94 (payload[70])
 	memcpy(&(Tx_Buff[93]), crc, 2);
-	tmp = 94;
+	tmp = 95;
 	raw_write(Tx_Buff, &tmp);
 	DEBUG1(("transfer message sent.\r\n"));
 }
@@ -522,7 +539,7 @@ void status_forward(void) {
 	Tx_Buff[10] = broadcast_addr[4];
 	Tx_Buff[11] = broadcast_addr[5];
 	Tx_Buff[12] = broadcast_addr[6];
-	Tx_Buff[13] = 0xF1; // for RX0
+	Tx_Buff[13] = 0xF0; // for RX0
 
 	// Tx_Buff[13]=broadcast_addr[7];
 	//DST MAC end
@@ -566,6 +583,7 @@ void status_forward(void) {
 }
 
 void handle_status_forward(u8* payload) {
+	DEBUG1(("enter handle_status_forward\r\n"));
 	data[0] = (payload[1] << 24) + (payload[2] << 16) + (payload[3] << 8) + (payload[4]);
 	data[1] = (payload[5] << 24) + (payload[6] << 16) + (payload[7] << 8) + (payload[8]);
 	data[2] = (payload[9] << 24) + (payload[10] << 16) + (payload[11] << 8) + (payload[12]);
@@ -1240,7 +1258,9 @@ void handle_event(void) {
 							// TODO
 							status_flag = IDLE;
 						} else if (payload[0] == 0x04) { // status forward
+							PC0_UP;
 							handle_status_forward(payload);
+							PC0_DOWN;
 
 						} else if (payload[0] == 0x05) { // package
 							PC0_UP;
