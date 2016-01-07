@@ -2,8 +2,8 @@
 #define __CONFIG_H__
 
 // 结点类型配置
-#define TX
-//#define RX
+//#define TX
+#define RX
 
 // 应用类型
 //#define LOCATION

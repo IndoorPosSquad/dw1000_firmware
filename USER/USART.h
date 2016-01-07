@@ -79,6 +79,7 @@ void USART1_send(u8 *data, u16 length);
 #define CMD_WR             (u8)'W' // write register
 #define CMD_RR             (u8)'R' // read register
 #define CMD_LOGLV          (u8)'L' // set log level
+#define CMD_RQID           (u8)'I' // request ID
 #define CMD_LOGLV_PARAM(buf)        (buf[2])
 #define CMD_UPLOADRANGE    (u8)'U'
 #define CMD_UPLOADRANGE_PARAM(buf)  (&buf[2])

@@ -24,6 +24,7 @@ extern xyz location;
 
 int debug_lvl = DEBUG_LVL;
 extern float calib[3];
+u8 self_id;
 
 #ifdef ETC
 int upload_range = UPLOAD_RANGE;
@@ -47,6 +48,7 @@ void USART1_init(u8 dip_config) {
 	NVIC_InitTypeDef NVIC_InitStructure;
 
 	debug_lvl = (int) ((dip_config & 0x30) >> 4);
+	self_id = (dip_config & 0x0f);
 
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 
@@ -148,6 +150,9 @@ void usart_handle(void) {
 				break;
 			case CMD_RR:
 				DEBUG1(("read reg cmd\r\n"));
+				break;
+			case CMD_RQID:
+				printf("DW1000, ID: %d\r\n", (u8)self_id);
 				break;
 			case CMD_LOGLV:
 				debug_lvl = (int) CMD_LOGLV_PARAM(usart_buffer);
