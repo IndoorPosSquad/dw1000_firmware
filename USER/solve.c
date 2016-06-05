@@ -4,7 +4,7 @@
 #include "USART.h"
 #include "CONFIG.h"
 
-extern int debug_lvl;
+extern volatile int debug_lvl;
 extern float distance[3];
 
 #define DIM 3

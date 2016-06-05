@@ -11,6 +11,7 @@ void message_to_host(u8 * src, u8 * dst, u8 * payload, u8 len);
 void transfer_message_to_host(u8 * src, u8 * dst, u8 * payload);
 void message_request_to_host(u8 * src);
 
+
 #ifdef RX
 void USART1_send(u8 *data, u16 length);
 #endif
@@ -20,7 +21,7 @@ void USART1_send(u8 *data, u16 length);
 #define	DEBUG0(msg) \
 	do { if (debug_lvl >= 0) { printf("V0 "); printf msg; } } while (0)
 #define	DEBUG1(msg) \
-	do { if (debug_lvl >= 1) { int it;for (it = 0; it < 10000; it++);/* printf("V1 "); */ /* printf msg; */ } } while (0)
+	do { if (debug_lvl >= 1) { printf("V1 "); printf msg; } } while (0)
 #define	DEBUG2(msg) \
 	do { if (debug_lvl >= 2) { printf("V2 "); printf msg; } } while (0)
 #define	DEBUG3(msg) \

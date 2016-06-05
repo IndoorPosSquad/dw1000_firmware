@@ -46,8 +46,7 @@ u8 usart_buffer[USART_BUFFER_LEN];
 u16 usart_index;
 u8 usart_status;
 
-extern int debug_lvl;
-
+extern void ETC_polling(void);
 // extern void Fifoput(u8* data, int len);
 /*
 0:已完成处理

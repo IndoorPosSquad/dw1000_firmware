@@ -10,7 +10,7 @@
 #include "solve.h"
 
 #include "CONFIG.h"
-
+extern volatile int debug_lvl;
 u8 mac[8];
 u8 emac[6];
 u8 toggle = 1;
@@ -61,7 +61,7 @@ u16 rxpacc;
 double fppl;
 double rxl;
 
-extern int debug_lvl;
+
 extern int upload_range;
 
 u8 status_flag = IDLE;
@@ -289,7 +289,7 @@ void send_discover_msg(u8 seq) {
 	DEBUG1(("discover message sent.\r\n"));
 }
 
-void ETC_polling() {
+void ETC_polling(void) {
 	u8 i;
 	u16 j;
 	u8 closest;
@@ -451,7 +451,7 @@ void transfer_message(u8 * len, u8 * seq, u8 * src, u8 * dst, u8 * msg_payload, 
 }
 
 void handle_transfer_message(u8 * src, u8 * dst, u8 * payload) {
-	transfer_message_to_host(src, dst, payload);;
+	transfer_message_to_host(src, dst, payload);
 	DEBUG1(("got transfer message message sent.\r\n"));
 }
 

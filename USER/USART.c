@@ -21,8 +21,7 @@ extern u32 LS_DATA[3];
 extern float distance[3];
 extern float raw_distance[3];
 extern xyz location;
-
-int debug_lvl = DEBUG_LVL;
+volatile int debug_lvl = DEBUG_LVL;
 extern float calib[3];
 u8 self_id;
 
@@ -272,7 +271,8 @@ void message_request_to_host(u8 * src) {
 	memcpy(&(send_buff[2]), src, 8);
 	// 2 3 4 5 6 7 8 9
 
-	for (i = 0; i < 10; i++) {
+	send_buff[10] = 10;
+	for (i = 0; i < 11; i++) {
 		USART_SendData(USART1, (unsigned char) send_buff[i]);
 		while(USART_GetFlagStatus(USART1, USART_FLAG_TC) != SET);
 	}
@@ -304,7 +304,7 @@ void transfer_message_to_host(u8 * src, u8 * dst, u8 * payload) {
 	// CRC 86 87
 	memcpy(PACKET_CRC(send_buff), &(payload[70]), 2);
 
-	send_buff[88] = 0;
+	send_buff[88] = 10; // n
 
 	for (i = 0; i < 88; i++) {
 		USART_SendData(USART1, (unsigned char) send_buff[i]);

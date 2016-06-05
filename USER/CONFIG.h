@@ -2,8 +2,8 @@
 #define __CONFIG_H__
 
 // 结点类型配置
-//#define TX // Gate
-#define RX // Cargo
+#define TX // Gate
+//#define RX // Cargo
 
 // 应用类型
 //#define LOCATION
@@ -13,9 +13,9 @@
 /*
  */
 #ifdef TX
-#define DEBUG_LVL 2
+#define DEBUG_LVL 3
 #else
-#define DEBUG_LVL 2
+#define DEBUG_LVL 3
 #endif
 
 // 定位周期配置

@@ -21,8 +21,7 @@
 #include "utils.h"
 
 #include "CONFIG.h"
-
-extern int debug_lvl;
+extern volatile int debug_lvl;
 
 /*
 TIM2时钟初始化:0.1s溢出（定位周期）
